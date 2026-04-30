@@ -38,18 +38,6 @@ Cream City Docket monitors Milwaukee Common Council legislation and delivers pla
 
 ---
 
-## Project documentation
-
-Full pre-implementation documentation lives in `/docs`:
-
-- `manifesto.md` — Product thesis and founding memo
-- `problem-statement.md` — User personas and user stories
-- `requirements.md` — Functional and non-functional requirements, data model, API endpoints
-- `dev-plan.md` — Milestone-based development plan with effort estimates
-- `architecture/` — C4 container diagram, pipeline sequence diagram, system flowchart
-- `wireframes/` — Lo-fi wireframes for all six screens
-
----
 
 ## Development
 
@@ -111,4 +99,4 @@ print(json.dumps(r.json(), indent=2))
 ## Built by
 
 Kate Thompson — Software Engineering student, Milwaukee School of Engineering.
-[Portfolio](https://k8controlpanel.com) · Milwaukee, WI
+[Portfolio](https://k8thompson.dev) · Milwaukee, WI

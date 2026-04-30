@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cream City Docket — Wireframes v3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: monospace; background: #e8e8e8; color: #111; padding: 40px 20px; }
+  h1 { font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #555; margin-bottom: 8px; }
+  .screen-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  .screen-wrap { margin-bottom: 80px; }
+  .screen { background: #f5f5f5; border: 2px solid #aaa; width: 100%; max-width: 900px; margin: 0 auto; font-size: 12px; }
+
+  .wf-nav { background: #222; color: #f5f5f5; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #aaa; }
+  .wf-nav .logo { font-size: 13px; font-weight: bold; letter-spacing: 0.05em; }
+  .wf-nav .nav-links { display: flex; gap: 16px; font-size: 11px; color: #bbb; }
+  .wf-nav .nav-links span { border-bottom: 1px solid #666; }
+
+  .wf-box { background: #ddd; border: 1.5px solid #aaa; padding: 8px 10px; font-size: 11px; color: #444; }
+  .wf-box.white { background: #fff; border-color: #ccc; }
+  .wf-box.dark { background: #bbb; border-color: #888; }
+  .wf-box.accent { background: #333; color: #f5f5f5; border-color: #111; }
+
+  .wf-label { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .wf-tag { display: inline-block; background: #ccc; border: 1px solid #999; padding: 2px 7px; font-size: 10px; margin-right: 4px; margin-bottom: 4px; }
+  .wf-tag.active { background: #333; color: #f5f5f5; border-color: #111; }
+  .wf-btn { display: inline-block; background: #333; color: #f5f5f5; border: 1.5px solid #111; padding: 6px 14px; font-size: 11px; font-family: monospace; }
+  .wf-btn.outline { background: transparent; color: #333; border-color: #aaa; }
+  .wf-btn.ghost { background: transparent; color: #f5f5f5; border-color: #999; }
+  .wf-input { background: #fff; border: 1.5px solid #aaa; padding: 6px 10px; font-size: 11px; font-family: monospace; width: 100%; }
+  .wf-select { background: #fff; border: 1.5px solid #aaa; padding: 6px 10px; font-size: 11px; font-family: monospace; }
+  .wf-divider { border: none; border-top: 1px solid #ccc; margin: 6px 0; }
+
+  .badge { display: inline-block; background: #555; color: #f5f5f5; font-size: 9px; padding: 1px 6px; letter-spacing: 0.05em; text-transform: uppercase; margin-right: 4px; }
+  .badge.new { background: #222; }
+  .badge.hearing { background: #444; }
+  .badge.passed { background: #666; }
+  .badge.charter { background: #333; border: 1px dashed #aaa; }
+  .badge.mayor { background: #555; }
+
+  /* Tooltip */
+  .tooltip-wrap { display: inline-block; position: relative; }
+  .tooltip-trigger { display: inline-block; background: #bbb; border: 1px solid #999; border-radius: 50%; width: 14px; height: 14px; text-align: center; line-height: 14px; font-size: 9px; cursor: help; margin-left: 3px; vertical-align: middle; color: #444; }
+  .tooltip-bubble { display: none; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #222; color: #f5f5f5; font-size: 10px; padding: 6px 8px; width: 180px; line-height: 1.4; border: 1px solid #444; z-index: 10; }
+  .tooltip-wrap:hover .tooltip-bubble { display: block; }
+
+  /* Toggle switch */
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #ddd; }
+  .toggle-label { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+  .toggle-sub { font-size: 10px; color: #888; }
+  .toggle { width: 36px; height: 20px; background: #333; border: 1.5px solid #111; position: relative; flex-shrink: 0; cursor: pointer; }
+  .toggle-knob { width: 14px; height: 14px; background: #f5f5f5; position: absolute; top: 2px; right: 2px; }
+  .toggle.off { background: #ccc; border-color: #aaa; }
+  .toggle.off .toggle-knob { right: auto; left: 2px; background: #888; }
+
+  /* Accessibility options */
+  .a11y-option { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+
+  /* Political history */
+  .election-row { display: flex; gap: 0; border-bottom: 1px solid #e8e8e8; }
+  .election-row:last-child { border-bottom: none; }
+  .election-cell { padding: 8px 12px; font-size: 11px; }
+
+  .urgency-bar { padding: 12px 16px; border-bottom: 2px solid; display: flex; justify-content: space-between; align-items: center; }
+  .urgency-bar.urgent { background: #1a1a1a; color: #f5f5f5; border-color: #000; }
+  .urgency-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
+  .urgency-action { font-size: 13px; font-weight: bold; }
+  .urgency-sub { font-size: 10px; opacity: 0.8; margin-top: 3px; }
+
+  .row { display: flex; }
+  .col { flex: 1; }
+  .p16 { padding: 16px; }
+  .p12 { padding: 12px; }
+  .p8 { padding: 8px; }
+  .mb8 { margin-bottom: 8px; }
+  .mb12 { margin-bottom: 12px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb4 { margin-bottom: 4px; }
+  .mt4 { margin-top: 4px; }
+  .mt8 { margin-top: 8px; }
+  .gap8 { gap: 8px; }
+  .gap12 { gap: 12px; }
+  .flex { display: flex; }
+  .justify-between { justify-content: space-between; }
+  .align-center { align-items: center; }
+  .text-sm { font-size: 11px; }
+  .text-xs { font-size: 10px; color: #666; }
+  .bold { font-weight: bold; }
+  .border-r { border-right: 1px solid #ccc; }
+  .border-b { border-bottom: 1px solid #ccc; }
+
+  .annotation { font-size: 10px; color: #888; font-style: italic; margin-top: 6px; padding-left: 4px; border-left: 2px solid #ccc; }
+
+  .section-intro { font-size: 13px; line-height: 1.6; color: #333; padding: 16px; border-bottom: 1px solid #ddd; }
+</style>
+</head>
+<body>
+
+<h1>Cream City Docket — Wireframes v3</h1>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1: HOMEPAGE WITH TOOLTIPS                            -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 1 of 6 — Homepage (updated with tooltips)</div>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links">
+        <span>The Docket</span><span>Alders</span><span>Mayor</span><span>About</span><span>Subscribe →</span>
+      </div>
+    </div>
+
+    <!-- Upcoming hearings -->
+    <div class="p16 border-b" style="background:#1a1a1a; color:#f5f5f5;">
+      <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#aaa; margin-bottom:10px;">Upcoming Hearings &amp; Votes</div>
+      <div class="row gap8">
+        <div style="flex:1; background:#2a2a2a; border:1.5px solid #555; border-left:4px solid #f5f5f5; padding:10px 12px;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">TODAY · Tue May 5 · 9:00 AM</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Zoning variance — 5th District</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Room 301-B, City Hall</div>
+          <div style="font-size:10px; color:#aaa;">Last chance to testify</div>
+        </div>
+        <div style="flex:1; background:#2a2a2a; border:1.5px solid #555; border-left:4px solid #888; padding:10px 12px;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">Wed May 6 · 1:30 PM</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Tenant protections ordinance</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Room 301-B, City Hall</div>
+          <div style="font-size:10px; color:#aaa;">2 chances to testify remaining</div>
+        </div>
+        <div style="flex:1; background:#2a2a2a; border:1.5px solid #555; border-left:4px solid #555; padding:10px 12px;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">Thu May 7 · Full Council</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Police budget amendment</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Common Council Chambers</div>
+          <div style="font-size:10px; color:#aaa;">Call your alder before the vote</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscribe CTA -->
+    <div class="p12 border-b flex justify-between align-center" style="background:#333; color:#f5f5f5;">
+      <div>
+        <div style="font-size:12px; font-weight:bold; margin-bottom:2px;">Get alerts before the vote.</div>
+        <div style="font-size:10px; color:#bbb;">Free email alerts for issues you care about. No account required.</div>
+      </div>
+      <span class="wf-btn" style="background:#f5f5f5; color:#222; border-color:#f5f5f5; white-space:nowrap; margin-left:20px;">Subscribe →</span>
+    </div>
+
+    <!-- Docket controls with tooltip on filter types -->
+    <div class="p12 border-b flex gap8 align-center" style="background:#f0f0f0; flex-wrap:wrap;">
+      <div class="bold text-sm" style="margin-right:8px;">On the Docket</div>
+      <span class="wf-tag active">All</span>
+      <span class="wf-tag">Housing</span>
+      <span class="wf-tag">Policing</span>
+      <span class="wf-tag">Labor</span>
+      <span class="wf-tag">Food Access</span>
+      <span class="wf-tag">+ More</span>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <select class="wf-select" style="width:140px;"><option>All Districts</option></select>
+        <select class="wf-select" style="width:130px;"><option>All Types</option></select>
+        <div class="tooltip-wrap">
+          <span class="tooltip-trigger">?</span>
+          <div class="tooltip-bubble">Types include: Ordinance (permanent law), Resolution (one-time policy), Charter Ordinance (changes the city charter, takes 60 days to take effect), and Appointment (mayor's nominations confirmed by council).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Docket item with charter ordinance tooltip -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex justify-between align-center mb4">
+        <div>
+          <span class="badge new">New</span>
+          <span class="badge hearing">Hearing May 6</span>
+        </div>
+        <div class="text-xs">Apr 28 · File #260892</div>
+      </div>
+      <div class="bold mb4">Ordinance relating to residential tenant protections and notice requirements</div>
+      <div class="text-sm mb8" style="color:#444; line-height:1.5;">Requires landlords to give 90 days notice before raising rent more than 5%, and establishes a tenant dispute process through the city clerk's office.</div>
+      <div class="mb8"><span class="wf-tag active">Housing</span><span class="wf-tag active">Labor</span></div>
+      <div class="flex justify-between align-center">
+        <div class="text-xs">Ald. Coggs · 6th District · Judiciary &amp; Legislation
+          <div class="tooltip-wrap">
+            <span class="tooltip-trigger">?</span>
+            <div class="tooltip-bubble">The Judiciary &amp; Legislation Committee is one of seven standing committees that review bills before they go to a full council vote. Most bills must pass through a committee first.</div>
+          </div>
+        </div>
+        <span class="wf-btn outline">View →</span>
+      </div>
+    </div>
+
+    <!-- Charter ordinance item with tooltip -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex justify-between align-center mb4">
+        <div>
+          <span class="badge hearing">Full Council May 7</span>
+          <span class="badge charter">Charter Ordinance
+            <div class="tooltip-wrap" style="display:inline-block;">
+              <span class="tooltip-trigger" style="background:#555; border-color:#888; color:#ddd;">?</span>
+              <div class="tooltip-bubble">A Charter Ordinance changes Milwaukee's City Charter — the foundational document for city government. It requires a 2/3 council vote (10 of 15 alders) and takes effect 60 days after publication, not the day after like a regular ordinance.</div>
+            </div>
+          </span>
+        </div>
+        <div class="text-xs">Apr 14 · File #260811</div>
+      </div>
+      <div class="bold mb4">Charter ordinance amending Chapter 4 relating to aldermanic term limits</div>
+      <div class="text-sm mb8" style="color:#444; line-height:1.5;">Proposes limiting aldermanic terms to three consecutive four-year terms. Takes effect 60 days after publication if passed.</div>
+      <div class="mb8"><span class="wf-tag active">Budget &amp; Finance</span></div>
+      <div class="flex justify-between align-center">
+        <div class="text-xs">Ald. Stamper · 15th District · Passed committee 5-2</div>
+        <span class="wf-btn outline">View →</span>
+      </div>
+    </div>
+
+    <div class="p12 flex justify-between align-center" style="background:#f0f0f0;">
+      <div class="text-xs">Showing 1–10 of 47 matters</div>
+      <div class="flex gap8"><span class="wf-btn outline">← Prev</span><span class="wf-btn outline">Next →</span></div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Tooltips on "?" icons explain charter ordinance, committee names, and matter types inline without breaking reading flow. Hover interaction — screen reader accessible via aria-describedby in real implementation.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 2: ALDER PROFILE — POLITICAL HISTORY TAB             -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 2 of 6 — Alder Profile: Political History Tab (new)</div>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>About</span><span>Subscribe →</span></div>
+    </div>
+    <div class="p8 border-b text-xs" style="background:#f0f0f0; color:#888;">Alders › 6th District › Ald. Milele Coggs</div>
+
+    <!-- Alder header with new fields -->
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div class="row gap12 align-center">
+        <div class="wf-box" style="width:72px;height:72px;background:#555;border-color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;flex-shrink:0;">Photo</div>
+        <div>
+          <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">Ald. Milele A. Coggs</div>
+          <div style="font-size:11px;color:#bbb;margin-bottom:6px;">6th Aldermanic District · In office since 2008 · <span style="color:#aaa;">4 terms · 18 years</span></div>
+          <div style="display:flex;gap:16px;font-size:11px;color:#ccc; margin-bottom:6px;">
+            <span>📧 mcoggs@milwaukee.gov</span>
+            <span>📞 (414) 286-3764</span>
+          </div>
+          <div style="display:flex;gap:12px;font-size:11px;color:#aaa;">
+            <span>🌐 <span style="border-bottom:1px solid #666;">Official website ↗</span></span>
+            <span>🐦 <span style="border-bottom:1px solid #666;">@MileleCoggs ↗</span></span>
+            <span>📘 <span style="border-bottom:1px solid #666;">Facebook ↗</span></span>
+          </div>
+        </div>
+        <div style="margin-left:auto; text-align:right;">
+          <span class="wf-btn" style="background:#f5f5f5;color:#222;border-color:#f5f5f5;">Subscribe to District 6 →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs — now with Political History -->
+    <div class="flex border-b" style="background:#f0f0f0; overflow-x:auto;">
+      <div class="p12 text-sm" style="color:#888; white-space:nowrap;">Sponsored Bills</div>
+      <div class="p12 text-sm" style="color:#888; white-space:nowrap;">Vote History</div>
+      <div class="p12 text-sm" style="color:#888; white-space:nowrap;">Issue Areas</div>
+      <div class="p12 bold text-sm" style="border-bottom:2px solid #222; white-space:nowrap;">Political History</div>
+    </div>
+
+    <div class="row">
+      <div class="col border-r">
+
+        <!-- Term summary panel -->
+        <div class="p16 border-b">
+          <div class="wf-label mb12">Service Summary</div>
+          <div class="row gap8 mb12">
+            <div class="col wf-box white p8 text-sm">
+              <div class="bold">2008</div>
+              <div class="text-xs">First elected</div>
+            </div>
+            <div class="col wf-box white p8 text-sm">
+              <div class="bold">4 terms</div>
+              <div class="text-xs">Consecutive</div>
+            </div>
+            <div class="col wf-box white p8 text-sm">
+              <div class="bold">18 years</div>
+              <div class="text-xs">In office</div>
+            </div>
+            <div class="col wf-box white p8 text-sm">
+              <div class="bold">April 2028</div>
+              <div class="text-xs">Term expires</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Election history table -->
+        <div class="p16 border-b">
+          <div class="wf-label mb8">Election History — 6th District</div>
+          <div class="wf-box white" style="overflow:hidden;">
+
+            <!-- Table header -->
+            <div class="election-row" style="background:#f0f0f0;">
+              <div class="election-cell bold text-xs" style="width:70px; color:#555;">Year</div>
+              <div class="election-cell bold text-xs" style="width:100px; color:#555;">Election</div>
+              <div class="election-cell bold text-xs col" style="color:#555;">Result</div>
+              <div class="election-cell bold text-xs" style="width:90px; color:#555;">Vote share</div>
+              <div class="election-cell bold text-xs" style="width:80px; color:#555;">Opponents</div>
+            </div>
+
+            <div class="election-row">
+              <div class="election-cell" style="width:70px;">2024</div>
+              <div class="election-cell" style="width:100px;">General</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won</span> — uncontested</div>
+              <div class="election-cell" style="width:90px;">100%</div>
+              <div class="election-cell" style="width:80px;">0</div>
+            </div>
+
+            <div class="election-row" style="background:#fafafa;">
+              <div class="election-cell" style="width:70px;">2020</div>
+              <div class="election-cell" style="width:100px;">General</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won</span></div>
+              <div class="election-cell" style="width:90px;">74%</div>
+              <div class="election-cell" style="width:80px;">1</div>
+            </div>
+
+            <div class="election-row">
+              <div class="election-cell" style="width:70px;">2020</div>
+              <div class="election-cell" style="width:100px;">Primary</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won primary</span></div>
+              <div class="election-cell" style="width:90px;">61%</div>
+              <div class="election-cell" style="width:80px;">2</div>
+            </div>
+
+            <div class="election-row" style="background:#fafafa;">
+              <div class="election-cell" style="width:70px;">2016</div>
+              <div class="election-cell" style="width:100px;">General</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won</span> — uncontested</div>
+              <div class="election-cell" style="width:90px;">100%</div>
+              <div class="election-cell" style="width:80px;">0</div>
+            </div>
+
+            <div class="election-row">
+              <div class="election-cell" style="width:70px;">2012</div>
+              <div class="election-cell" style="width:100px;">General</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won</span></div>
+              <div class="election-cell" style="width:90px;">82%</div>
+              <div class="election-cell" style="width:80px;">1</div>
+            </div>
+
+            <div class="election-row" style="background:#fafafa;">
+              <div class="election-cell" style="width:70px;">2008</div>
+              <div class="election-cell" style="width:100px;">General</div>
+              <div class="election-cell col"><span style="font-weight:bold;">Won</span></div>
+              <div class="election-cell" style="width:90px;">68%</div>
+              <div class="election-cell" style="width:80px;">1</div>
+            </div>
+
+          </div>
+          <div class="text-xs mt4" style="color:#aaa;">Source: Milwaukee City Elections Commission · Data may be incomplete for early elections</div>
+        </div>
+
+        <!-- Council roles -->
+        <div class="p16">
+          <div class="wf-label mb8">Council Roles &amp; Leadership</div>
+          <div class="wf-box white p10 text-xs" style="line-height:1.8;">
+            <div>2022–present — Member, Judiciary &amp; Legislation Committee</div>
+            <div>2020–present — Member, Community &amp; Economic Development Committee</div>
+            <div>2018–2022 — Chair, Zoning, Neighborhoods &amp; Development Committee</div>
+            <div>2012–2016 — Member, Finance &amp; Personnel Committee</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:200px; flex-shrink:0;">
+        <div class="p12 border-b">
+          <div class="wf-label mb8">Quick Facts</div>
+          <div class="text-xs mb4"><span style="color:#888;">District:</span> 6th Aldermanic</div>
+          <div class="text-xs mb4"><span style="color:#888;">In office:</span> Since 2008</div>
+          <div class="text-xs mb4"><span style="color:#888;">Terms served:</span> 4</div>
+          <div class="text-xs mb4"><span style="color:#888;">Times primaried:</span> 1 (2020)</div>
+          <div class="text-xs mb4"><span style="color:#888;">Uncontested runs:</span> 2</div>
+          <div class="text-xs"><span style="color:#888;">Term expires:</span> April 2028</div>
+        </div>
+        <div class="p12 border-b">
+          <div class="wf-label mb8">Links</div>
+          <div class="text-xs mb4">🌐 <span style="text-decoration:underline;">Official aldermanic page ↗</span></div>
+          <div class="text-xs mb4">🐦 <span style="text-decoration:underline;">@MileleCoggs ↗</span></div>
+          <div class="text-xs mb4">📘 <span style="text-decoration:underline;">Facebook ↗</span></div>
+          <div class="text-xs"><span style="text-decoration:underline;">Milwaukee Elections Commission ↗</span></div>
+        </div>
+        <div class="p12">
+          <div class="wf-label mb8">Neighborhoods</div>
+          <div class="text-xs mb4">Near North Side</div>
+          <div class="text-xs mb4">Harambee</div>
+          <div class="text-xs mb4">Riverwest</div>
+          <div class="text-xs">Brewers Hill</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Social links and official website in header. Service summary panel at top of tab. Election table shows year, type (primary vs general), result, vote share, and opponent count. "Times primaried" in quick facts sidebar is the accountability stat you wanted front and center.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 3: SUBSCRIBE PAGE                                     -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 3 of 6 — Subscribe Page</div>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>About</span><span>Subscribe →</span></div>
+    </div>
+
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div style="font-size:16px; font-weight:bold; margin-bottom:6px;">Get alerts before the vote.</div>
+      <div style="font-size:11px; color:#bbb;">Free email alerts. No account. No spam. Unsubscribe any time.</div>
+    </div>
+
+    <div class="row">
+      <div class="col p16 border-r">
+
+        <!-- Step 1: Email -->
+        <div class="mb16">
+          <div class="wf-label mb8">1. Your email address</div>
+          <input class="wf-input mb4" placeholder="you@example.com" type="email" style="max-width:360px;">
+          <div class="text-xs">We only use this to send alerts. Never shared.</div>
+        </div>
+
+        <!-- Step 2: Issue areas -->
+        <div class="mb16">
+          <div class="wf-label mb4">2. Alert me about these issue areas
+            <div class="tooltip-wrap" style="display:inline-block;">
+              <span class="tooltip-trigger">?</span>
+              <div class="tooltip-bubble">Bills are automatically tagged by issue area using AI. You can always update these preferences later.</div>
+            </div>
+          </div>
+          <div class="text-xs mb8" style="color:#888;">Select all that apply</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <span class="wf-tag active">Housing</span>
+            <span class="wf-tag active">Labor</span>
+            <span class="wf-tag active">Food Access</span>
+            <span class="wf-tag">Policing &amp; Public Safety</span>
+            <span class="wf-tag">Immigration</span>
+            <span class="wf-tag">Transportation</span>
+            <span class="wf-tag">Environment</span>
+            <span class="wf-tag">Education</span>
+            <span class="wf-tag">Healthcare</span>
+            <span class="wf-tag">Small Business</span>
+            <span class="wf-tag">Budget &amp; Finance</span>
+            <span class="wf-tag">Land Use &amp; Zoning</span>
+            <span class="wf-tag">Other</span>
+          </div>
+        </div>
+
+        <!-- Step 3: District -->
+        <div class="mb16">
+          <div class="wf-label mb4">3. Alert me about my aldermanic district (optional)</div>
+          <div class="text-xs mb8" style="color:#888;">Get alerts for all legislation sponsored by or affecting your district, regardless of issue area.</div>
+          <div class="flex gap8 align-center mb8">
+            <select class="wf-select" style="width:180px;"><option>Select your district</option></select>
+            <div class="tooltip-wrap">
+              <span class="tooltip-trigger">?</span>
+              <div class="tooltip-bubble">Milwaukee has 15 aldermanic districts. Not sure which one you're in? See the map on the right or use the city's lookup tool.</div>
+            </div>
+          </div>
+          <div class="text-xs"><span style="text-decoration:underline; color:#444;">Find my district on the city website ↗</span></div>
+        </div>
+
+        <!-- Step 4: Alert frequency -->
+        <div class="mb16">
+          <div class="wf-label mb8">4. How often do you want alerts?</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <label class="flex gap8 align-center text-sm">
+              <input type="radio" name="freq" checked style="margin:0;">
+              <span><strong>As it happens</strong> — alert me when a matching bill is introduced, scheduled, or voted on</span>
+            </label>
+            <label class="flex gap8 align-center text-sm">
+              <input type="radio" name="freq" style="margin:0;">
+              <span><strong>Weekly digest</strong> — one email per week summarizing activity</span>
+            </label>
+          </div>
+        </div>
+
+        <span class="wf-btn" style="padding:10px 24px; font-size:13px;">Subscribe →</span>
+        <div class="text-xs mt4" style="color:#aaa;">You'll receive a confirmation email. Preferences can be updated any time via a link in every alert.</div>
+
+      </div>
+
+      <!-- Sidebar: district map + explainer -->
+      <div style="width:240px; flex-shrink:0; padding:16px; background:#f0f0f0;">
+        <div class="wf-label mb8">Find Your District</div>
+        <div class="wf-box dark" style="height:180px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#555; margin-bottom:8px; text-align:center; line-height:1.5;">
+          [ Static Milwaukee aldermanic district map image ]
+        </div>
+        <div class="text-xs mb8" style="color:#666; line-height:1.5;">Milwaukee has 15 aldermanic districts. Each district elects one alder to a 4-year term.</div>
+        <a class="wf-btn outline" style="display:block; text-align:center; font-size:10px; padding:6px;">City district lookup tool ↗</a>
+
+        <div class="wf-divider" style="margin:16px 0;"></div>
+
+        <div class="wf-label mb8">What kinds of alerts will I get?</div>
+        <div class="text-xs" style="line-height:1.8; color:#555;">
+          <div>📄 New bill introduced</div>
+          <div>📅 Committee hearing scheduled</div>
+          <div>🗳 Full council vote upcoming</div>
+          <div>✒️ Mayor signed or vetoed</div>
+          <div>⚠️ Veto override vote scheduled</div>
+          <div>📝 Bill amended (new substitute)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Three-step flow: email, issue areas, district. Alert type explainer on sidebar sets expectations. Weekly digest option for lower-engagement users. District map is static image, no geocoding required. Tooltip explains AI tagging on issue areas step.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 4: ABOUT PAGE                                         -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 4 of 6 — About Page</div>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>About</span><span>Subscribe →</span></div>
+    </div>
+
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div style="font-size:16px; font-weight:bold; margin-bottom:6px;">About Cream City Docket</div>
+      <div style="font-size:11px; color:#bbb;">Milwaukee government, made understandable.</div>
+    </div>
+
+    <div class="row">
+      <div class="col p16 border-r">
+
+        <div class="section-intro" style="padding:0 0 16px 0; border-bottom:1px solid #ddd; margin-bottom:16px;">
+          Cream City Docket is a civic transparency tool that monitors Milwaukee Common Council legislation and delivers plain-English summaries and timely alerts so residents can act before votes happen — not after.
+        </div>
+
+        <div class="mb16">
+          <div class="bold mb8">Why this exists</div>
+          <div class="text-sm" style="line-height:1.7; color:#333;">
+            In April 2026, the Milwaukee Common Council passed a 10 PM food truck curfew downtown. The vote was unanimous. Most residents found out after it had already passed.
+          </div>
+          <div class="text-sm mt8" style="line-height:1.7; color:#333;">
+            That experience is common. Milwaukee's legislative data is technically public — it's all on the city's Legistar system — but it's fragmented, hard to navigate, and rarely covered by media until after decisions are final. By the time most residents learn a bill exists, the window to testify, contact their alder, or influence the outcome has already closed.
+          </div>
+          <div class="text-sm mt8" style="line-height:1.7; color:#333;">
+            Cream City Docket exists to close that gap.
+          </div>
+        </div>
+
+        <div class="mb16">
+          <div class="bold mb8">How it works</div>
+          <div class="wf-box white p12 text-xs" style="line-height:2;">
+            <div>1. The system checks Milwaukee's public Legistar API every hour for new and updated legislation.</div>
+            <div>2. Each bill is summarized in plain English using Claude Haiku (Anthropic's AI).</div>
+            <div>3. Bills are tagged by issue area from a fixed taxonomy.</div>
+            <div>4. Subscribers receive email alerts when matching bills are introduced, scheduled, or voted on.</div>
+            <div>5. All original source documents link directly back to official city records.</div>
+          </div>
+        </div>
+
+        <div class="mb16">
+          <div class="bold mb8">On AI-generated summaries</div>
+          <div class="text-sm" style="line-height:1.7; color:#333;">
+            Summaries on this site are generated by an AI (Claude Haiku by Anthropic) and are intended to help you understand what a bill does — not to replace the official text. Every summary links to the original filing on Legistar. If you are making a decision based on legislation, always read the source document.
+          </div>
+          <div class="text-sm mt8" style="line-height:1.7; color:#333;">
+            You can turn off AI summaries in <span style="text-decoration:underline;">Settings</span> and see the official bill analysis text instead.
+          </div>
+        </div>
+
+        <div class="mb16">
+          <div class="bold mb8">What this is not</div>
+          <div class="wf-box p10 text-xs" style="line-height:2; background:#e8e8e8;">
+            <div>✗ Not partisan or ideologically affiliated</div>
+            <div>✗ Not a replacement for journalism</div>
+            <div>✗ Not a data harvesting tool — email addresses are only used to send alerts</div>
+            <div>✗ Not opinion disguised as fact</div>
+          </div>
+        </div>
+
+        <div class="mb16">
+          <div class="bold mb8">Data sources</div>
+          <div class="text-xs" style="line-height:1.8; color:#555;">
+            <div>Legislative data — <span style="text-decoration:underline;">City of Milwaukee Legistar (public API)</span></div>
+            <div>AI summaries — Anthropic Claude Haiku</div>
+            <div>Alder contact info — City of Milwaukee Common Council website</div>
+            <div>Election history — Milwaukee City Elections Commission</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="bold mb8">Built by</div>
+          <div class="text-sm" style="line-height:1.7; color:#333;">
+            Kate Thompson · Software Engineering student, Milwaukee School of Engineering · Milwaukee resident
+          </div>
+          <div class="text-xs mt4" style="color:#aaa;">Questions or feedback: <span style="text-decoration:underline;">hello@creamcitydocket.com</span></div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:220px; flex-shrink:0; padding:16px; background:#f5f5f5; border-left:1px solid #ddd;">
+        <div class="wf-label mb8">A civic glossary</div>
+        <div class="text-xs" style="line-height:1.9; color:#444;">
+          <div class="bold mb4" style="margin-top:8px;">Ordinance</div>
+          <div style="color:#666; margin-bottom:8px;">Permanent change to Milwaukee's municipal code. Takes effect the day after publication.</div>
+          <div class="bold mb4">Charter Ordinance</div>
+          <div style="color:#666; margin-bottom:8px;">Changes the City Charter itself. Requires a 2/3 council vote and takes effect 60 days after publication.</div>
+          <div class="bold mb4">Resolution</div>
+          <div style="color:#666; margin-bottom:8px;">A one-time policy directive or statement. Doesn't change permanent law.</div>
+          <div class="bold mb4">Committee hearing</div>
+          <div style="color:#666; margin-bottom:8px;">Most bills are reviewed by a standing committee before going to the full council. Public testimony is accepted here.</div>
+          <div class="bold mb4">Veto override</div>
+          <div style="color:#666; margin-bottom:8px;">If the mayor vetoes a bill, the council can override it with 10 votes (2/3 of 15 alders).</div>
+          <div class="bold mb4">Substitute file</div>
+          <div style="color:#666;">When a bill is amended significantly, a new version called a "substitute" replaces the original text.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Trigger story leads the "why this exists" section. AI transparency section is prominent and links to Settings. Glossary lives in the sidebar here as a reference panel — can be linked to from tooltips throughout the site.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 5: SETTINGS PAGE                                      -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 5 of 6 — Settings Page</div>
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>About</span><span>Subscribe →</span></div>
+    </div>
+
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div style="font-size:16px; font-weight:bold; margin-bottom:4px;">Settings</div>
+      <div style="font-size:11px; color:#bbb;">Site-wide display preferences. Saved in your browser. No account required.</div>
+    </div>
+
+    <div class="row">
+      <div class="col p16 border-r">
+
+        <!-- AI section -->
+        <div class="mb16 border-b" style="padding-bottom:16px;">
+          <div class="bold mb4">AI &amp; Summaries</div>
+          <div class="text-xs mb12" style="color:#888;">Cream City Docket uses AI to generate plain-language summaries of legislation. These settings let you control how that content appears.</div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Show AI-generated summaries</div>
+              <div class="toggle-sub">When on, each bill shows a plain-English summary generated by Claude Haiku.</div>
+            </div>
+            <div class="toggle"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="wf-box p10 text-xs mt8" style="background:#f0f0f0; border-color:#ccc; line-height:1.6;">
+            <span class="bold">When AI summaries are off:</span> Bills display the official analysis text filed with the city clerk's office, truncated with a link to the full text on Legistar. This text is written by city staff or the bill's sponsor, not AI.
+          </div>
+
+          <div class="toggle-row" style="margin-top:12px;">
+            <div>
+              <div class="toggle-label">Show AI confidence indicator</div>
+              <div class="toggle-sub">Displays a note when a summary may be less reliable (e.g. very short or complex bill text).</div>
+            </div>
+            <div class="toggle"><div class="toggle-knob"></div></div>
+          </div>
+        </div>
+
+        <!-- Accessibility section -->
+        <div class="mb16 border-b" style="padding-bottom:16px;">
+          <div class="bold mb4">Accessibility</div>
+          <div class="text-xs mb12" style="color:#888;">Display preferences to improve readability and usability.</div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">High contrast mode</div>
+              <div class="toggle-sub">Increases contrast between text and background for improved readability.</div>
+            </div>
+            <div class="toggle"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Large text mode</div>
+              <div class="toggle-sub">Increases base font size throughout the site.</div>
+            </div>
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Reduce motion</div>
+              <div class="toggle-sub">Disables animations and transitions for users sensitive to motion.</div>
+            </div>
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Dyslexia-friendly font</div>
+              <div class="toggle-sub">Switches to a typeface designed to improve readability for users with dyslexia.</div>
+            </div>
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="mt12">
+            <div class="wf-label mb4">Reading level for summaries</div>
+            <div class="text-xs mb8" style="color:#888;">Adjusts the complexity of AI-generated plain-language summaries.</div>
+            <div style="display:flex; gap:8px;">
+              <span class="wf-tag active">Standard (8th grade)</span>
+              <span class="wf-tag">Simple (5th grade)</span>
+              <span class="wf-tag">Detailed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Display section -->
+        <div class="mb16 border-b" style="padding-bottom:16px;">
+          <div class="bold mb4">Display</div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Show glossary tooltips</div>
+              <div class="toggle-sub">Shows "?" icons next to civic and legal terms with plain-English explanations.</div>
+            </div>
+            <div class="toggle"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Show file numbers</div>
+              <div class="toggle-sub">Displays Legistar file numbers on bill cards in the feed.</div>
+            </div>
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+          </div>
+
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Compact bill feed</div>
+              <div class="toggle-sub">Shows more bills per page by hiding the summary text in the feed view.</div>
+            </div>
+            <div class="toggle off"><div class="toggle-knob"></div></div>
+          </div>
+        </div>
+
+        <!-- Reset -->
+        <div>
+          <span class="wf-btn outline">Reset all settings to default</span>
+          <div class="text-xs mt4" style="color:#aaa;">Settings are stored in your browser. Clearing your browser data will reset them.</div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:220px; flex-shrink:0; padding:16px; background:#f5f5f5;">
+        <div class="wf-label mb8">About these settings</div>
+        <div class="text-xs mb12" style="color:#666; line-height:1.7;">
+          All settings are saved locally in your browser using localStorage. No account is required and nothing is sent to our servers.
+        </div>
+        <div class="wf-label mb8">Manage your alerts</div>
+        <div class="text-xs mb8" style="color:#666; line-height:1.7;">
+          To update your email alert preferences or unsubscribe, use the link in any alert email you've received.
+        </div>
+        <span class="wf-btn outline" style="display:block; text-align:center; font-size:10px; padding:6px; margin-bottom:12px;">Manage alert preferences →</span>
+
+        <div class="wf-label mb8">Accessibility resources</div>
+        <div class="text-xs" style="color:#666; line-height:1.7;">
+          If you need assistance accessing content on this site, contact us at <span style="text-decoration:underline;">hello@creamcitydocket.com</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: AI toggle is prominent and first. "AI off" explanation is shown inline so users understand what they'll see instead. Accessibility section has five distinct options including dyslexia font and reading level adjustment. All settings stored in localStorage — no account needed. Tooltips themselves can be toggled off for users who find them distracting.
+  </div>
+</div>
+
+</body>
+</html>

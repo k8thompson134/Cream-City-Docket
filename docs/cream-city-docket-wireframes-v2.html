@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cream City Docket — Lo-Fi Wireframes v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: monospace;
+    background: #e8e8e8;
+    color: #111;
+    padding: 40px 20px;
+  }
+
+  h1 { font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #555; margin-bottom: 8px; }
+  .screen-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  .screen-wrap { margin-bottom: 80px; }
+
+  .screen {
+    background: #f5f5f5;
+    border: 2px solid #aaa;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    font-size: 12px;
+  }
+
+  .wf-nav {
+    background: #222;
+    color: #f5f5f5;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #aaa;
+  }
+  .wf-nav .logo { font-size: 13px; font-weight: bold; letter-spacing: 0.05em; }
+  .wf-nav .nav-links { display: flex; gap: 16px; font-size: 11px; color: #bbb; }
+  .wf-nav .nav-links span { border-bottom: 1px solid #666; cursor: pointer; }
+
+  .wf-box { background: #ddd; border: 1.5px solid #aaa; padding: 8px 10px; font-size: 11px; color: #444; }
+  .wf-box.dark { background: #bbb; border-color: #888; }
+  .wf-box.white { background: #fff; border-color: #ccc; }
+  .wf-box.accent { background: #333; color: #f5f5f5; border-color: #111; }
+
+  /* Urgency states */
+  .urgency-bar { padding: 12px 16px; border-bottom: 2px solid; display: flex; justify-content: space-between; align-items: center; }
+  .urgency-bar.urgent { background: #1a1a1a; color: #f5f5f5; border-color: #000; }
+  .urgency-bar.soon { background: #3a3a3a; color: #f5f5f5; border-color: #111; }
+  .urgency-bar.mayor { background: #555; color: #f5f5f5; border-color: #333; }
+  .urgency-bar.signed { background: #888; color: #f5f5f5; border-color: #666; }
+  .urgency-bar.neutral { background: #ccc; color: #333; border-color: #aaa; }
+
+  .urgency-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
+  .urgency-action { font-size: 13px; font-weight: bold; }
+  .urgency-sub { font-size: 10px; opacity: 0.8; margin-top: 3px; }
+
+  .wf-label { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .wf-tag { display: inline-block; background: #ccc; border: 1px solid #999; padding: 2px 7px; font-size: 10px; margin-right: 4px; margin-bottom: 4px; }
+  .wf-tag.active { background: #333; color: #f5f5f5; border-color: #111; }
+  .wf-divider { border: none; border-top: 1px solid #ccc; margin: 0; }
+  .wf-btn { display: inline-block; background: #333; color: #f5f5f5; border: 1.5px solid #111; padding: 6px 14px; font-size: 11px; cursor: pointer; font-family: monospace; }
+  .wf-btn.outline { background: transparent; color: #333; border-color: #aaa; }
+  .wf-btn.ghost { background: transparent; color: #f5f5f5; border-color: #999; }
+  .wf-input { background: #fff; border: 1.5px solid #aaa; padding: 6px 10px; font-size: 11px; font-family: monospace; width: 100%; }
+  .wf-select { background: #fff; border: 1.5px solid #aaa; padding: 6px 10px; font-size: 11px; font-family: monospace; }
+
+  .badge { display: inline-block; background: #555; color: #f5f5f5; font-size: 9px; padding: 1px 6px; letter-spacing: 0.05em; text-transform: uppercase; margin-right: 4px; }
+  .badge.new { background: #222; }
+  .badge.hearing { background: #444; }
+  .badge.passed { background: #666; }
+  .badge.vetoed { background: #333; }
+  .badge.signed { background: #888; }
+  .badge.charter { background: #333; border: 1px dashed #aaa; }
+  .badge.mayor { background: #555; }
+
+  .row { display: flex; }
+  .col { flex: 1; }
+  .p16 { padding: 16px; }
+  .p12 { padding: 12px; }
+  .p8 { padding: 8px; }
+  .mb8 { margin-bottom: 8px; }
+  .mb12 { margin-bottom: 12px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb4 { margin-bottom: 4px; }
+  .mt4 { margin-top: 4px; }
+  .gap8 { gap: 8px; }
+  .gap12 { gap: 12px; }
+  .flex { display: flex; }
+  .justify-between { justify-content: space-between; }
+  .align-center { align-items: center; }
+  .text-sm { font-size: 11px; }
+  .text-xs { font-size: 10px; color: #666; }
+  .bold { font-weight: bold; }
+  .border-r { border-right: 1px solid #ccc; }
+  .border-b { border-bottom: 1px solid #ccc; }
+
+  .annotation {
+    font-size: 10px; color: #888; font-style: italic;
+    margin-top: 6px; padding-left: 4px; border-left: 2px solid #ccc;
+  }
+
+  /* hearing card */
+  .hearing-card {
+    background: #fff;
+    border: 1.5px solid #aaa;
+    border-left: 4px solid #222;
+    padding: 10px 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- SCREEN 1: HOMEPAGE                                           -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <h1>Cream City Docket — Lo-Fi Wireframes v2</h1>
+  <div class="screen-label">Screen 1 of 4 — Homepage</div>
+
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links">
+        <span>The Docket</span>
+        <span>Alders</span>
+        <span>Mayor</span>
+        <span>Subscribe →</span>
+      </div>
+    </div>
+
+    <!-- Upcoming hearings — leads the page -->
+    <div class="p16 border-b" style="background:#1a1a1a; color:#f5f5f5;">
+      <div style="font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#aaa; margin-bottom:10px;">Upcoming Hearings &amp; Votes</div>
+      <div class="row gap8">
+
+        <div class="hearing-card col" style="border-left-color:#f5f5f5; background:#2a2a2a; border-color:#555;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">TODAY · Tue May 5 · 9:00 AM</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Zoning variance — 5th District</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Room 301-B, City Hall</div>
+          <div style="font-size:10px; color:#aaa;">Last chance to testify</div>
+        </div>
+
+        <div class="hearing-card col" style="border-left-color:#ccc; background:#2a2a2a; border-color:#555;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">Wed May 6 · 1:30 PM</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Tenant protections ordinance</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Room 301-B, City Hall</div>
+          <div style="font-size:10px; color:#aaa;">2 chances to testify remaining</div>
+        </div>
+
+        <div class="hearing-card col" style="border-left-color:#888; background:#2a2a2a; border-color:#555;">
+          <div style="font-size:10px; color:#aaa; margin-bottom:4px;">Thu May 7 · Full Council</div>
+          <div style="font-size:12px; font-weight:bold; color:#f5f5f5; margin-bottom:4px;">Police budget amendment</div>
+          <div style="font-size:10px; color:#bbb; margin-bottom:6px;">Common Council Chambers</div>
+          <div style="font-size:10px; color:#aaa;">Call your alder before the vote</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Subscribe CTA -->
+    <div class="p12 border-b flex justify-between align-center" style="background:#333; color:#f5f5f5;">
+      <div>
+        <div style="font-size:12px; font-weight:bold; margin-bottom:2px;">Get alerts before the vote.</div>
+        <div style="font-size:10px; color:#bbb;">Free email alerts for issues you care about. No account required.</div>
+      </div>
+      <span class="wf-btn" style="background:#f5f5f5; color:#222; border-color:#f5f5f5; white-space:nowrap; margin-left:20px;">Subscribe →</span>
+    </div>
+
+    <!-- On the Docket controls -->
+    <div class="p12 border-b flex gap8 align-center" style="background:#f0f0f0; flex-wrap:wrap;">
+      <div class="bold text-sm" style="margin-right:8px;">On the Docket</div>
+      <span class="wf-tag active">All</span>
+      <span class="wf-tag">Housing</span>
+      <span class="wf-tag">Policing</span>
+      <span class="wf-tag">Labor</span>
+      <span class="wf-tag">Food Access</span>
+      <span class="wf-tag">Immigration</span>
+      <span class="wf-tag">+ More</span>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <select class="wf-select" style="width:140px;"><option>All Districts</option></select>
+        <select class="wf-select" style="width:130px;"><option>All Types</option></select>
+      </div>
+    </div>
+
+    <!-- Docket items -->
+
+    <div class="wf-box white p12 border-b">
+      <div class="flex justify-between align-center mb4">
+        <div><span class="badge new">New</span><span class="badge hearing">Hearing May 6</span></div>
+        <div class="text-xs">Apr 28 · File #260892</div>
+      </div>
+      <div class="bold mb4">Ordinance relating to residential tenant protections and notice requirements</div>
+      <div class="text-sm mb8" style="color:#444; line-height:1.5;">Requires landlords to give 90 days notice before raising rent more than 5%, and establishes a tenant dispute process through the city clerk's office.</div>
+      <div class="mb8"><span class="wf-tag active">Housing</span><span class="wf-tag active">Labor</span></div>
+      <div class="flex justify-between align-center">
+        <div class="text-xs">Ald. Coggs · 6th District · Judiciary &amp; Legislation</div>
+        <span class="wf-btn outline">View →</span>
+      </div>
+    </div>
+
+    <div class="wf-box white p12 border-b">
+      <div class="flex justify-between align-center mb4">
+        <div><span class="badge hearing">Full Council May 7</span><span class="badge charter">Charter Ordinance</span></div>
+        <div class="text-xs">Apr 14 · File #260811</div>
+      </div>
+      <div class="bold mb4">Charter ordinance amending Chapter 4 relating to aldermanic term limits</div>
+      <div class="text-sm mb8" style="color:#444; line-height:1.5;">Proposes limiting aldermanic terms to three consecutive four-year terms. As a charter ordinance, takes effect 60 days after publication if passed.</div>
+      <div class="mb8"><span class="wf-tag active">Budget &amp; Finance</span></div>
+      <div class="flex justify-between align-center">
+        <div class="text-xs">Ald. Stamper · 15th District · Passed committee 5-2</div>
+        <span class="wf-btn outline">View →</span>
+      </div>
+    </div>
+
+    <div class="wf-box white p12 border-b">
+      <div class="flex justify-between align-center mb4">
+        <div><span class="badge passed">Passed 12-3</span><span class="badge mayor">With Mayor</span></div>
+        <div class="text-xs">Mar 31 · File #260744</div>
+      </div>
+      <div class="bold mb4">Resolution relating to municipal broadband feasibility study</div>
+      <div class="text-sm mb8" style="color:#444; line-height:1.5;">Directs Public Works to study a city-owned broadband network for low-income residents. Findings due within 180 days.</div>
+      <div class="mb8"><span class="wf-tag active">Transportation</span><span class="wf-tag active">Budget &amp; Finance</span></div>
+      <div class="flex justify-between align-center">
+        <div class="text-xs">Ald. Perez, Ald. Taylor · Awaiting Mayor Johnson signature</div>
+        <span class="wf-btn outline">View →</span>
+      </div>
+    </div>
+
+    <div class="p12 flex justify-between align-center" style="background:#f0f0f0;">
+      <div class="text-xs">Showing 1–10 of 47 matters</div>
+      <div class="flex gap8">
+        <span class="wf-btn outline">← Prev</span>
+        <span class="wf-btn outline">Next →</span>
+      </div>
+    </div>
+
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Upcoming hearings leads — most urgent info first. "Last chance to testify / X chances remaining" framing makes civic urgency concrete. Subscribe CTA follows immediately. "On the Docket" section header used throughout.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 2: BILL DETAIL PAGE                                   -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 2 of 4 — Bill Detail Page</div>
+
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links">
+        <span>The Docket</span><span>Alders</span><span>Mayor</span><span>Subscribe →</span>
+      </div>
+    </div>
+
+    <div class="p8 border-b text-xs" style="background:#f0f0f0; color:#888;">
+      The Docket › File #260892
+    </div>
+
+    <!-- Bill header -->
+    <div class="p16 border-b">
+      <div class="flex gap8 mb8 align-center">
+        <span class="badge new">New</span>
+        <span class="badge hearing">Hearing May 6</span>
+        <span class="wf-tag active">Housing</span>
+        <span class="wf-tag active">Labor</span>
+        <div style="margin-left:auto;" class="flex gap8">
+          <span class="wf-btn outline">Share ↗</span>
+          <span class="wf-btn outline">Legistar ↗</span>
+        </div>
+      </div>
+      <div class="bold mb4" style="font-size:15px;">Ordinance relating to residential tenant protections and notice requirements</div>
+      <div class="text-xs">File #260892 · Introduced April 28, 2026 · Ordinance</div>
+    </div>
+
+    <!-- URGENCY BANNER — the key new element -->
+    <!-- Example A: Hearing imminent -->
+    <div class="urgency-bar urgent">
+      <div>
+        <div class="urgency-label">⏰ Hearing in 1 day — last chance to testify</div>
+        <div class="urgency-action">Wed May 6 · 1:30 PM · Room 301-B, City Hall</div>
+        <div class="urgency-sub">Judiciary &amp; Legislation Committee · Sign in with the clerk to speak publicly</div>
+      </div>
+      <div class="flex gap8">
+        <span class="wf-btn ghost">Add to calendar</span>
+        <span class="wf-btn" style="background:#f5f5f5; color:#222; border-color:#f5f5f5;">Contact Ald. Coggs →</span>
+      </div>
+    </div>
+
+    <!-- Urgency banner variants shown as reference -->
+    <div style="background:#f0f0f0; padding:8px 16px; border-bottom:1px solid #ccc;">
+      <div class="text-xs bold mb4" style="color:#666;">↓ Other urgency banner states (for reference):</div>
+      <div class="urgency-bar soon" style="border:1px solid #555; margin-bottom:6px; border-left:4px solid #f5f5f5;">
+        <div>
+          <div class="urgency-label">Full council vote in 2 days</div>
+          <div class="urgency-action">Thu May 7 · Committee recommended passage 5-2</div>
+          <div class="urgency-sub">2 chances to contact your alder remaining before the vote</div>
+        </div>
+        <span class="wf-btn ghost">Find my alder →</span>
+      </div>
+      <div class="urgency-bar mayor" style="border:1px solid #666; margin-bottom:6px;">
+        <div>
+          <div class="urgency-label">Passed council 12-3 · Now with the mayor</div>
+          <div class="urgency-action">Mayor Johnson has 10 days to sign or veto</div>
+          <div class="urgency-sub">Contact the mayor's office to share your input before it's signed into law</div>
+        </div>
+        <span class="wf-btn ghost">Contact Mayor Johnson →</span>
+      </div>
+      <div class="urgency-bar signed" style="border:1px solid #777;">
+        <div>
+          <div class="urgency-label">Signed into law</div>
+          <div class="urgency-action">Signed by Mayor Johnson · April 10, 2026</div>
+          <div class="urgency-sub">Takes effect April 11, 2026 · Day after publication</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Main column -->
+      <div class="col border-r">
+
+        <!-- Plain language summary -->
+        <div class="p16 border-b">
+          <div class="wf-label mb8">Plain-Language Summary</div>
+          <div class="wf-box white p12 text-sm" style="line-height:1.6;">
+            This ordinance requires landlords in Milwaukee to give tenants 90 days notice before raising rent by more than 5%. It also creates a new dispute resolution process through the city clerk's office where tenants can file complaints about improper notice. Violations would result in fines for landlords. If passed, the ordinance would take effect the day after publication in the city newspaper.
+          </div>
+          <div class="text-xs mt4" style="color:#aaa;">Generated by Claude Haiku · Based on full bill text · Last updated Apr 28</div>
+        </div>
+
+        <!-- Legislative timeline — narrative not just stages -->
+        <div class="p16 border-b">
+          <div class="wf-label mb12">Where This Bill Is</div>
+
+          <div class="mb12">
+            <!-- stage dots -->
+            <div class="flex align-center mb8" style="gap:0;">
+              <div style="width:20px; height:20px; background:#222; border-radius:50%; border:2px solid #222; flex-shrink:0;"></div>
+              <div style="flex:1; height:2px; background:#222;"></div>
+              <div style="width:20px; height:20px; background:#222; border-radius:50%; border:2px solid #222; flex-shrink:0;"></div>
+              <div style="flex:1; height:2px; background:#ccc;"></div>
+              <div style="width:20px; height:20px; background:#f5f5f5; border-radius:50%; border:2px solid #aaa; flex-shrink:0;"></div>
+              <div style="flex:1; height:2px; background:#ccc;"></div>
+              <div style="width:20px; height:20px; background:#f5f5f5; border-radius:50%; border:2px solid #aaa; flex-shrink:0;"></div>
+            </div>
+            <div class="flex justify-between text-xs" style="color:#666; padding: 0 4px;">
+              <span>Introduced</span>
+              <span style="color:#222; font-weight:bold;">Committee ←you are here</span>
+              <span>Full Council</span>
+              <span>Mayor</span>
+            </div>
+          </div>
+
+          <div class="wf-box white p10 text-xs" style="line-height:1.8;">
+            <div>✓ Apr 28 — Introduced by Ald. Coggs</div>
+            <div>✓ Apr 28 — Referred to Judiciary &amp; Legislation Committee</div>
+            <div style="font-weight:bold;">→ May 6 — Committee hearing (public testimony accepted)</div>
+            <div style="color:#aaa;">— Full council vote (date TBD after committee)</div>
+            <div style="color:#aaa;">— Mayor action (10 days after council passage)</div>
+          </div>
+
+          <div class="wf-box p8 mt4 text-xs" style="background:#e8e8e8; border-color:#bbb;">
+            Bills like this typically take 3–6 weeks from introduction to full council vote. Public testimony is most impactful at the committee stage.
+          </div>
+        </div>
+
+        <!-- Full text link -->
+        <div class="p12 border-b flex justify-between align-center" style="background:#f9f9f9;">
+          <div class="text-xs">Full bill text on Legistar (File #260892)</div>
+          <span class="wf-btn outline">View original ↗</span>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:220px; flex-shrink:0;">
+
+        <div class="p12 border-b">
+          <div class="wf-label mb8">Sponsored By</div>
+          <div class="wf-box white p10 mb8">
+            <div class="bold text-sm mb4">Ald. Milele Coggs</div>
+            <div class="text-xs mb4">6th Aldermanic District</div>
+            <hr class="wf-divider" style="margin:6px 0;">
+            <div class="text-xs mb4">📧 mcoggs@milwaukee.gov</div>
+            <div class="text-xs">📞 (414) 286-3764</div>
+          </div>
+          <span class="wf-btn" style="width:100%; text-align:center; display:block;">Contact alder</span>
+        </div>
+
+        <div class="p12 border-b">
+          <div class="wf-label mb8">File Info</div>
+          <div class="text-xs mb4"><span style="color:#888;">Type:</span> Ordinance</div>
+          <div class="text-xs mb4"><span style="color:#888;">Status:</span> In committee</div>
+          <div class="text-xs mb4"><span style="color:#888;">Committee:</span> Judiciary &amp; Legislation</div>
+          <div class="text-xs mb4"><span style="color:#888;">Introduced:</span> Apr 28, 2026</div>
+          <div class="text-xs mb4"><span style="color:#888;">Effective date:</span> Day after publication</div>
+          <div class="text-xs"><span style="color:#888;">File #:</span> 260892</div>
+        </div>
+
+        <div class="p12" style="background:#f0f0f0;">
+          <div class="wf-label mb8">Track This Bill</div>
+          <div class="text-xs mb8">Get an email when this bill is scheduled for a vote or the mayor acts on it.</div>
+          <input class="wf-input mb8" placeholder="your@email.com" type="email">
+          <span class="wf-btn" style="width:100%; text-align:center; display:block;">Alert me</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Urgency banner is the key new element — adapts language and CTA to exactly where the bill is. "You are here" timeline replaces abstract stage boxes. Expected timeline copy sets realistic expectations. All four urgency states shown for reference.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 3: ALDER PROFILE — VOTE HISTORY TAB                  -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 3 of 4 — Alder Profile: Vote History Tab</div>
+
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>Subscribe →</span></div>
+    </div>
+    <div class="p8 border-b text-xs" style="background:#f0f0f0; color:#888;">Alders › 6th District › Ald. Milele Coggs</div>
+
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div class="row gap12 align-center">
+        <div class="wf-box" style="width:72px;height:72px;background:#555;border-color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;flex-shrink:0;">Photo</div>
+        <div>
+          <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">Ald. Milele A. Coggs</div>
+          <div style="font-size:11px;color:#bbb;margin-bottom:8px;">6th Aldermanic District · Term expires April 2028</div>
+          <div style="display:flex;gap:16px;font-size:11px;color:#ccc;">
+            <span>📧 mcoggs@milwaukee.gov</span>
+            <span>📞 (414) 286-3764</span>
+          </div>
+        </div>
+        <div style="margin-left:auto;">
+          <span class="wf-btn" style="background:#f5f5f5;color:#222;border-color:#f5f5f5;">Subscribe to District 6 alerts →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b" style="background:#f0f0f0;">
+      <div class="p12 text-sm" style="color:#888;">Sponsored Bills</div>
+      <div class="p12 bold text-sm" style="border-bottom:2px solid #222;">Vote History</div>
+      <div class="p12 text-sm" style="color:#888;">Issue Areas</div>
+    </div>
+
+    <!-- Vote history controls -->
+    <div class="p12 border-b flex gap8 align-center" style="background:#f5f5f5; flex-wrap:wrap;">
+      <select class="wf-select" style="width:100px;"><option>2026</option></select>
+      <select class="wf-select" style="width:120px;"><option>All votes</option></select>
+      <select class="wf-select" style="width:120px;"><option>All issues</option></select>
+      <div style="margin-left:auto;" class="text-xs">47 votes this term</div>
+    </div>
+
+    <!-- Vote rows -->
+
+    <!-- Yes vote -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex gap12 align-center">
+        <div style="width:36px;height:36px;background:#333;color:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0;border:2px solid #111;">YES</div>
+        <div class="col">
+          <div class="bold mb4 text-sm">Resolution relating to municipal broadband feasibility study</div>
+          <div class="text-xs">Apr 21, 2026 · Full Council vote · Passed 12-3</div>
+        </div>
+        <div class="flex gap4" style="flex-shrink:0;">
+          <span class="wf-tag active">Transportation</span>
+          <span class="wf-btn outline" style="font-size:10px;padding:3px 8px;">View bill →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- No vote -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex gap12 align-center">
+        <div style="width:36px;height:36px;background:#f5f5f5;color:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0;border:2px solid #aaa;">NO</div>
+        <div class="col">
+          <div class="bold mb4 text-sm">Ordinance restricting downtown food truck operating hours</div>
+          <div class="text-xs">Apr 21, 2026 · Full Council vote · Passed 14-0</div>
+        </div>
+        <div class="flex gap4" style="flex-shrink:0;">
+          <span class="wf-tag active">Food Access</span>
+          <span class="wf-btn outline" style="font-size:10px;padding:3px 8px;">View bill →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Abstain -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex gap12 align-center">
+        <div style="width:36px;height:36px;background:#e0e0e0;color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;flex-shrink:0;border:2px solid #bbb;">ABS</div>
+        <div class="col">
+          <div class="bold mb4 text-sm">Ordinance relating to police department body camera retention policy</div>
+          <div class="text-xs">Mar 17, 2026 · Full Council vote · Passed 10-4</div>
+        </div>
+        <div class="flex gap4" style="flex-shrink:0;">
+          <span class="wf-tag active">Policing</span>
+          <span class="wf-btn outline" style="font-size:10px;padding:3px 8px;">View bill →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yes vote -->
+    <div class="wf-box white p12 border-b">
+      <div class="flex gap12 align-center">
+        <div style="width:36px;height:36px;background:#333;color:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:bold;flex-shrink:0;border:2px solid #111;">YES</div>
+        <div class="col">
+          <div class="bold mb4 text-sm">Resolution establishing community land trust pilot in 6th District</div>
+          <div class="text-xs">Mar 3, 2026 · Full Council vote · Passed 13-2</div>
+        </div>
+        <div class="flex gap4" style="flex-shrink:0;">
+          <span class="wf-tag active">Housing</span>
+          <span class="wf-btn outline" style="font-size:10px;padding:3px 8px;">View bill →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p12 flex justify-between align-center" style="background:#f0f0f0;">
+      <div class="text-xs">Showing 4 of 47 votes</div>
+      <div class="flex gap8"><span class="wf-btn outline">← Prev</span><span class="wf-btn outline">Next →</span></div>
+    </div>
+
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Yes/No/Abstain shown as bold visual indicator so vote is scannable without reading. Each row links back to the bill. Filter by year, vote type, and issue area. Note the food truck vote shows as a NO for Coggs — that is intentional placeholder data showing how accountability works.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCREEN 4: ALDER PROFILE — ISSUE AREAS TAB                   -->
+<!-- ============================================================ -->
+<div class="screen-wrap">
+  <div class="screen-label">Screen 4 of 4 — Alder Profile: Issue Areas Tab</div>
+
+  <div class="screen">
+    <div class="wf-nav">
+      <div class="logo">CREAM CITY DOCKET</div>
+      <div class="nav-links"><span>The Docket</span><span>Alders</span><span>Mayor</span><span>Subscribe →</span></div>
+    </div>
+    <div class="p8 border-b text-xs" style="background:#f0f0f0; color:#888;">Alders › 6th District › Ald. Milele Coggs</div>
+
+    <div class="p16 border-b" style="background:#222; color:#f5f5f5;">
+      <div class="row gap12 align-center">
+        <div class="wf-box" style="width:72px;height:72px;background:#555;border-color:#777;display:flex;align-items:center;justify-content:center;font-size:10px;color:#ccc;flex-shrink:0;">Photo</div>
+        <div>
+          <div style="font-size:16px;font-weight:bold;margin-bottom:4px;">Ald. Milele A. Coggs</div>
+          <div style="font-size:11px;color:#bbb;margin-bottom:8px;">6th Aldermanic District · Term expires April 2028</div>
+          <div style="display:flex;gap:16px;font-size:11px;color:#ccc;">
+            <span>📧 mcoggs@milwaukee.gov</span>
+            <span>📞 (414) 286-3764</span>
+          </div>
+        </div>
+        <div style="margin-left:auto;">
+          <span class="wf-btn" style="background:#f5f5f5;color:#222;border-color:#f5f5f5;">Subscribe to District 6 alerts →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b" style="background:#f0f0f0;">
+      <div class="p12 text-sm" style="color:#888;">Sponsored Bills</div>
+      <div class="p12 text-sm" style="color:#888;">Vote History</div>
+      <div class="p12 bold text-sm" style="border-bottom:2px solid #222;">Issue Areas</div>
+    </div>
+
+    <div class="row">
+      <div class="col p16 border-r">
+        <div class="wf-label mb12">Bills Sponsored by Issue Area — 2026</div>
+
+        <!-- Bar chart rows -->
+        <div class="mb12">
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Housing</span>
+              <span style="color:#666;">6 bills</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;position:relative;">
+              <div style="width:85%;height:100%;background:#222;"></div>
+            </div>
+          </div>
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Labor</span>
+              <span style="color:#666;">4 bills</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;">
+              <div style="width:57%;height:100%;background:#444;"></div>
+            </div>
+          </div>
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Land Use &amp; Zoning</span>
+              <span style="color:#666;">3 bills</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;">
+              <div style="width:42%;height:100%;background:#555;"></div>
+            </div>
+          </div>
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Budget &amp; Finance</span>
+              <span style="color:#666;">2 bills</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;">
+              <div style="width:28%;height:100%;background:#666;"></div>
+            </div>
+          </div>
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Healthcare</span>
+              <span style="color:#666;">1 bill</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;">
+              <div style="width:14%;height:100%;background:#888;"></div>
+            </div>
+          </div>
+
+          <div class="mb8">
+            <div class="flex justify-between text-xs mb4">
+              <span class="bold">Other</span>
+              <span style="color:#666;">1 bill</span>
+            </div>
+            <div style="height:16px;background:#e0e0e0;border:1px solid #bbb;">
+              <div style="width:14%;height:100%;background:#aaa;"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="wf-label mb8 mt4">Votes Cast by Issue Area — 2026</div>
+
+        <div class="wf-box white p12 text-xs" style="line-height:2;">
+          <div class="flex justify-between border-b" style="padding-bottom:4px; margin-bottom:4px;">
+            <span style="color:#888; font-size:9px; text-transform:uppercase;">Issue Area</span>
+            <div style="display:flex; gap:24px;">
+              <span style="color:#888; font-size:9px; text-transform:uppercase;">Yes</span>
+              <span style="color:#888; font-size:9px; text-transform:uppercase;">No</span>
+              <span style="color:#888; font-size:9px; text-transform:uppercase;">Abs</span>
+            </div>
+          </div>
+          <div class="flex justify-between mb4"><span>Housing</span><div style="display:flex;gap:24px;"><span>12</span><span>0</span><span>0</span></div></div>
+          <div class="flex justify-between mb4"><span>Policing &amp; Public Safety</span><div style="display:flex;gap:24px;"><span>7</span><span>2</span><span>1</span></div></div>
+          <div class="flex justify-between mb4"><span>Budget &amp; Finance</span><div style="display:flex;gap:24px;"><span>8</span><span>1</span><span>0</span></div></div>
+          <div class="flex justify-between mb4"><span>Labor</span><div style="display:flex;gap:24px;"><span>5</span><span>0</span><span>0</span></div></div>
+          <div class="flex justify-between mb4"><span>Food Access</span><div style="display:flex;gap:24px;"><span>1</span><span>1</span><span>0</span></div></div>
+          <div class="flex justify-between"><span>Other</span><div style="display:flex;gap:24px;"><span>9</span><span>0</span><span>1</span></div></div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div style="width:200px; flex-shrink:0;">
+        <div class="p12 border-b">
+          <div class="wf-label mb8">Top Issue Tags</div>
+          <div class="mb4"><span class="wf-tag active">Housing</span></div>
+          <div class="mb4"><span class="wf-tag active">Labor</span></div>
+          <div class="mb4"><span class="wf-tag active">Land Use</span></div>
+          <div class="mb4"><span class="wf-tag">Budget</span></div>
+          <div class="mb4"><span class="wf-tag">Healthcare</span></div>
+        </div>
+        <div class="p12 border-b">
+          <div class="wf-label mb8">District</div>
+          <div class="wf-box dark p8 text-xs" style="text-align:center; margin-bottom:8px;">[ District 6 map ]</div>
+          <div class="text-xs mb4">Near North Side, Harambee, Riverwest, Brewers Hill</div>
+          <a class="text-xs" style="color:#444; text-decoration:underline;">View on city map ↗</a>
+        </div>
+        <div class="p12">
+          <div class="wf-label mb8">Committees</div>
+          <div class="text-xs mb4">Judiciary &amp; Legislation</div>
+          <div class="text-xs mb4">Community &amp; Econ. Development</div>
+          <div class="text-xs">Zoning, Neighborhoods &amp; Development</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="annotation" style="max-width:900px; margin:8px auto 0;">
+    Notes: Grayscale bar chart for sponsored bills shows legislative focus areas at a glance. Vote breakdown table shows yes/no/abstain by issue area — the Food Access row with 1 yes / 1 no is intentional, showing split voting on related bills over time. This tab is the accountability layer.
+  </div>
+</div>
+
+</body>
+</html>

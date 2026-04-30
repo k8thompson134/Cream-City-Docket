@@ -1,0 +1,27 @@
+---
+title: Cream City Docket — C4 Container Diagram
+---
+C4Container
+    title Cream City Docket — Container Diagram
+
+    Person(resident, "Milwaukee Resident", "Browses legislation, subscribes to alerts via browser or email")
+
+    System_Boundary(ccd, "Cream City Docket") {
+        Container(frontend, "Frontend", "React + TypeScript + Vite", "Single-page application. Displays bill feed, detail pages, alder and mayor profiles, and subscription management.")
+        Container(api, "REST API", "Python + FastAPI", "Serves legislative data, alder and mayor profiles, and subscription endpoints to the frontend.")
+        Container(pipeline, "Background Pipeline", "Python + APScheduler", "Three scheduled jobs: Poller fetches from Legistar, Enrichment Worker calls Claude Haiku, Notification Dispatcher sends email alerts.")
+        ContainerDb(db, "Database", "PostgreSQL", "Stores matters, tags, alders, committees, events, votes, mayor actions, subscribers, preferences, and alert log.")
+    }
+
+    System_Ext(legistar, "Legistar Web API", "Public Granicus API. Source of all Milwaukee Common Council legislative data including matters, events, votes, and persons.")
+    System_Ext(anthropic, "Anthropic API", "Claude Haiku. Generates plain-language summaries and assigns issue area tags for each matter.")
+    System_Ext(email, "Email Provider", "Resend or SendGrid. Delivers alert emails and preference management links to subscribers.")
+
+    Rel(resident, frontend, "Uses", "HTTPS")
+    Rel(frontend, api, "Calls", "JSON / HTTPS")
+    Rel(api, db, "Reads", "SQL")
+    Rel(pipeline, legistar, "Polls hourly", "HTTPS")
+    Rel(pipeline, anthropic, "Enriches matters", "HTTPS")
+    Rel(pipeline, email, "Sends alerts", "HTTPS")
+    Rel(pipeline, db, "Reads and writes", "SQL")
+    Rel(email, resident, "Delivers alerts", "Email")

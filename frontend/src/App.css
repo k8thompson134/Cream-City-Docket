@@ -74,7 +74,30 @@ body {
   border-radius: 3px;
 }
 
-.bill-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.5rem; line-height: 1.4; color: #1a1a1a; }
+.bill-title { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.4rem; line-height: 1.4; color: #1a1a1a; }
+
+.bill-summary {
+  font-size: 0.82rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tag-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #12284B;
+  background: #fff8e7;
+  border: 1px solid #e8a800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
 
 .bill-meta { display: flex; gap: 1.25rem; font-size: 0.8rem; color: #1a1a1a; flex-wrap: wrap; }
 

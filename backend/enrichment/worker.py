@@ -203,10 +203,75 @@ def run_enrichment(batch_size: int = 50) -> dict:
     return counts
 
 
+def run_retag_others(batch_size: int = 100) -> dict:
+    """
+    Re-tag bills whose only tag is 'Other', using the improved prompt and stored raw_text.
+    Does not re-fetch from Legistar or regenerate summaries.
+    """
+    session = SessionLocal()
+    haiku = _get_haiku_client()
+    counts = {"processed": 0, "retagged": 0, "skipped": 0, "errors": 0}
+
+    try:
+        tag_map = _ensure_tags_seeded(session)
+        session.commit()
+
+        other_tag = session.query(IssueTag).filter_by(name="Other").first()
+        if not other_tag:
+            log.info("No 'Other' tag found — nothing to retag")
+            return counts
+
+        # Bills with exactly the "Other" tag and stored raw_text
+        candidates = (
+            session.query(Matter)
+            .join(Matter.tags)
+            .filter(
+                Matter.summary.isnot(None),
+                Matter.raw_text.isnot(None),
+                MatterTag.tag_id == other_tag.id,
+            )
+            .filter(~Matter.tags.any(MatterTag.tag_id != other_tag.id))
+            .limit(batch_size)
+            .all()
+        )
+
+        log.info("Retag batch: %d Other-only candidates", len(candidates))
+
+        for matter in candidates:
+            counts["processed"] += 1
+            try:
+                tag_names = _call_tags(haiku, matter.title, matter.raw_text)
+
+                session.query(MatterTag).filter_by(matter_id=matter.id).delete()
+                for tag_name in tag_names:
+                    tag = tag_map.get(tag_name)
+                    if tag:
+                        session.add(MatterTag(matter_id=matter.id, tag_id=tag.id))
+
+                session.commit()
+                counts["retagged"] += 1
+                log.info("  %d → %s", matter.legistar_matter_id, tag_names)
+
+            except Exception as e:
+                log.error("Error retagging matter %d: %s", matter.legistar_matter_id, e)
+                session.rollback()
+                counts["errors"] += 1
+
+    finally:
+        session.close()
+
+    log.info("Retag complete: %s", counts)
+    return counts
+
+
 if __name__ == "__main__":
+    import sys
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s — %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    run_enrichment(batch_size=50)
+    if len(sys.argv) > 1 and sys.argv[1] == "retag":
+        run_retag_others(batch_size=200)
+    else:
+        run_enrichment(batch_size=50)

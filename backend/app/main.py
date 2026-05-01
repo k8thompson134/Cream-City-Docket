@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, Query
@@ -5,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import joinedload
 
 from .database import SessionLocal
-from .models import Matter, MatterSponsor
+from .models import IssueTag, Matter, MatterSponsor, MatterTag
 
 
 @asynccontextmanager
@@ -18,9 +19,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Cream City Docket API", lifespan=lifespan)
 
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
+    "https://creamcitydocket.com",
+    "https://www.creamcitydocket.com",
+]
+if extra := os.getenv("CORS_ORIGINS"):
+    ALLOWED_ORIGINS += [o.strip() for o in extra.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET"],
     allow_headers=["*"],
 )
@@ -57,6 +68,7 @@ def _serialize_matter(m: Matter) -> dict:
         "passed_date": m.passed_date.isoformat() if m.passed_date else None,
         "sponsors": unique_sponsors,
         "summary": m.summary,
+        "tags": [mt.tag.name for mt in m.tags if mt.tag],
     }
 
 
@@ -66,11 +78,13 @@ def list_bills(
     limit: int = Query(25, ge=1, le=100),
     matter_type: str | None = Query(None),
     status: str | None = Query(None),
+    tag: str | None = Query(None),
 ):
     session = SessionLocal()
     try:
         q = session.query(Matter).options(
-            joinedload(Matter.sponsors).joinedload(MatterSponsor.alder)
+            joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+            joinedload(Matter.tags).joinedload(MatterTag.tag),
         )
 
         if matter_type:
@@ -80,6 +94,9 @@ def list_bills(
 
         if status:
             q = q.filter(Matter.matter_status == status)
+
+        if tag:
+            q = q.filter(Matter.tags.any(MatterTag.tag.has(IssueTag.name == tag)))
 
         total = q.count()
         matters = (
@@ -104,6 +121,7 @@ def get_bill(bill_id: int):
                 joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
                 joinedload(Matter.history),
                 joinedload(Matter.mayor_actions),
+                joinedload(Matter.tags).joinedload(MatterTag.tag),
             )
             .filter(Matter.id == bill_id)
             .first()
@@ -151,6 +169,7 @@ def get_meta():
             row[0] for row in
             session.query(Matter.matter_status).distinct().order_by(Matter.matter_status).all()
         ]
-        return {"matter_types": types, "statuses": statuses}
+        tags = [row[0] for row in session.query(IssueTag.name).order_by(IssueTag.name).all()]
+        return {"matter_types": types, "statuses": statuses, "tags": tags}
     finally:
         session.close()

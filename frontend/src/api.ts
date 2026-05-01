@@ -16,6 +16,7 @@ export interface Bill {
   passed_date: string | null
   sponsors: Sponsor[]
   summary: string | null
+  tags: string[]
 }
 
 export interface BillDetail extends Bill {
@@ -33,15 +34,19 @@ export interface BillsResponse {
 export interface Meta {
   matter_types: string[]
   statuses: string[]
+  tags: string[]
 }
+
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
 export async function fetchBills(params: {
   skip?: number
   limit?: number
   matter_type?: string
   status?: string
+  tag?: string
 }): Promise<BillsResponse> {
-  const url = new URL('/api/bills', window.location.origin)
+  const url = new URL(`${API_BASE}/api/bills`, window.location.origin)
   Object.entries(params).forEach(([k, v]) => {
     if (v !== undefined && v !== '') url.searchParams.set(k, String(v))
   })
@@ -51,13 +56,13 @@ export async function fetchBills(params: {
 }
 
 export async function fetchBill(id: number): Promise<BillDetail> {
-  const res = await fetch(`/api/bills/${id}`)
+  const res = await fetch(`${API_BASE}/api/bills/${id}`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
 }
 
 export async function fetchMeta(): Promise<Meta> {
-  const res = await fetch('/api/meta')
+  const res = await fetch(`${API_BASE}/api/meta`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
 }

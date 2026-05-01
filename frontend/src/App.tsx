@@ -26,6 +26,16 @@ function formatDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function cleanSummary(text: string | null): string | null {
+  if (!text) return null
+  const cleaned = text
+    .split('\n')
+    .filter(line => !line.trimStart().startsWith('#'))
+    .join(' ')
+    .trim()
+  return cleaned || null
+}
+
 function BillRow({ bill, onClick, selected }: { bill: Bill; onClick: () => void; selected: boolean }) {
   const sponsors = bill.sponsors.map(s => s.name.replace('ALD. ', 'Ald. ')).join(', ') || '—'
   return (
@@ -35,8 +45,10 @@ function BillRow({ bill, onClick, selected }: { bill: Bill; onClick: () => void;
         <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
           {bill.matter_status}
         </span>
+        {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
       <div className="bill-title">{bill.title}</div>
+      {cleanSummary(bill.summary) && <div className="bill-summary">{cleanSummary(bill.summary)}</div>}
       <div className="bill-meta">
         <span>{bill.file_number ?? `#${bill.legistar_matter_id}`}</span>
         <span>{sponsors}</span>
@@ -78,10 +90,10 @@ function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
         {bill.passed_date && <div><strong>Passed</strong> {formatDate(bill.passed_date)}</div>}
       </div>
 
-      {bill.summary && (
+      {cleanSummary(bill.summary) && (
         <div className="detail-section">
           <h3>Summary</h3>
-          <p>{bill.summary}</p>
+          <p>{cleanSummary(bill.summary)}</p>
         </div>
       )}
 
@@ -131,6 +143,7 @@ export default function App() {
   const [meta, setMeta] = useState<Meta | null>(null)
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const LIMIT = 25
@@ -139,10 +152,10 @@ export default function App() {
 
   useEffect(() => {
     setLoading(true)
-    fetchBills({ skip, limit: LIMIT, matter_type: typeFilter || undefined, status: statusFilter || undefined })
+    fetchBills({ skip, limit: LIMIT, matter_type: typeFilter || undefined, status: statusFilter || undefined, tag: tagFilter || undefined })
       .then(res => { setBills(res.items); setTotal(res.total) })
       .finally(() => setLoading(false))
-  }, [skip, typeFilter, statusFilter])
+  }, [skip, typeFilter, statusFilter, tagFilter])
 
   function handleFilterChange() {
     setSkip(0)
@@ -171,6 +184,13 @@ export default function App() {
               <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); handleFilterChange() }}>
                 <option value="">All statuses</option>
                 {meta?.statuses.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+            <label>
+              Issue Area
+              <select value={tagFilter} onChange={e => { setTagFilter(e.target.value); handleFilterChange() }}>
+                <option value="">All issues</option>
+                {meta?.tags.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </label>
           </div>

@@ -1,0 +1,113 @@
+.settings-body {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 2.5rem;
+}
+
+.settings-main { flex: 1; min-width: 0; }
+
+.settings-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+.settings-section h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12284B;
+  margin-bottom: 0.4rem;
+}
+.settings-desc { font-size: 0.82rem; color: #666; margin-bottom: 1rem; }
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #f0f2f5;
+  gap: 1rem;
+}
+.toggle-row:last-child { border-bottom: none; }
+
+.toggle-text { flex: 1; }
+.toggle-label { font-size: 0.9rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem; }
+.toggle-sub { font-size: 0.78rem; color: #666; }
+
+.toggle-btn {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #ccc;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.toggle-btn--on { background: #12284B; }
+.toggle-knob {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-btn--on .toggle-knob { left: 23px; }
+
+.settings-info {
+  background: #fff8e7;
+  border: 1px solid #e8a800;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  margin: 0.5rem 0;
+}
+
+.settings-reset { margin-top: 2rem; }
+.reset-btn {
+  background: none;
+  border: 1px solid #b0bbcc;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: #12284B;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+.reset-btn:hover { background: #e4e9f2; }
+.settings-reset p { font-size: 0.78rem; color: #888; }
+
+.settings-sidebar { width: 240px; flex-shrink: 0; }
+
+.sidebar-card {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.sidebar-card h3 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #12284B;
+  margin-bottom: 0.6rem;
+}
+.sidebar-card p { font-size: 0.82rem; line-height: 1.6; color: #444; }
+.sidebar-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #12284B;
+  text-decoration: none;
+}
+.sidebar-link:hover { color: #FFC52F; }

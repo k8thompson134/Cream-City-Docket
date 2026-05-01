@@ -1,5 +1,5 @@
 # Cream City Docket — Development Plan
-*Version 0.3 | Updated April 30, 2026*
+*Version 0.4 | Updated May 1, 2026*
 
 ---
 
@@ -93,53 +93,38 @@ This plan sequences the build into four milestones. Each milestone has a clear c
 
 ---
 
-## Milestone 3 — Backend API and Full Frontend ⬜ IN PROGRESS (preview built)
+## Milestone 3 — Backend API and Full Frontend 🔄 IN PROGRESS
 *Goal: A working web application that displays real Milwaukee legislative data. No email alerts yet, but every browsing and discovery feature from the requirements is functional.*
 
-**Preview status (built April 30, 2026):** A basic frontend exists at `http://localhost:5173` showing the bill feed, type/status filters, detail panel with legislative timeline, and mayoral actions. This is a working preview on the real stack — not throwaway code, but not the full M3 spec either.
+**Deployed May 1, 2026:** Backend on Railway, frontend on Vercel, live at `creamcitydocket.com`.
 
 ### FastAPI backend
 
 | Task | Status | Notes |
 |---|---|---|
-| Set up FastAPI app structure, CORS, environment config | ✅ Done | `backend/app/main.py` |
-| `GET /api/bills` — paginated feed with type/status filters | ✅ Done | |
+| Set up FastAPI app structure, CORS, environment config | ✅ Done | |
+| `GET /api/bills` — paginated feed with type/status/tag filters | ✅ Done | |
 | `GET /api/bills/:id` — full detail with timeline and mayor actions | ✅ Done | |
-| `GET /api/meta` — filter dropdown options | ✅ Done | |
+| `GET /api/meta` — filter dropdown options including tags | ✅ Done | |
 | `GET /api/alders` — list all alders | ⬜ Pending | |
-| `GET /api/alders/:id` — alder profile with sponsored bills and vote history | ⬜ Pending | |
-| `GET /api/mayor` — mayor profile and action history | ⬜ Pending | |
-| Pydantic response schemas | ⬜ Pending | Currently returning raw dicts |
-| Consistent pagination/sorting across all endpoints | ⬜ Pending | |
-| 404 and error handling | ⬜ Pending | |
+| `GET /api/alders/:id` — alder profile with sponsored bills | ⬜ Pending | Deprioritized — skip to M4 |
+| `GET /api/mayor` — mayor profile and action history | ⬜ Pending | Deprioritized — skip to M4 |
+| Pydantic response schemas | ⬜ Pending | Nice-to-have, not blocking |
 
 #### React frontend
 
 | Task | Status | Notes |
 |---|---|---|
-| React + TypeScript + Vite project setup | ✅ Done | `frontend/` |
-| Bill feed with type/status filters and pagination | ✅ Done | |
+| React + TypeScript + Vite project setup | ✅ Done | |
+| Bill feed with type/status/issue-area filters and pagination | ✅ Done | |
+| Plain-language summaries in feed and detail panel | ✅ Done | |
+| Issue tag chips on bill rows | ✅ Done | |
 | Bill detail panel — timeline, mayor actions, sponsor, Legistar link | ✅ Done | |
 | Brewers navy/gold color scheme | ✅ Done | |
-| Homepage upcoming hearings section | ⬜ Pending | |
-| Alder profile page | ⬜ Pending | |
-| Mayor profile page | ⬜ Pending | |
-| Glossary tooltips | ⬜ Pending | |
-| Settings page (AI summary toggle) | ⬜ Pending | |
-| About page | ⬜ Pending | |
+| Deployed to Vercel at creamcitydocket.com | ✅ Done | |
 | Mobile responsiveness | ⬜ Pending | |
+| About page / glossary | ⬜ Pending | |
 | WCAG AA accessibility audit | ⬜ Pending | |
-
-**Total estimated effort: 37 hours (partial credit for preview work)**
-
-### Definition of done
-
-- All browsing and discovery user stories (US-01 through US-16) functional with real data
-- Bill detail urgency banner reflects current MatterStatus
-- Alder profile pages show real vote history and sponsored legislation
-- Settings page AI toggle works
-- Site passes WCAG AA automated checks
-- Application deployed to Railway and publicly accessible at creamcitydocket.com
 
 ---
 
@@ -202,5 +187,5 @@ This plan sequences the build into four milestones. Each milestone has a clear c
 |---|---|---|---|
 | 1 — Data Foundation | Legistar API exploration + poller + database | 20 hrs | ✅ Complete |
 | 2 — Enrichment Pipeline | Claude Haiku integration + APScheduler | 18 hrs | ✅ Complete |
-| 3 — Backend API + Frontend | FastAPI + React, all browsing features | 37 hrs | 🔄 Preview built |
-| 4 — Alerts + Polish | Email alerts, subscriptions, production | 33 hrs | ⬜ Not started |
+| 3 — Backend API + Frontend | FastAPI + React, all browsing features | 37 hrs | 🔄 In progress (core done, deployed) |
+| 4 — Alerts + Polish | Email alerts, subscriptions, production | 33 hrs | ⬜ Next |

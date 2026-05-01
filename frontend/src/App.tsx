@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchMeta } from './api'
 import type { Bill, BillDetail, Meta } from './api'
+import { useSettings } from './useSettings'
+import Nav from './Nav'
+import About from './pages/About'
+import Settings from './pages/Settings'
 import './App.css'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -36,8 +41,16 @@ function cleanSummary(text: string | null): string | null {
   return cleaned || null
 }
 
-function BillRow({ bill, onClick, selected }: { bill: Bill; onClick: () => void; selected: boolean }) {
+function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, compact }: {
+  bill: Bill
+  onClick: () => void
+  selected: boolean
+  showSummaries: boolean
+  showFileNumbers: boolean
+  compact: boolean
+}) {
   const sponsors = bill.sponsors.map(s => s.name.replace('ALD. ', 'Ald. ')).join(', ') || '—'
+  const summary = cleanSummary(bill.summary)
   return (
     <div className={`bill-row${selected ? ' bill-row--selected' : ''}`} onClick={onClick}>
       <div className="bill-row-header">
@@ -48,9 +61,9 @@ function BillRow({ bill, onClick, selected }: { bill: Bill; onClick: () => void;
         {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
       <div className="bill-title">{bill.title}</div>
-      {cleanSummary(bill.summary) && <div className="bill-summary">{cleanSummary(bill.summary)}</div>}
+      {showSummaries && !compact && summary && <div className="bill-summary">{summary}</div>}
       <div className="bill-meta">
-        <span>{bill.file_number ?? `#${bill.legistar_matter_id}`}</span>
+        {showFileNumbers && <span>{bill.file_number ?? `#${bill.legistar_matter_id}`}</span>}
         <span>{sponsors}</span>
         <span>{formatDate(bill.intro_date)}</span>
       </div>
@@ -58,7 +71,11 @@ function BillRow({ bill, onClick, selected }: { bill: Bill; onClick: () => void;
   )
 }
 
-function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
+function BillDetailPanel({ id, onClose, showSummaries }: {
+  id: number
+  onClose: () => void
+  showSummaries: boolean
+}) {
   const [bill, setBill] = useState<BillDetail | null>(null)
 
   useEffect(() => {
@@ -80,6 +97,7 @@ function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
         <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
           {bill.matter_status}
         </span>
+        {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
       <h2>{bill.title}</h2>
       <div className="detail-meta">
@@ -90,7 +108,7 @@ function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
         {bill.passed_date && <div><strong>Passed</strong> {formatDate(bill.passed_date)}</div>}
       </div>
 
-      {cleanSummary(bill.summary) && (
+      {showSummaries && cleanSummary(bill.summary) && (
         <div className="detail-section">
           <h3>Summary</h3>
           <p>{cleanSummary(bill.summary)}</p>
@@ -136,7 +154,8 @@ function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
   )
 }
 
-export default function App() {
+function Docket() {
+  const { settings } = useSettings()
   const [bills, setBills] = useState<Bill[]>([])
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(0)
@@ -163,60 +182,78 @@ export default function App() {
   }
 
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Cream City Docket</h1>
-        <p>Milwaukee city legislation, made readable.</p>
-      </header>
+    <div className="layout">
+      <aside className="sidebar">
+        <div className="filters">
+          <label>
+            Type
+            <select value={typeFilter} onChange={e => { setTypeFilter(e.target.value); handleFilterChange() }}>
+              <option value="">All types</option>
+              {meta?.matter_types.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label>
+            Status
+            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); handleFilterChange() }}>
+              <option value="">All statuses</option>
+              {meta?.statuses.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>
+            Issue Area
+            <select value={tagFilter} onChange={e => { setTagFilter(e.target.value); handleFilterChange() }}>
+              <option value="">All issues</option>
+              {meta?.tags.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="count">{total} bills</div>
+      </aside>
 
-      <div className="layout">
-        <aside className="sidebar">
-          <div className="filters">
-            <label>
-              Type
-              <select value={typeFilter} onChange={e => { setTypeFilter(e.target.value); handleFilterChange() }}>
-                <option value="">All types</option>
-                {meta?.matter_types.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </label>
-            <label>
-              Status
-              <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); handleFilterChange() }}>
-                <option value="">All statuses</option>
-                {meta?.statuses.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </label>
-            <label>
-              Issue Area
-              <select value={tagFilter} onChange={e => { setTagFilter(e.target.value); handleFilterChange() }}>
-                <option value="">All issues</option>
-                {meta?.tags.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </label>
+      <main className="feed">
+        {loading && <div className="loading">Loading…</div>}
+        {!loading && bills.map(b => (
+          <BillRow
+            key={b.id}
+            bill={b}
+            onClick={() => setSelectedId(b.id)}
+            selected={selectedId === b.id}
+            showSummaries={settings.showSummaries}
+            showFileNumbers={settings.showFileNumbers}
+            compact={settings.compactFeed}
+          />
+        ))}
+        {!loading && bills.length === 0 && <div className="empty">No bills match these filters.</div>}
+
+        {!loading && (
+          <div className="pagination">
+            <button disabled={skip === 0} onClick={() => setSkip(s => Math.max(0, s - LIMIT))}>← Prev</button>
+            <span>{Math.floor(skip / LIMIT) + 1} / {Math.ceil(total / LIMIT) || 1}</span>
+            <button disabled={skip + LIMIT >= total} onClick={() => setSkip(s => s + LIMIT)}>Next →</button>
           </div>
-          <div className="count">{total} bills</div>
-        </aside>
-
-        <main className="feed">
-          {loading && <div className="loading">Loading…</div>}
-          {!loading && bills.map(b => (
-            <BillRow key={b.id} bill={b} onClick={() => setSelectedId(b.id)} selected={selectedId === b.id} />
-          ))}
-          {!loading && bills.length === 0 && <div className="empty">No bills match these filters.</div>}
-
-          {!loading && (
-            <div className="pagination">
-              <button disabled={skip === 0} onClick={() => setSkip(s => Math.max(0, s - LIMIT))}>← Prev</button>
-              <span>{Math.floor(skip / LIMIT) + 1} / {Math.ceil(total / LIMIT) || 1}</span>
-              <button disabled={skip + LIMIT >= total} onClick={() => setSkip(s => s + LIMIT)}>Next →</button>
-            </div>
-          )}
-        </main>
-
-        {selectedId !== null && (
-          <BillDetailPanel id={selectedId} onClose={() => setSelectedId(null)} />
         )}
-      </div>
+      </main>
+
+      {selectedId !== null && (
+        <BillDetailPanel
+          id={selectedId}
+          onClose={() => setSelectedId(null)}
+          showSummaries={settings.showSummaries}
+        />
+      )}
+    </div>
+  )
+}
+
+export default function App() {
+  return (
+    <div className="app">
+      <Nav />
+      <Routes>
+        <Route path="/" element={<Docket />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
     </div>
   )
 }

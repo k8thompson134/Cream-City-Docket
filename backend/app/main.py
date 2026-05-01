@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +7,16 @@ from sqlalchemy.orm import joinedload
 from .database import SessionLocal
 from .models import Matter, MatterSponsor
 
-app = FastAPI(title="Cream City Docket API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from scheduler import start_scheduler, stop_scheduler
+    start_scheduler()
+    yield
+    stop_scheduler()
+
+
+app = FastAPI(title="Cream City Docket API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,6 +47,7 @@ def _serialize_matter(m: Matter) -> dict:
     return {
         "id": m.id,
         "legistar_matter_id": m.legistar_matter_id,
+        "legistar_guid": m.legistar_guid,
         "file_number": m.file_number,
         "title": m.title,
         "matter_type": m.matter_type,

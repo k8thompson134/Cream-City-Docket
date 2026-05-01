@@ -6,6 +6,7 @@ export interface Sponsor {
 export interface Bill {
   id: number
   legistar_matter_id: number
+  legistar_guid: string
   file_number: string | null
   title: string
   matter_type: string

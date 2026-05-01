@@ -139,3 +139,15 @@ Weekly estimates:
 - `MatterTextVersion` (version string: "0", "1", etc.)
 
 **Real-world confirmation:** Matter 73583 = the April 2026 food truck curfew ordinance. Status: Passed. Signed 2026-04-22. Substitute 1 filed 2026-04-06. Sponsored by ALD. BAUMAN.
+
+---
+
+## Known Limitation: Legistar Web URLs
+
+The Legistar web interface (`milwaukee.legistar.com/LegislationDetail.aspx`) uses a **LegislationID** that is entirely separate from the **MatterId** exposed by the API. There is no field in the API response that maps a Matter to its corresponding web URL ID.
+
+Attempts to construct detail page URLs using `MatterId`, `MatterGuid`, or the gateway endpoint all return "Invalid parameters!" errors. The Legistar web UI is JavaScript-rendered, so the correct ID cannot be scraped from the search results page either.
+
+**Current workaround:** Link to the Legistar search page (`/Legislation.aspx`) and display the `MatterFile` number (e.g. "File #252101") so users know what to search for manually.
+
+**Possible future fix:** Cache the LegislationID→MatterId mapping by intercepting Legistar search results via a headless browser or by finding an undocumented API endpoint that exposes the web ID. Not worth the complexity for v1.

@@ -1,5 +1,5 @@
 # Cream City Docket — Development Plan
-*Version 0.1 | April 2026*
+*Version 0.2 | Updated April 30, 2026*
 
 ---
 
@@ -11,145 +11,140 @@ This plan sequences the build into four milestones. Each milestone has a clear c
 
 **Estimated total effort:** 8–12 weeks of part-time work (10–15 hrs/week)
 
+**Infrastructure as of April 30, 2026:**
+- Domain: creamcitydocket.com
+- Railway project provisioned, connected to GitHub repo
+- Railway PostgreSQL instance live with full schema applied
+- Working branch: `main`
+
 ---
 
-## Milestone 1 — Data Foundation
+## Milestone 1 — Data Foundation ✅ COMPLETE
 *Goal: Prove you can pull real Milwaukee legislative data into a local database reliably, with no frontend and no LLM.*
 
-**Why this comes first:** The Legistar API is the foundation everything else is built on. Several open questions from the requirements doc can only be answered by actually hitting the API with real requests. Discovering a data shape problem at this stage costs an afternoon. Discovering it after you have built three more layers costs a week.
+**Completed April 30, 2026.**
 
-### Open API questions to investigate during this milestone
+### API questions — all answered
 
-These must be answered before moving to Milestone 2:
+1. **MatterText availability:** 100% coverage across all MatterTypes. Correct workflow: `GET /Matters/{id}/Versions` → use Key as textId → `GET /Matters/{id}/Texts/{textId}` → `MatterTextPlain`. Note: `GET /Matters/{id}/Texts` (without ID) returns 405.
 
-1. **Does MatterText exist reliably for all MatterTypes?**
-   Hit `/Matters?$top=50` and check what percentage have accessible MatterTexts. If many are empty or title-only, the LLM enrichment strategy needs adjustment.
+2. **MatterTypes Milwaukee uses:** More than the requirements doc anticipated. Full taxonomy documented in `backend/explore/FINDINGS.md`. Key additions: Fire and Police Resolution, APPEAL, Housing Authority Resolution, Plan Commission Resolution, Resolution-Immediate Adoption.
 
-2. **What MatterTypes does Milwaukee actually use?**
-   Pull a sample of 200 recent Matters and tabulate the MatterType values. The requirements assume Ordinance, Resolution, Charter Ordinance, Motion, Appointment, Communication, Claim — verify this matches reality.
+3. **MatterStatus strings:** In Committee, In Commission, In Council, In Council-Adoption, In Council-Passage, In Council-Confirmation, In Council-Placed on File, Passed, Placed On File, Dead. Full list in FINDINGS.md.
 
-3. **How does MatterStatus change over time?**
-   Look at MatterHistory for a few bills that have progressed through the full lifecycle. Map the actual status strings Milwaukee uses (they vary by Legistar instance) to the status model in the requirements.
+4. **Mayoral actions in MatterHistory:** Confirmed. SIGNED and PUBLISHED appear as MatterHistory action names with dates. VETOED not yet observed in live data but structure is the same.
 
-4. **Are mayoral actions visible in MatterHistory?**
-   Find a bill that was signed or vetoed and check whether that action appears as a MatterHistory record or requires a separate mechanism.
+5. **Polling mechanics:** `$filter=MatterLastModifiedUtc ge datetime'...'` works reliably. Note: field is `MatterLastModifiedUtc` not `MatterLastModified`. No rate-limit headers. ~49 matters/hour on active council days.
 
-5. **What is the practical polling frequency?**
-   Check if the API has rate limit headers. Test whether `$filter=MatterLastModified ge datetime'...'` works reliably for incremental polling.
+6. **Realistic volume:** 555 matters/30 days total. ~64 alert-worthy (Ordinance + Resolution) per week. Estimated Haiku cost: ~$0.61/month.
 
-6. **What does a realistic week of Milwaukee data look like?**
-   Pull all Matters from the past 30 days and count them. This closes open question 3 from the requirements doc and validates the cost estimates in NFR-05.
+### What was built
 
-### Tasks
+| Task | Status |
+|---|---|
+| Python project structure + Railway PostgreSQL | ✅ Done |
+| 6 API exploration scripts (`backend/explore/`) | ✅ Done |
+| FINDINGS.md documenting all open questions | ✅ Done |
+| SQLAlchemy models — 15 tables | ✅ Done |
+| Alembic migration — applied to Railway | ✅ Done |
+| Legistar poller with pagination, retries, upsert logic | ✅ Done |
+| poll_log table and timestamp tracking | ✅ Done |
+| Alder upsert via /Persons + /OfficeRecords | ✅ Done |
+| MatterHistory upsert + mayoral action detection | ✅ Done |
+| End-to-end test: 271 matters, 15 alders, 647 history events in Railway | ✅ Done |
+| Deploy poller to Railway | ⬜ Pending — M3/M4 |
 
-| Task | Effort | Notes |
-|---|---|---|
-| Set up Python project structure, virtual env, and Railway PostgreSQL instance | 2 hrs | FastAPI not needed yet — just the DB and a script runner |
-| Write API exploration scripts to answer the six open questions above | 3 hrs | Save raw JSON responses for reference |
-| Document findings and update requirements doc where needed | 1 hr | Especially MatterType taxonomy and MatterStatus strings |
-| Design final database schema based on real API data shapes | 2 hrs | Revise the preliminary data model from the requirements doc |
-| Write SQLAlchemy models and Alembic migration for the schema | 2 hrs | |
-| Write the Legistar poller: fetch Matters, Events, Persons, Votes since last poll | 4 hrs | Handle pagination, errors, and retry logic |
-| Write poll_log table and timestamp tracking | 1 hr | Required for incremental polling |
-| Write upsert logic for Matters, Alders, Events, Votes | 3 hrs | Upsert not insert — re-running must be idempotent |
-| Manual end-to-end test: run poller, verify database contains real Milwaukee data | 1 hr | |
-| Deploy poller to Railway as a standalone script (no scheduler yet) | 1 hr | Just to verify Railway deployment works |
+### Known limitations discovered
 
-**Total estimated effort: 20 hours**
-
-### Definition of done
-
-- Running the poller script locally populates the database with real Milwaukee Matters, Events, Alders, and Votes
-- Re-running the poller does not create duplicate records
-- All six open API questions are documented with answers
-- Database schema reflects the actual shape of Legistar data, not just the preliminary model
-- A Railway PostgreSQL instance is provisioned and the poller can write to it
+- **Legistar web URLs are broken:** The web UI's `LegislationDetail.aspx?ID=` uses a `LegislationID` that is completely separate from the API's `MatterId`. No public API field maps between them. Current workaround: link to the Legistar search page and display the file number. Documented in FINDINGS.md.
+- **District parsing:** Alder district numbers not always cleanly extractable from OfficeRecord body names. Minor cleanup needed before alder profile pages are built.
 
 ---
 
-## Milestone 2 — Enrichment Pipeline
+## Milestone 2 — Enrichment Pipeline ⬜ NOT STARTED
 *Goal: Every new Matter in the database has a plain-language summary and issue area tags generated by Claude Haiku, with costs controlled through caching.*
 
-**Why this comes second:** The enrichment worker depends on the data foundation being stable. You cannot build reliable LLM caching logic without knowing the real versioning behavior of MatterTexts in Milwaukee's Legistar instance.
+**Why this comes next:** Text availability is confirmed (100% coverage). Cost is validated (~$0.61/month). Ready to build.
 
 ### Tasks
 
 | Task | Effort | Notes |
 |---|---|---|
-| Write MatterText fetcher: `GET /Matters/{id}/Texts/{textId}` with version tracking | 2 hrs | Store current_text_version on the matters table |
+| Write MatterText fetcher: `GET /Matters/{id}/Versions` → `GET /Matters/{id}/Texts/{textId}` | 2 hrs | Schema already has current_text_id and current_text_version columns |
 | Write the enrichment worker: query unenriched Matters, fetch text, call Haiku | 3 hrs | |
-| Write the Haiku prompt for plain-language summary generation | 2 hrs | Iterate until summaries are consistently readable at 8th grade level. Test on 20 real bills. |
-| Write the Haiku prompt for issue area tag assignment | 2 hrs | Map to fixed taxonomy. Test edge cases: bills that span multiple areas, bills with no clear area. |
-| Implement caching: skip enrichment if enriched_at is set and text version unchanged | 1 hr | Core cost control requirement from NFR-04 |
-| Handle enrichment edge cases: empty MatterText, very long text (chunking or truncation), API errors | 2 hrs | |
+| Write the Haiku prompt for plain-language summary generation | 2 hrs | Target 8th grade reading level. Test on 20 real bills. |
+| Write the Haiku prompt for issue area tag assignment | 2 hrs | Map to fixed taxonomy. Test edge cases. |
+| Implement caching: skip enrichment if enriched_at is set and text version unchanged | 1 hr | Core cost control — NFR-04 |
+| Handle edge cases: empty MatterText, very long text, API errors | 2 hrs | |
 | Write matter_tags join table population logic | 1 hr | |
-| Add APScheduler to the FastAPI app: run poller hourly, enrichment worker after poller | 2 hrs | This is where the single-process architecture comes together |
-| Run enrichment on the full existing database and review output quality | 2 hrs | Manually review 30-40 summaries. Tune prompts if needed. |
-| Track Haiku API costs for a real week of Milwaukee data | 1 hr | Validates cost estimates in NFR-05 |
+| Add APScheduler: run poller hourly, enrichment worker after poller | 2 hrs | |
+| Run enrichment on full existing DB, review quality | 2 hrs | Spot-check 30–40 summaries. Tune prompts if needed. |
+| Track Haiku API costs for one real week | 1 hr | Validates NFR-05 |
 
 **Total estimated effort: 18 hours**
 
 ### Definition of done
 
-- Every Matter in the database that has MatterText available has a summary and at least one issue area tag
+- Every Matter with available MatterText has a summary and at least one issue area tag
 - Re-running enrichment does not re-call the Haiku API for already-enriched Matters
-- Summaries are readable and accurate when spot-checked against original bill text
-- APScheduler runs the poller hourly and the enrichment worker after each poll
-- Actual Haiku API cost for one week of Milwaukee data is documented
+- Summaries are readable and accurate when spot-checked
+- APScheduler runs poller hourly and enrichment worker after each poll
+- Actual Haiku cost for one week of Milwaukee data is documented
 
 ---
 
-## Milestone 3 — Backend API and Basic Frontend
+## Milestone 3 — Backend API and Full Frontend ⬜ IN PROGRESS (preview built)
 *Goal: A working web application that displays real Milwaukee legislative data. No email alerts yet, but every browsing and discovery feature from the requirements is functional.*
 
-**Why this comes third:** By now the data is real, enriched, and stable. Building the API and frontend on top of proven data means no surprises about data shape or availability mid-build.
+**Preview status (built April 30, 2026):** A basic frontend exists at `http://localhost:5173` showing the bill feed, type/status filters, detail panel with legislative timeline, and mayoral actions. This is a working preview on the real stack — not throwaway code, but not the full M3 spec either.
 
-### Tasks
+### FastAPI backend
 
-#### FastAPI backend
-
-| Task | Effort | Notes |
+| Task | Status | Notes |
 |---|---|---|
-| Set up FastAPI app structure, CORS, and environment config | 1 hr | |
-| `GET /api/bills` — paginated feed with tag and district filters, excluding filtered MatterTypes | 2 hrs | Requires MatterType filter logic from FR-09 |
-| `GET /api/bills/:id` — full Matter detail including tags, timeline events, alder contact, substitute versions | 2 hrs | |
-| `GET /api/alders` — list all current alders with district and contact info | 1 hr | |
-| `GET /api/alders/:id` — alder profile with sponsored Matters, vote history, election history | 2 hrs | Vote history from votes table; election history may need a separate data source |
-| `GET /api/mayor` — mayor profile and action history | 1 hr | |
-| Write response schemas with Pydantic | 2 hrs | Clean serialization matters for the frontend |
-| Add pagination, sorting, and filtering query params consistently across endpoints | 1 hr | |
-| Basic error handling and 404 responses | 1 hr | |
+| Set up FastAPI app structure, CORS, environment config | ✅ Done | `backend/app/main.py` |
+| `GET /api/bills` — paginated feed with type/status filters | ✅ Done | |
+| `GET /api/bills/:id` — full detail with timeline and mayor actions | ✅ Done | |
+| `GET /api/meta` — filter dropdown options | ✅ Done | |
+| `GET /api/alders` — list all alders | ⬜ Pending | |
+| `GET /api/alders/:id` — alder profile with sponsored bills and vote history | ⬜ Pending | |
+| `GET /api/mayor` — mayor profile and action history | ⬜ Pending | |
+| Pydantic response schemas | ⬜ Pending | Currently returning raw dicts |
+| Consistent pagination/sorting across all endpoints | ⬜ Pending | |
+| 404 and error handling | ⬜ Pending | |
 
 #### React frontend
 
-| Task | Effort | Notes |
+| Task | Status | Notes |
 |---|---|---|
-| Set up React + TypeScript + Vite project, routing, and basic layout component with nav | 2 hrs | |
-| Homepage — upcoming hearings section and On the Docket feed with filters and pagination | 4 hrs | |
-| Bill detail page — urgency banner, timeline, plain-language summary, alder sidebar, share link | 4 hrs | Urgency banner logic requires mapping MatterStatus to display states |
-| Alder profile page — all four tabs: Sponsored Bills, Vote History, Issue Areas, Political History | 4 hrs | |
-| Mayor profile page — action history, signed/vetoed breakdown | 2 hrs | |
-| Glossary tooltips component — reusable across all pages | 1 hr | |
-| Settings page — AI toggle and accessibility preferences stored in localStorage | 2 hrs | AI toggle conditionally shows summary or official analysis text |
-| About page — static content | 1 hr | |
-| Mobile responsiveness pass across all pages | 2 hrs | |
-| Accessibility audit: keyboard nav, alt text, contrast, WCAG AA | 2 hrs | Run axe or Lighthouse. Fix issues before Milestone 4. |
+| React + TypeScript + Vite project setup | ✅ Done | `frontend/` |
+| Bill feed with type/status filters and pagination | ✅ Done | |
+| Bill detail panel — timeline, mayor actions, sponsor, Legistar link | ✅ Done | |
+| Brewers navy/gold color scheme | ✅ Done | |
+| Homepage upcoming hearings section | ⬜ Pending | |
+| Alder profile page | ⬜ Pending | |
+| Mayor profile page | ⬜ Pending | |
+| Glossary tooltips | ⬜ Pending | |
+| Settings page (AI summary toggle) | ⬜ Pending | |
+| About page | ⬜ Pending | |
+| Mobile responsiveness | ⬜ Pending | |
+| WCAG AA accessibility audit | ⬜ Pending | |
 
-**Total estimated effort: 37 hours**
+**Total estimated effort: 37 hours (partial credit for preview work)**
 
 ### Definition of done
 
-- All browsing and discovery user stories (US-01 through US-16) are functional with real data
-- Bill detail urgency banner correctly reflects current MatterStatus for a sample of real bills
+- All browsing and discovery user stories (US-01 through US-16) functional with real data
+- Bill detail urgency banner reflects current MatterStatus
 - Alder profile pages show real vote history and sponsored legislation
-- Settings page AI toggle works: shows Haiku summary when on, official analysis text when off
-- Site passes WCAG AA automated checks (Lighthouse score 90+ for accessibility)
-- Application is deployed to Railway and publicly accessible
+- Settings page AI toggle works
+- Site passes WCAG AA automated checks
+- Application deployed to Railway and publicly accessible at creamcitydocket.com
 
 ---
 
-## Milestone 4 — Alerts, Subscriptions, and Polish
-*Goal: The full product is live. Subscribers receive email alerts before hearings and votes. All remaining functional requirements are complete.*
+## Milestone 4 — Alerts, Subscriptions, and Polish ⬜ NOT STARTED
+*Goal: The full product is live. Subscribers receive email alerts before hearings and votes.*
 
 ### Tasks
 
@@ -157,81 +152,55 @@ These must be answered before moving to Milestone 2:
 
 | Task | Effort | Notes |
 |---|---|---|
-| Design and write subscribers and subscriber_preferences tables (migration) | 1 hr | |
 | `POST /api/subscriptions` — create subscription, send confirmation email | 2 hrs | |
-| `GET /api/subscriptions/:token` — fetch preferences by unsubscribe token | 1 hr | |
+| `GET /api/subscriptions/:token` — fetch preferences | 1 hr | |
 | `PATCH /api/subscriptions/:token` — update preferences | 1 hr | |
 | `DELETE /api/subscriptions/:token` — unsubscribe | 30 min | |
-| Subscribe page frontend — three-step flow wired to API | 2 hrs | |
-| Manage preferences page frontend — update or unsubscribe via token link | 2 hrs | |
+| Subscribe page frontend — three-step flow | 2 hrs | |
+| Manage preferences page frontend | 2 hrs | |
 
 #### Notification dispatcher
 
 | Task | Effort | Notes |
 |---|---|---|
-| Write alert_log table (migration) | 30 min | |
-| Write dispatcher job: query newly enriched or status-changed Matters since last dispatch | 2 hrs | |
-| Write subscriber matching logic: compare Matter tags and district against preferences | 2 hrs | |
-| Write duplicate alert prevention: check alert_log before sending | 1 hr | FR-46 |
-| Integrate email provider (Resend or SendGrid) — transactional email setup | 1 hr | Final provider decision: compare free tier limits |
-| Write alert email template — summary, hearing info, alder contact, bill link, unsubscribe | 2 hrs | Must be screen reader compatible per NFR-21 |
-| Write veto alert and veto override alert variants | 1 hr | |
-| Write fast-track (immediate adoption) alert variant | 30 min | |
-| Write substitute amendment alert variant | 30 min | |
-| Add dispatcher to APScheduler: runs after enrichment | 30 min | |
-| End-to-end test: subscribe, trigger a matching bill, confirm alert delivered | 1 hr | |
+| Dispatcher job: query newly enriched or status-changed Matters since last dispatch | 2 hrs | |
+| Subscriber matching logic: tags and district against preferences | 2 hrs | |
+| Duplicate alert prevention via alert_log | 1 hr | FR-46 |
+| Integrate email provider (Resend or SendGrid) | 1 hr | |
+| Alert email template — screen reader compatible | 2 hrs | NFR-21 |
+| Veto alert, fast-track alert, substitute amendment alert variants | 2 hrs | |
+| Add dispatcher to APScheduler | 30 min | |
+| End-to-end test: subscribe → matching bill → alert delivered | 1 hr | |
 
 #### Production polish
 
 | Task | Effort | Notes |
 |---|---|---|
-| SEO basics: page titles, meta descriptions, Open Graph tags for shareable bill URLs | 1 hr | |
-| Error states and empty states across all frontend pages | 1 hr | |
+| SEO: page titles, meta descriptions, Open Graph tags | 1 hr | |
+| Error states and empty states across all pages | 1 hr | |
 | Loading states and skeleton screens | 1 hr | |
-| Final accessibility pass — manual keyboard navigation test, screen reader test | 2 hrs | |
-| Performance check — Lighthouse score, image optimization, API response times | 1 hr | |
-| Set up environment variables and secrets management on Railway | 30 min | |
-| Write README with project overview, setup instructions, and architecture summary | 2 hrs | Portfolio artifact |
-| Add architecture diagrams and documentation links to README | 30 min | |
+| Final accessibility pass — keyboard nav, screen reader | 2 hrs | |
+| Performance check — Lighthouse, API response times | 1 hr | |
+| Environment variables and secrets on Railway | 30 min | |
+| README — project overview, setup instructions, architecture | 2 hrs | Portfolio artifact |
 
 **Total estimated effort: 33 hours**
 
 ### Definition of done
 
-- All alert user stories (US-07 through US-11, FR-37 through FR-46) are functional
-- A real subscriber receives a real alert email when a new matching bill is introduced in Milwaukee
-- Unsubscribe and preference management flows work end-to-end
-- No duplicate alerts sent for the same Matter and trigger event
-- README is complete and the project is presentable as a portfolio piece
-- All four phases of documentation (manifesto, problem statement + user stories, requirements + specs, dev plan) are linked from the README
+- All alert user stories (US-07 through US-11, FR-37 through FR-46) functional
+- A real subscriber receives a real alert when a new matching bill is introduced
+- Unsubscribe and preference management work end-to-end
+- No duplicate alerts for the same Matter and trigger event
+- README complete, project presentable as a portfolio piece
 
 ---
 
 ## Summary
 
-| Milestone | Focus | Est. Hours | Cumulative |
+| Milestone | Focus | Est. Hours | Status |
 |---|---|---|---|
-| 1 — Data Foundation | Legistar API exploration + poller + database | 20 hrs | 20 hrs |
-| 2 — Enrichment Pipeline | Claude Haiku integration + APScheduler | 18 hrs | 38 hrs |
-| 3 — Backend API + Frontend | FastAPI + React, all browsing features | 37 hrs | 75 hrs |
-| 4 — Alerts + Polish | Email alerts, subscriptions, production | 33 hrs | 108 hrs |
-
-At 10–15 hours per week, this is roughly an 8–10 week project from start to launch.
-
----
-
-## First thing to do
-
-Before writing any application code, run this in a Python script and inspect the output:
-
-```python
-import httpx, json
-
-r = httpx.get(
-    "https://webapi.legistar.com/v1/milwaukee/matters",
-    params={"$top": 5, "$orderby": "MatterLastModified desc"}
-)
-print(json.dumps(r.json(), indent=2))
-```
-
-This tells you immediately whether the API is reachable, what the real field names look like, and whether the data matches the preliminary model in the requirements doc. Everything in Milestone 1 flows from understanding this output.
+| 1 — Data Foundation | Legistar API exploration + poller + database | 20 hrs | ✅ Complete |
+| 2 — Enrichment Pipeline | Claude Haiku integration + APScheduler | 18 hrs | ⬜ Next |
+| 3 — Backend API + Frontend | FastAPI + React, all browsing features | 37 hrs | 🔄 Preview built |
+| 4 — Alerts + Polish | Email alerts, subscriptions, production | 33 hrs | ⬜ Not started |

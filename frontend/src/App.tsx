@@ -4,15 +4,17 @@ import type { Bill, BillDetail, Meta } from './api'
 import './App.css'
 
 const STATUS_COLORS: Record<string, string> = {
-  'Passed': '#2d6a2d',
+  'Passed': '#12284B',
   'In Committee': '#1a4d7a',
   'In Commission': '#1a4d7a',
-  'In Council': '#5a2d82',
-  'In Council-Adoption': '#5a2d82',
-  'In Council-Passage': '#5a2d82',
-  'In Council-Confirmation': '#5a2d82',
-  'Placed On File': '#666',
-  'Dead': '#8b1a1a',
+  'In Council': '#0a3d6b',
+  'In Council-Adoption': '#0a3d6b',
+  'In Council-Passage': '#0a3d6b',
+  'In Council-Confirmation': '#0a3d6b',
+  'In Council-Approval': '#0a3d6b',
+  'Placed On File': '#444',
+  'Dead': '#5a1a1a',
+  'Introduced': '#2a5a2a',
 }
 
 function statusColor(status: string) {
@@ -112,11 +114,11 @@ function BillDetailPanel({ id, onClose }: { id: number; onClose: () => void }) {
 
       <a
         className="legistar-link"
-        href={`https://milwaukee.legistar.com/LegislationDetail.aspx?ID=${bill.legistar_matter_id}`}
+        href="https://milwaukee.legistar.com/Legislation.aspx"
         target="_blank"
         rel="noreferrer"
       >
-        View on Legistar ↗
+        Search Legistar{bill.file_number ? ` — File #${bill.file_number}` : ''} ↗
       </a>
     </div>
   )

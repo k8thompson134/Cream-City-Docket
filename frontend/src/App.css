@@ -1,3 +1,15 @@
+/* Accessibility body classes */
+.dyslexia-font, .dyslexia-font * { font-family: 'Atkinson Hyperlegible', sans-serif !important; }
+.large-text { font-size: 18px !important; }
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { transition: none !important; animation: none !important; }
+.high-contrast { --hc-bg: #fff; --hc-text: #000; --hc-border: #000; }
+.high-contrast body { background: #fff; color: #000; }
+.high-contrast .bill-row, .high-contrast .alder-card, .high-contrast .detail-panel, .high-contrast .sidebar-card { border-color: #000 !important; }
+.high-contrast .bill-type { background: #000; color: #fff; }
+.high-contrast .tag-chip { border-color: #000; color: #000; background: #fff; }
+.high-contrast a { color: #00008B; }
+.high-contrast .site-header { background: #000; border-bottom: 3px solid #fff; }
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -90,6 +102,260 @@ body {
   padding: 0.1rem 0.45rem;
   border-radius: 3px;
 }
+
+/* Upcoming section */
+.upcoming-section {
+  background: #0b1929;
+  color: #fff;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 3px solid #FFC52F;
+}
+.upcoming-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #FFC52F;
+  margin-bottom: 1rem;
+}
+.upcoming-cards { display: flex; gap: 0.85rem; }
+.upcoming-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 6px;
+  border-left: 4px solid #4a6fa5;
+  padding: 1rem 1.1rem;
+  min-width: 0;
+  color: #1a1a1a;
+}
+.upcoming-card--today { border-left-color: #FFC52F; }
+.upcoming-date {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 0.35rem;
+}
+.upcoming-card--today .upcoming-date { color: #b07d00; }
+.upcoming-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #12284B;
+  margin-bottom: 0.25rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.upcoming-body { font-size: 0.75rem; color: #666; margin-bottom: 0.4rem; }
+.upcoming-urgency {
+  font-size: 0.75rem;
+  color: #555;
+  font-style: italic;
+  margin-bottom: 0.6rem;
+}
+.upcoming-card--today .upcoming-urgency { color: #b07d00; font-style: normal; font-weight: 700; }
+.upcoming-legistar-row { display: flex; align-items: center; gap: 0.5rem; }
+.upcoming-legistar-link {
+  font-size: 0.72rem;
+  color: #12284B;
+  text-decoration: underline;
+}
+.upcoming-legistar-link:hover { color: #FFC52F; }
+
+.copy-file-btn {
+  display: inline-block;
+  background: none;
+  border: 1px solid #d0d6e0;
+  border-radius: 3px;
+  padding: 1px 6px;
+  cursor: pointer;
+  color: #888;
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: inherit;
+  vertical-align: middle;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+}
+.copy-file-btn:hover { color: #12284B; border-color: #12284B; background: #f0f2f5; }
+
+/* Subscribe CTA */
+.subscribe-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0.85rem 1.5rem;
+  gap: 1rem;
+}
+.subscribe-cta-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.15rem; }
+.subscribe-cta-sub { font-size: 0.78rem; color: #8ba3c4; }
+.subscribe-cta-btn {
+  background: #FFC52F;
+  color: #12284B;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.subscribe-cta-btn:hover { background: #e6b020; }
+
+/* Redesigned bill card */
+.bill-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.bill-badges { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
+.badge-new {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: #12284B;
+  color: #FFC52F;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.badge-hearing {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #1a4d7a;
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.bill-row-date { font-size: 0.75rem; color: #888; white-space: nowrap; }
+.bill-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.4rem 0; }
+.bill-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bill-meta-text { font-size: 0.78rem; color: #666; flex: 1; min-width: 0; }
+.bill-view-btn {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #12284B;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bill-row:hover .bill-view-btn { color: #FFC52F; }
+
+/* Tag chip filter bar */
+.tag-chip-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.75rem 0 0.85rem;
+  border-bottom: 1px solid #e4e9f2;
+  margin-bottom: 0.75rem;
+}
+.tag-chip-btn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  border: 1.5px solid #d0d6e0;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: inherit;
+}
+.tag-chip-btn:hover { border-color: #12284B; color: #12284B; }
+.tag-chip-btn--active { background: #12284B; color: #FFC52F; border-color: #12284B; }
+
+/* Tooltips */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 3px;
+}
+.tooltip-q {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: help;
+  line-height: 1;
+}
+.bill-type .tooltip-q,
+.bill-meta-text .tooltip-q { background: #c8cdd6; color: #333; }
+.tooltip-bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #12284B;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 5px;
+  width: 240px;
+  z-index: 200;
+  pointer-events: none;
+  font-weight: 400;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.tooltip-container:hover .tooltip-bubble,
+.tooltip-container:focus-within .tooltip-bubble { display: block; }
+
+/* Charter Ordinance + Immediate Adoption badges */
+.badge-charter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #1e0a3c;
+  color: #c8a8f0;
+  border: 1px dashed #6b4aa0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.badge-charter .tooltip-q { background: #6b4aa0; color: #f0e0ff; }
+
+.badge-immediate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #3d1a00;
+  color: #ffa060;
+  border: 1px dashed #8b4000;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+.badge-immediate .tooltip-q { background: #8b4000; color: #ffd0a0; }
 
 .bill-meta { display: flex; gap: 1.25rem; font-size: 0.8rem; color: #1a1a1a; flex-wrap: wrap; }
 

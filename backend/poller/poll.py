@@ -17,7 +17,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 from app.database import SessionLocal
 from app.models import (
     Alder, Event, EventItem, Matter, MatterHistory,
-    MatterSponsor, MayorAction, PollLog,
+    MatterSponsor, MayorAction, PollLog, Vote,
 )
 from poller import client
 
@@ -60,6 +60,18 @@ def _parse_dt(value: str | None) -> datetime | None:
     return None
 
 
+def _extract_district(office_records: list) -> str | None:
+    """Extract a numeric district string from Legistar OfficeRecord body names."""
+    import re
+    for rec in office_records:
+        body = rec.get("OfficeRecordBodyName", "") or ""
+        if "district" in body.lower():
+            match = re.search(r'\b(\d+)\b', body)
+            if match:
+                return match.group(1)
+    return None
+
+
 def _upsert_alder(session, person_id: int, display_name: str, person_cache: dict) -> Alder | None:
     """Get or create an Alder from a Legistar PersonId. Caches API calls within a poll run."""
     if person_id in person_cache:
@@ -76,21 +88,19 @@ def _upsert_alder(session, person_id: int, display_name: str, person_cache: dict
         person_cache[person_id] = None
         return None
 
-    # Try to find district from OfficeRecords
-    district = None
     office_records = client.get_person_office_records(person_id)
-    for rec in office_records:
-        body = rec.get("OfficeRecordBodyName", "") or ""
-        if "district" in body.lower():
-            district = body.split()[-1]  # e.g. "COMMON COUNCIL DISTRICT 3" → "3"
-            break
+    district = _extract_district(office_records)
+    email = person_data.get("PersonEmail")
+    phone = person_data.get("PersonPhone")
+    photo_url = person_data.get("PersonPhotoURL") or person_data.get("PersonPhotoUrl")
 
     alder = Alder(
         legistar_person_id=person_id,
         name=person_data.get("PersonFullName") or display_name,
         district=district,
-        email=person_data.get("PersonEmail"),
-        phone=person_data.get("PersonPhone"),
+        email=email,
+        phone=phone,
+        photo_url=photo_url,
         active=True,
     )
     session.add(alder)
@@ -198,6 +208,104 @@ def _upsert_history(session, matter: Matter, matter_id: int) -> None:
                 log.info("Mayor action '%s' on matter %d", mayor_type, matter_id)
 
 
+def _upsert_event(session, raw: dict) -> Event | None:
+    legistar_event_id = raw.get("EventId")
+    if not legistar_event_id:
+        return None
+
+    event = session.query(Event).filter_by(legistar_event_id=legistar_event_id).first()
+    date = _parse_dt(raw.get("EventDate"))
+    body_name = raw.get("EventBodyName")
+    location = raw.get("EventLocation")
+
+    if event:
+        event.date = date
+        event.body_name = body_name
+        event.location = location
+        event.updated_at = datetime.utcnow()
+    else:
+        event = Event(
+            legistar_event_id=legistar_event_id,
+            body_name=body_name,
+            date=date,
+            location=location,
+        )
+        session.add(event)
+    session.flush()
+    return event
+
+
+def _upsert_event_item(session, event: Event, raw: dict) -> EventItem | None:
+    legistar_event_item_id = raw.get("EventItemId")
+    if not legistar_event_item_id:
+        return None
+
+    legistar_matter_id = raw.get("EventItemMatterId")
+    matter_id = None
+    if legistar_matter_id:
+        matter = session.query(Matter).filter_by(legistar_matter_id=legistar_matter_id).first()
+        if matter:
+            matter_id = matter.id
+
+    event_item = session.query(EventItem).filter_by(legistar_event_item_id=legistar_event_item_id).first()
+    if event_item:
+        event_item.matter_id = matter_id
+        event_item.action_name = raw.get("EventItemActionName")
+        event_item.passed_flag = raw.get("EventItemPassedFlagName")
+    else:
+        event_item = EventItem(
+            legistar_event_item_id=legistar_event_item_id,
+            event_id=event.id,
+            matter_id=matter_id,
+            action_name=raw.get("EventItemActionName"),
+            passed_flag=raw.get("EventItemPassedFlagName"),
+        )
+        session.add(event_item)
+    session.flush()
+    return event_item
+
+
+def _upsert_votes(session, event_item: EventItem, event_date: datetime | None) -> None:
+    votes_data = client.get_event_item_votes(event_item.legistar_event_item_id)
+    for v in votes_data:
+        legistar_vote_id = v.get("VoteId")
+        person_id = v.get("VotePersonId")
+        if not legistar_vote_id or not person_id:
+            continue
+
+        alder = session.query(Alder).filter_by(legistar_person_id=person_id).first()
+        if not alder:
+            continue
+
+        existing = session.query(Vote).filter_by(legistar_vote_id=legistar_vote_id).first()
+        if not existing:
+            session.add(Vote(
+                legistar_vote_id=legistar_vote_id,
+                alder_id=alder.id,
+                event_item_id=event_item.id,
+                matter_id=event_item.matter_id,
+                vote_value=v.get("VoteValueName"),
+                voted_at=event_date,
+            ))
+
+
+def _poll_events_and_votes(session, since_str: str) -> None:
+    events_data = client.get_events_since(since_str)
+    log.info("Fetched %d events from Legistar", len(events_data))
+
+    for event_raw in events_data:
+        event = _upsert_event(session, event_raw)
+        if not event:
+            continue
+
+        items_data = client.get_event_items(event.legistar_event_id)
+        for item_raw in items_data:
+            event_item = _upsert_event_item(session, event, item_raw)
+            # Only fetch votes for agenda items that are linked to a known matter
+            if event_item and event_item.matter_id:
+                _upsert_votes(session, event_item, event.date)
+
+
 def _get_last_poll_time(session) -> str:
     """Return ISO timestamp string for the last successful poll, or 7 days ago."""
     last = (
@@ -236,6 +344,8 @@ def run_poll() -> None:
             _upsert_sponsors(session, matter, raw["MatterId"], person_cache)
             _upsert_history(session, matter, raw["MatterId"])
             matters_upserted += 1
+
+        _poll_events_and_votes(session, since_str)
 
         session.add(PollLog(
             polled_at=poll_start,

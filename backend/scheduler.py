@@ -13,6 +13,7 @@ _scheduler: BackgroundScheduler | None = None
 def _poll_then_enrich():
     from poller.poll import run_poll
     from enrichment.worker import run_enrichment
+    from notifications.dispatcher import run_dispatcher
     try:
         run_poll()
     except Exception as e:
@@ -21,6 +22,10 @@ def _poll_then_enrich():
         run_enrichment(batch_size=100)
     except Exception as e:
         log.error("Enrichment failed: %s", e)
+    try:
+        run_dispatcher()
+    except Exception as e:
+        log.error("Dispatcher failed: %s", e)
 
 
 def start_scheduler():

@@ -70,6 +70,25 @@
   margin: 0.5rem 0;
 }
 
+.reading-level-row {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.reading-level-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.reading-chip {
+  padding: 0.35rem 0.85rem;
+  border: 1.5px solid #b0bbcc;
+  border-radius: 4px;
+  background: #fff;
+  color: #555;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.reading-chip:hover { border-color: #12284B; color: #12284B; }
+.reading-chip--active { background: #12284B; border-color: #12284B; color: #FFC52F; font-weight: 600; }
+
 .settings-reset { margin-top: 2rem; }
 .reset-btn {
   background: none;

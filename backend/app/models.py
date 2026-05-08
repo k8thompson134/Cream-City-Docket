@@ -15,6 +15,7 @@ class Alder(Base):
     district: Mapped[str | None] = mapped_column(String(10))
     email: Mapped[str | None] = mapped_column(String(200))
     phone: Mapped[str | None] = mapped_column(String(50))
+    photo_url: Mapped[str | None] = mapped_column(String(500))
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -178,6 +179,7 @@ class Vote(Base):
 
     alder: Mapped["Alder"] = relationship(back_populates="votes")
     event_item: Mapped["EventItem"] = relationship(back_populates="votes")
+    matter: Mapped["Matter | None"] = relationship(foreign_keys=[matter_id])
 
 
 class Subscriber(Base):

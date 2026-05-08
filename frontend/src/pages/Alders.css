@@ -1,0 +1,382 @@
+/* ── Alders list page ──────────────────────────── */
+
+.alders-grid-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.alders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.alder-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-left: 4px solid #12284B;
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.15s, border-left-color 0.15s;
+}
+.alder-card:hover { box-shadow: 0 3px 10px rgba(18,40,75,0.12); border-left-color: #FFC52F; }
+
+.alder-card-district {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #12284B;
+  margin-bottom: 0.3rem;
+}
+
+.alder-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12284B;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+}
+
+.alder-card-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: #444;
+  margin-bottom: 0.75rem;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  min-width: 0;
+}
+
+.alder-card-cta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #12284B;
+  margin-top: 0.75rem;
+}
+.alder-card:hover .alder-card-cta { color: #FFC52F; }
+
+/* ── Alder detail page ─────────────────────────── */
+
+.alder-hero {
+  background: #12284B;
+  color: #fff;
+  padding: 1.75rem 2rem;
+  border-bottom: 3px solid #FFC52F;
+}
+
+.alder-breadcrumb {
+  font-size: 0.78rem;
+  color: #8ba3c4;
+  margin-bottom: 1.25rem;
+}
+.alder-breadcrumb a { color: #8ba3c4; text-decoration: none; }
+.alder-breadcrumb a:hover { color: #FFC52F; }
+.alder-breadcrumb span { margin: 0 0.4rem; }
+
+.alder-hero-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.alder-photo-placeholder {
+  width: 72px;
+  height: 72px;
+  background: #2a3f60;
+  border: 2px solid #3d5a87;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #8ba3c4;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.alder-hero-info { flex: 1; min-width: 0; }
+
+.alder-hero-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFC52F;
+  margin-bottom: 0.3rem;
+}
+
+.alder-hero-district {
+  font-size: 0.9rem;
+  color: #c8d4e8;
+  margin-bottom: 0.75rem;
+}
+
+.alder-hero-contact {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.82rem;
+  color: #c8d4e8;
+  flex-wrap: wrap;
+}
+.alder-hero-contact a { color: #c8d4e8; text-decoration: none; }
+.alder-hero-contact a:hover { color: #FFC52F; text-decoration: underline; }
+
+.alder-hero-actions { display: flex; align-items: flex-start; padding-top: 0.25rem; }
+
+.subscribe-district-btn {
+  background: #FFC52F;
+  color: #12284B;
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  display: inline-block;
+}
+.subscribe-district-btn:hover { background: #e6b020; }
+
+/* ── Alder detail tabs ─────────────────────────── */
+
+.alder-tabs {
+  display: flex;
+  border-bottom: 2px solid #d0d6e0;
+  background: #fff;
+  padding: 0 2rem;
+  overflow-x: auto;
+}
+
+.alder-tab {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+}
+.alder-tab:hover { color: #12284B; }
+.alder-tab--active { color: #12284B; border-bottom-color: #FFC52F; }
+
+/* ── Alder detail body ─────────────────────────── */
+
+.alder-body {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.alder-main { flex: 1; min-width: 0; }
+
+.alder-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.alder-quick-facts {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1.25rem;
+  position: sticky;
+  top: 76px;
+}
+
+.alder-quick-facts h3 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #12284B;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+
+.alder-fact-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+  font-size: 0.82rem;
+}
+.alder-fact-label { color: #888; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.15rem; }
+.alder-fact-value { color: #1a1a1a; font-weight: 600; }
+.alder-fact-value a { color: #12284B; text-decoration: none; }
+.alder-fact-value a:hover { color: #FFC52F; text-decoration: underline; }
+
+/* ── Bills in alder page ───────────────────────── */
+
+.alder-bill-card {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.alder-bill-card:last-child { margin-bottom: 0; }
+
+.alder-bill-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.alder-bill-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #1a1a1a;
+  margin-bottom: 0.4rem;
+}
+
+.alder-bill-summary {
+  font-size: 0.82rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.alder-bill-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: #888;
+  flex-wrap: wrap;
+}
+
+/* ── Issue Areas tab ───────────────────────────── */
+
+.issue-areas {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.issue-area-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #e4e9f2;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.issue-area-row:last-of-type { border-bottom: none; }
+.issue-area-row:hover { background: #f5f7fb; }
+
+.issue-area-tag {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #12284B;
+  width: 160px;
+  flex-shrink: 0;
+}
+
+.issue-area-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: #e4e9f2;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.issue-area-bar {
+  height: 100%;
+  background: #FFC52F;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.issue-area-count {
+  font-size: 0.78rem;
+  color: #888;
+  width: 54px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.issue-area-note {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  color: #aaa;
+  border-top: 1px solid #e4e9f2;
+  background: #fafbfc;
+}
+
+.alder-empty { text-align: center; padding: 2.5rem; color: #888; font-size: 0.9rem; }
+.alder-legistar-link { color: #12284B; font-size: 0.75rem; text-decoration: underline; }
+.alder-legistar-link:hover { color: #FFC52F; }
+
+/* ── Vote chip ─────────────────────────────────── */
+
+.vote-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+}
+.vote-chip--yea   { background: #e6f4ea; color: #1a5c2a; border-color: #a8d5b0; }
+.vote-chip--nay   { background: #fce8e8; color: #7a1a1a; border-color: #f0aaaa; }
+.vote-chip--abstain { background: #f0f2f5; color: #555; border-color: #c8cdd6; }
+
+/* ── Vote card ─────────────────────────────────── */
+
+.alder-vote-card {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-left: 4px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+.alder-vote-card:last-child { margin-bottom: 0; }
+.alder-vote-card--yea     { border-left-color: #a8d5b0; }
+.alder-vote-card--nay     { border-left-color: #f0aaaa; }
+.alder-vote-card--abstain { border-left-color: #c8cdd6; }
+
+.alder-vote-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.alder-vote-date { font-size: 0.78rem; color: #888; }
+
+/* ── Alder photo ───────────────────────────────── */
+
+.alder-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 2px solid #3d5a87;
+  flex-shrink: 0;
+}

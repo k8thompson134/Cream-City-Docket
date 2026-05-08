@@ -98,3 +98,11 @@ def get_events_since(since_utc_str: str) -> list:
 
 def get_event_items(event_id: int) -> list:
     return _get(f"/Events/{event_id}/EventItems") or []
+
+
+def get_event_item_votes(event_item_id: int) -> list:
+    return _get(f"/EventItems/{event_item_id}/Votes") or []
+
+
+def get_body_office_records(body_id: int) -> list:
+    return _get(f"/Bodies/{body_id}/OfficeRecords") or []

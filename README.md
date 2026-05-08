@@ -2,25 +2,19 @@
 
 Milwaukee city government, made understandable.
 
-Cream City Docket monitors Milwaukee Common Council legislation and delivers plain-English summaries and timely email alerts so residents can act before votes happen — not after.
-
----
-
-## Status
-
-🚧 **In active development.** Pre-implementation documentation complete. Build starting with Milestone 1 (data foundation).
+Cream City Docket tracks Milwaukee Common Council legislation and sends plain-English email alerts so residents can act before a vote happens, not after. Live at [creamcitydocket.com](https://creamcitydocket.com).
 
 ---
 
 ## What it does
 
-- Monitors new Milwaukee legislation via the public [Legistar Web API](https://webapi.legistar.com/v1/milwaukee)
-- Summarizes bills in plain English using Claude Haiku (Anthropic)
-- Tags legislation by issue area: housing, labor, policing, food access, immigration, healthcare, and more
-- Sends email alerts before hearings, committee votes, and full council votes
-- Tracks mayoral actions including signatures, vetoes, and override votes
-- Surfaces alder vote history, sponsored legislation, and election history
-- Links directly to official city records for every bill
+- Polls Milwaukee's public [Legistar API](https://webapi.legistar.com/v1/milwaukee) every hour for new and updated legislation
+- Summarizes each bill in plain English using Claude Haiku
+- Tags bills by issue area using a 12-category taxonomy
+- Sends email alerts to subscribers when matching bills are introduced, scheduled for a hearing, or voted on
+- Profiles all 15 Milwaukee alders with sponsored bills, vote history, and issue area breakdowns
+- Tracks mayoral actions including signatures, vetoes, and veto overrides
+- Inline glossary tooltips explain civic terms throughout the app
 
 ---
 
@@ -28,75 +22,141 @@ Cream City Docket monitors Milwaukee Common Council legislation and delivers pla
 
 | Layer | Technology |
 |---|---|
-| Backend | Python + FastAPI |
-| Database | PostgreSQL |
-| Scheduler | APScheduler |
-| LLM | Claude Haiku (Anthropic API) |
+| Backend | Python 3.11 + FastAPI |
+| Database | PostgreSQL (Railway) |
+| Scheduler | APScheduler (hourly poll + enrich + dispatch) |
+| LLM | Claude Haiku via Anthropic API |
 | Frontend | React + TypeScript + Vite |
 | Email | Resend |
-| Hosting | Railway |
+| Hosting | Railway (backend + DB), Vercel (frontend) |
 
 ---
 
+## Architecture
 
-## Development
+```
+Legistar API (hourly)
+    └── Poller — upserts matters, sponsors, history, events, votes
+    └── Enrichment worker — Claude Haiku summaries + issue tags
+    └── Dispatcher — matches subscribers, sends Resend alerts
+
+FastAPI
+    GET  /api/bills          — paginated feed, filterable by type/status/tag/sponsor
+    GET  /api/bills/:id      — full detail with timeline and mayor actions
+    GET  /api/upcoming       — bills with hearings in the next 14 days
+    GET  /api/alders         — all 15 council members
+    GET  /api/alders/:id     — profile with sponsored bills and vote history
+    GET  /api/meta           — filter dropdown options
+    POST /api/subscriptions  — subscribe (sends confirmation email)
+    GET  /api/subscriptions/:token   — fetch preferences
+    PATCH /api/subscriptions/:token  — update preferences
+    DELETE /api/subscriptions/:token — unsubscribe
+
+React frontend (creamcitydocket.com)
+    /           — bill feed with filters, upcoming hearings, tooltips
+    /alders     — council directory
+    /alders/:id — alder profile with tabs
+    /subscribe  — subscription form
+    /manage/:token — manage preferences / unsubscribe
+    /about      — about page + civic glossary
+    /settings   — display, AI, and accessibility preferences
+```
+
+---
+
+## Local development
 
 ### Prerequisites
 
 - Python 3.11+
-- PostgreSQL
 - Node.js 18+
+- A PostgreSQL database (local or Railway)
 
-### Setup
+### Backend setup
 
 ```bash
-# Clone the repo
-git clone https://github.com/yourusername/cream-city-docket.git
-cd cream-city-docket
-
-# Backend
 cd backend
 python -m venv venv
+
+# Windows
+venv\Scripts\activate
+# Mac/Linux
 source venv/bin/activate
+
 pip install -r requirements.txt
-cp .env.example .env  # add your API keys
+cp .env.example .env   # fill in your values
+alembic upgrade head   # apply all migrations
+uvicorn app.main:app --reload
+```
 
-# Run database migrations
-alembic upgrade head
+### Frontend setup
 
-# Frontend
-cd ../frontend
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
 ### Environment variables
 
+**Backend** (`backend/.env`):
+
 ```
-DATABASE_URL=
-ANTHROPIC_API_KEY=
-RESEND_API_KEY=
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
+ANTHROPIC_API_KEY=sk-ant-...
+RESEND_API_KEY=re_...
+FROM_EMAIL=alerts@creamcitydocket.com
+SITE_URL=https://creamcitydocket.com
+```
+
+**Frontend** (Vercel environment or `frontend/.env.local`):
+
+```
+VITE_API_URL=https://your-backend.railway.app
 ```
 
 ---
 
-## Quick API check
+## One-time data scripts
 
-Before running anything, verify the Legistar API is reachable and inspect the real data shape:
+Run these after first deploy or when alder data needs refreshing:
 
-```python
-import httpx, json
-
-r = httpx.get(
-    "https://webapi.legistar.com/v1/milwaukee/matters",
-    params={"$top": 5, "$orderby": "MatterLastModified desc"}
-)
-print(json.dumps(r.json(), indent=2))
+```bash
+cd backend
+python -m scripts.patch_alder_districts   # set correct district numbers
+python -m scripts.patch_alder_contacts    # email + phone from city website
+python -m scripts.patch_alder_photos      # headshot URLs from city website
 ```
+
+---
+
+## Deployment
+
+Backend and database are hosted on [Railway](https://railway.app). Frontend is on [Vercel](https://vercel.com).
+
+After deploying a new backend version:
+
+```bash
+# Apply any pending database migrations
+alembic upgrade head
+```
+
+Railway environment variables to set: `DATABASE_URL`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `FROM_EMAIL`, `SITE_URL`.
+
+Vercel environment variables to set: `VITE_API_URL`.
+
+---
+
+## Known limitations
+
+- **Legistar deep links don't work.** The Legistar web interface uses a `LegislationID` that isn't exposed by the API. All bill links go to the Legistar search page instead of a direct URL. See `backend/explore/FINDINGS.md` for details.
+- **Vote history populates over time.** Vote data is collected from council meeting events as they are polled. Historical votes before the first poll are not backfilled.
+- **Alder photos** are sourced from the city website and may become stale when council membership changes.
 
 ---
 
 ## Built by
 
-Kate Thompson — Software Engineering student, Milwaukee School of Engineering.
-[Portfolio](https://k8thompson.dev) · Milwaukee, WI
+Kate Thompson, Software Engineering student at Milwaukee School of Engineering and Milwaukee resident.
+
+[Portfolio](https://k8thompson.dev) · [hello@creamcitydocket.com](mailto:hello@creamcitydocket.com)

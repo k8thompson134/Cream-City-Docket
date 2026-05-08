@@ -1,12 +1,15 @@
 import os
+import re
+import secrets
 from contextlib import asynccontextmanager
-from datetime import datetime
-from fastapi import FastAPI, Query
+from datetime import datetime, timedelta
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from sqlalchemy.orm import joinedload
 
 from .database import SessionLocal
-from .models import IssueTag, Matter, MatterSponsor, MatterTag
+from .models import Alder, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, Subscriber, SubscriberPreference, Vote
 
 
 @asynccontextmanager
@@ -32,7 +35,7 @@ if extra := os.getenv("CORS_ORIGINS"):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -44,7 +47,7 @@ EXCLUDED_TYPES = {
 
 def _serialize_matter(m: Matter) -> dict:
     sponsors = [
-        {"name": s.alder.name, "district": s.alder.district}
+        {"id": s.alder.id, "name": s.alder.name, "district": s.alder.district}
         for s in m.sponsors if s.alder
     ]
     # Deduplicate sponsors (multiple versions can repeat same alder)
@@ -65,6 +68,7 @@ def _serialize_matter(m: Matter) -> dict:
         "matter_status": m.matter_status,
         "body_name": m.body_name,
         "intro_date": m.intro_date.isoformat() if m.intro_date else None,
+        "agenda_date": m.agenda_date.isoformat() if m.agenda_date else None,
         "passed_date": m.passed_date.isoformat() if m.passed_date else None,
         "sponsors": unique_sponsors,
         "summary": m.summary,
@@ -79,6 +83,7 @@ def list_bills(
     matter_type: str | None = Query(None),
     status: str | None = Query(None),
     tag: str | None = Query(None),
+    sponsored_by: int | None = Query(None),
 ):
     session = SessionLocal()
     try:
@@ -97,6 +102,9 @@ def list_bills(
 
         if tag:
             q = q.filter(Matter.tags.any(MatterTag.tag.has(IssueTag.name == tag)))
+
+        if sponsored_by:
+            q = q.filter(Matter.sponsors.any(MatterSponsor.alder_id == sponsored_by))
 
         total = q.count()
         matters = (
@@ -154,6 +162,35 @@ def get_bill(bill_id: int):
         session.close()
 
 
+@app.get("/api/upcoming")
+def get_upcoming():
+    """Bills with agenda dates in the next 14 days, ordered soonest first."""
+    session = SessionLocal()
+    try:
+        now = datetime.utcnow()
+        cutoff = now + timedelta(days=14)
+        matters = (
+            session.query(Matter)
+            .options(
+                joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+                joinedload(Matter.tags).joinedload(MatterTag.tag),
+            )
+            .filter(
+                Matter.agenda_date >= now,
+                Matter.agenda_date <= cutoff,
+                Matter.matter_type.notin_(EXCLUDED_TYPES),
+                ~Matter.title.ilike('%meeting minutes%'),
+                ~Matter.title.ilike('%official record%'),
+            )
+            .order_by(Matter.agenda_date.asc())
+            .limit(6)
+            .all()
+        )
+        return [_serialize_matter(m) for m in matters]
+    finally:
+        session.close()
+
+
 @app.get("/api/meta")
 def get_meta():
     """Returns distinct matter types and statuses for filter dropdowns."""
@@ -171,5 +208,223 @@ def get_meta():
         ]
         tags = [row[0] for row in session.query(IssueTag.name).order_by(IssueTag.name).all()]
         return {"matter_types": types, "statuses": statuses, "tags": tags}
+    finally:
+        session.close()
+
+
+@app.get("/api/alders")
+def list_alders():
+    session = SessionLocal()
+    try:
+        alders = (
+            session.query(Alder)
+            .filter(Alder.active == True)
+            .order_by(Alder.district, Alder.name)
+            .all()
+        )
+        return [
+            {
+                "id": a.id,
+                "legistar_person_id": a.legistar_person_id,
+                "name": a.name,
+                "district": a.district,
+                "email": a.email,
+                "phone": a.phone,
+                "photo_url": a.photo_url,
+            }
+            for a in alders
+        ]
+    finally:
+        session.close()
+
+
+@app.get("/api/alders/{alder_id}")
+def get_alder(alder_id: int):
+    session = SessionLocal()
+    try:
+        a = session.query(Alder).filter(Alder.id == alder_id).first()
+        if not a:
+            raise HTTPException(status_code=404, detail="Alder not found")
+
+        sponsor_entries = (
+            session.query(MatterSponsor)
+            .options(
+                joinedload(MatterSponsor.matter).joinedload(Matter.tags).joinedload(MatterTag.tag),
+                joinedload(MatterSponsor.matter).joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+            )
+            .filter(MatterSponsor.alder_id == a.id)
+            .all()
+        )
+
+        seen = set()
+        sponsored_bills = []
+        for s in sponsor_entries:
+            if s.matter and s.matter_id not in seen:
+                seen.add(s.matter_id)
+                sponsored_bills.append(s.matter)
+
+        sponsored_bills.sort(key=lambda m: m.intro_date or datetime.min, reverse=True)
+
+        votes = (
+            session.query(Vote)
+            .options(
+                joinedload(Vote.event_item).joinedload(EventItem.event),
+                joinedload(Vote.matter).joinedload(Matter.tags).joinedload(MatterTag.tag),
+                joinedload(Vote.matter).joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+            )
+            .filter(Vote.alder_id == a.id, Vote.matter_id.isnot(None))
+            .order_by(Vote.voted_at.desc().nullslast())
+            .all()
+        )
+
+        vote_history = [
+            {
+                "vote_value": v.vote_value,
+                "voted_at": v.voted_at.isoformat() if v.voted_at else None,
+                "matter": _serialize_matter(v.matter),
+            }
+            for v in votes if v.matter
+        ]
+
+        return {
+            "id": a.id,
+            "legistar_person_id": a.legistar_person_id,
+            "name": a.name,
+            "district": a.district,
+            "email": a.email,
+            "phone": a.phone,
+            "photo_url": a.photo_url,
+            "sponsored_bills": [_serialize_matter(m) for m in sponsored_bills],
+            "vote_history": vote_history,
+        }
+    finally:
+        session.close()
+
+
+class SubscribeRequest(BaseModel):
+    email: str
+    tags: list[str] = []
+    district: str | None = None
+
+
+@app.post("/api/subscriptions")
+def create_subscription(body: SubscribeRequest):
+    if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', body.email):
+        raise HTTPException(status_code=422, detail="Invalid email address")
+    if not body.tags and not body.district:
+        raise HTTPException(status_code=422, detail="Select at least one issue area or district")
+
+    session = SessionLocal()
+    try:
+        sub = session.query(Subscriber).filter(Subscriber.email == body.email).first()
+        if sub:
+            session.query(SubscriberPreference).filter(
+                SubscriberPreference.subscriber_id == sub.id
+            ).delete()
+        else:
+            sub = Subscriber(email=body.email, unsubscribe_token=secrets.token_hex(32))
+            session.add(sub)
+            session.flush()
+
+        for tag in body.tags:
+            session.add(SubscriberPreference(
+                subscriber_id=sub.id,
+                preference_type="tag",
+                preference_value=tag,
+            ))
+        if body.district:
+            session.add(SubscriberPreference(
+                subscriber_id=sub.id,
+                preference_type="district",
+                preference_value=body.district,
+            ))
+
+        session.commit()
+
+        # Send confirmation email (best-effort — don't fail the request if it errors)
+        try:
+            import os
+            from notifications.email import send_email
+            from notifications.templates import confirmation_email
+            site_url = os.getenv("SITE_URL", "https://creamcitydocket.com")
+            manage_url = f"{site_url}/manage/{sub.unsubscribe_token}"
+            unsubscribe_url = f"{site_url}/manage/{sub.unsubscribe_token}?action=unsubscribe"
+            subj, html, text = confirmation_email(
+                tags=body.tags,
+                district=body.district,
+                manage_url=manage_url,
+                unsubscribe_url=unsubscribe_url,
+            )
+            send_email(to=sub.email, subject=subj, html=html, text=text)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Confirmation email failed: %s", e)
+
+        return {"ok": True}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@app.get("/api/subscriptions/{token}")
+def get_subscription(token: str):
+    session = SessionLocal()
+    try:
+        sub = session.query(Subscriber).filter_by(unsubscribe_token=token).first()
+        if not sub:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+        return {
+            "email": sub.email,
+            "tags": [p.preference_value for p in sub.preferences if p.preference_type == "tag"],
+            "district": next((p.preference_value for p in sub.preferences if p.preference_type == "district"), None),
+        }
+    finally:
+        session.close()
+
+
+class UpdateSubscriptionRequest(BaseModel):
+    tags: list[str] = []
+    district: str | None = None
+
+
+@app.patch("/api/subscriptions/{token}")
+def update_subscription(token: str, body: UpdateSubscriptionRequest):
+    if not body.tags and not body.district:
+        raise HTTPException(status_code=422, detail="Select at least one issue area or district")
+    session = SessionLocal()
+    try:
+        sub = session.query(Subscriber).filter_by(unsubscribe_token=token).first()
+        if not sub:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+        session.query(SubscriberPreference).filter_by(subscriber_id=sub.id).delete()
+        for tag in body.tags:
+            session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="tag", preference_value=tag))
+        if body.district:
+            session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="district", preference_value=body.district))
+        session.commit()
+        return {"ok": True}
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+@app.delete("/api/subscriptions/{token}")
+def delete_subscription(token: str):
+    session = SessionLocal()
+    try:
+        sub = session.query(Subscriber).filter_by(unsubscribe_token=token).first()
+        if not sub:
+            raise HTTPException(status_code=404, detail="Subscription not found")
+        session.query(SubscriberPreference).filter_by(subscriber_id=sub.id).delete()
+        session.delete(sub)
+        session.commit()
+        return {"ok": True}
+    except Exception:
+        session.rollback()
+        raise
     finally:
         session.close()

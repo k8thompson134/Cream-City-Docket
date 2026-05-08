@@ -3,7 +3,7 @@
 .page-hero {
   background: #12284B;
   color: #fff;
-  padding: 2rem;
+  padding: 2rem max(2rem, calc((100% - 1100px) / 2 + 2rem));
   border-bottom: 3px solid #FFC52F;
 }
 .page-hero h1 { font-size: 1.5rem; font-weight: 700; color: #FFC52F; margin-bottom: 0.25rem; }

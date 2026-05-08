@@ -68,7 +68,7 @@
 .alder-hero {
   background: #12284B;
   color: #fff;
-  padding: 1.75rem 2rem;
+  padding: 2rem max(2rem, calc((100% - 1100px) / 2 + 2rem));
   border-bottom: 3px solid #FFC52F;
 }
 
@@ -88,8 +88,8 @@
 }
 
 .alder-photo-placeholder {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   background: #2a3f60;
   border: 2px solid #3d5a87;
   border-radius: 4px;
@@ -106,7 +106,7 @@
 .alder-hero-info { flex: 1; min-width: 0; }
 
 .alder-hero-name {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
   color: #FFC52F;
   margin-bottom: 0.3rem;
@@ -150,7 +150,7 @@
   display: flex;
   border-bottom: 2px solid #d0d6e0;
   background: #fff;
-  padding: 0 2rem;
+  padding: 0 max(2rem, calc((100% - 1100px) / 2 + 2rem));
   overflow-x: auto;
 }
 
@@ -284,6 +284,13 @@
   border-bottom: 1px solid #e4e9f2;
   cursor: pointer;
   transition: background 0.12s;
+  width: 100%;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+  text-align: left;
 }
 .issue-area-row:last-of-type { border-bottom: none; }
 .issue-area-row:hover { background: #f5f7fb; }
@@ -373,8 +380,8 @@
 /* ── Alder photo ───────────────────────────────── */
 
 .alder-photo {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: 4px;
   object-fit: cover;
   border: 2px solid #3d5a87;

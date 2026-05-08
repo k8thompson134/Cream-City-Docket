@@ -55,30 +55,46 @@ function cleanSummary(text: string | null) {
   return cleaned || null
 }
 
-function BillCard({ bill, showSummaries }: { bill: Bill; showSummaries: boolean }) {
+function BillCard({ bill, showSummaries, isSelected, onClick, detail, detailLoading, onClose }: {
+  bill: Bill
+  showSummaries: boolean
+  isSelected: boolean
+  onClick: () => void
+  detail: BillDetail | null
+  detailLoading: boolean
+  onClose: () => void
+}) {
   const summary = cleanSummary(bill.summary)
   return (
-    <div className="alder-bill-card">
-      <div className="alder-bill-header">
-        <span className="bill-type">{bill.matter_type}</span>
-        <span
-          className="bill-status"
-          style={{ background: STATUS_COLORS[bill.matter_status] ?? '#444' }}
-        >
-          {bill.matter_status}
-        </span>
-        {bill.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
-      </div>
-      <div className="alder-bill-title">{bill.title}</div>
-      {showSummaries && summary && (
-        <div className="alder-bill-summary">{summary}</div>
+    <div>
+      <button
+        className={`alder-bill-card${isSelected ? ' alder-bill-card--selected' : ''}`}
+        onClick={onClick}
+      >
+        <div className="alder-bill-header">
+          <span className="bill-type">{bill.matter_type}</span>
+          <span
+            className="bill-status"
+            style={{ background: STATUS_COLORS[bill.matter_status] ?? '#444' }}
+          >
+            {bill.matter_status}
+          </span>
+          {bill.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
+        </div>
+        <div className="alder-bill-title">{bill.title}</div>
+        {showSummaries && summary && (
+          <div className="alder-bill-summary">{summary}</div>
+        )}
+        <div className="alder-bill-meta">
+          <span>{formatDate(bill.intro_date)}</span>
+          {bill.file_number && <span>File #{bill.file_number}</span>}
+          <span>{bill.body_name ?? '—'}</span>
+          <a href={legistarUrl(bill)} target="_blank" rel="noreferrer" className="alder-legistar-link" onClick={e => e.stopPropagation()}>Legistar ↗</a>
+        </div>
+      </button>
+      {isSelected && (
+        <VoteDetailPanel detail={detail} voteValue={null} loading={detailLoading} onClose={onClose} />
       )}
-      <div className="alder-bill-meta">
-        <span>{formatDate(bill.intro_date)}</span>
-        {bill.file_number && <span>File #{bill.file_number}</span>}
-        <span>{bill.body_name ?? '—'}</span>
-        <a href={legistarUrl(bill)} target="_blank" rel="noreferrer" className="alder-legistar-link" onClick={e => e.stopPropagation()}>Legistar ↗</a>
-      </div>
     </div>
   )
 }
@@ -291,9 +307,14 @@ export default function AlderDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [tab, setTab] = useState<Tab>('bills')
-  const [selectedVote, setSelectedVote] = useState<{ matterId: number; voteValue: string | null } | null>(null)
+  const [selected, setSelected] = useState<{ matterId: number; voteValue: string | null } | null>(null)
   const [billDetail, setBillDetail] = useState<BillDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+
+  function selectMatter(matterId: number, voteValue: string | null) {
+    setSelected(prev => prev?.matterId === matterId ? null : { matterId, voteValue })
+  }
+  function switchTab(t: Tab) { setTab(t); setSelected(null); setBillDetail(null) }
   const { settings } = useSettings()
   usePageTitle(alder ? formatName(alder.name) : undefined)
 
@@ -308,16 +329,16 @@ export default function AlderDetail() {
   }, [id])
 
   useEffect(() => {
-    if (!selectedVote) { setBillDetail(null); return }
+    if (!selected) { setBillDetail(null); return }
     setDetailLoading(true)
-    fetchBill(selectedVote.matterId)
+    fetchBill(selected.matterId)
       .then(setBillDetail)
       .catch(err => {
-        console.error('fetchBill failed:', selectedVote.matterId, err)
+        console.error('fetchBill failed:', selected.matterId, err)
         setBillDetail(null)
       })
       .finally(() => setDetailLoading(false))
-  }, [selectedVote])
+  }, [selected])
 
   if (loading) return <AlderHeroSkeleton />
   if (error) return <div className="empty" style={{ padding: '4rem' }}>Could not load this alder — the API may be unavailable. Try refreshing.</div>
@@ -367,15 +388,15 @@ export default function AlderDetail() {
       <div className="alder-tabs" role="tablist" aria-label="Alder profile sections">
         <button role="tab" aria-selected={tab === 'bills'} aria-controls="tab-bills"
           className={`alder-tab${tab === 'bills' ? ' alder-tab--active' : ''}`}
-          onClick={() => setTab('bills')}
+          onClick={() => switchTab('bills')}
         >Sponsored Bills ({billCount})</button>
         <button role="tab" aria-selected={tab === 'votes'} aria-controls="tab-votes"
           className={`alder-tab${tab === 'votes' ? ' alder-tab--active' : ''}`}
-          onClick={() => setTab('votes')}
+          onClick={() => switchTab('votes')}
         >Vote History ({alder.vote_history.length})</button>
         <button role="tab" aria-selected={tab === 'issues'} aria-controls="tab-issues"
           className={`alder-tab${tab === 'issues' ? ' alder-tab--active' : ''}`}
-          onClick={() => setTab('issues')}
+          onClick={() => switchTab('issues')}
         >Issue Areas</button>
       </div>
 
@@ -391,6 +412,11 @@ export default function AlderDetail() {
                   key={bill.id}
                   bill={bill}
                   showSummaries={settings.showSummaries}
+                  isSelected={selected?.matterId === bill.id}
+                  onClick={() => selectMatter(bill.id, null)}
+                  detail={billDetail}
+                  detailLoading={detailLoading}
+                  onClose={() => setSelected(null)}
                 />
               ))}
             </>
@@ -400,17 +426,11 @@ export default function AlderDetail() {
             <VoteHistory
               votes={alder.vote_history}
               showSummaries={settings.showSummaries}
-              selectedId={selectedVote?.matterId ?? null}
-              onSelect={(matterId, voteValue) => {
-                if (selectedVote?.matterId === matterId) {
-                  setSelectedVote(null)
-                } else {
-                  setSelectedVote({ matterId, voteValue })
-                }
-              }}
+              selectedId={selected?.matterId ?? null}
+              onSelect={(matterId, voteValue) => selectMatter(matterId, voteValue)}
               detail={billDetail}
               detailLoading={detailLoading}
-              onClose={() => setSelectedVote(null)}
+              onClose={() => setSelected(null)}
             />
           )}
           {tab === 'issues' && (

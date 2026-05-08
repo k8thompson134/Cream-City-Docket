@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, useSearchParams, Link } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchMeta, fetchAlders, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, Meta, Alder } from './api'
@@ -263,17 +263,6 @@ function UpcomingSection({ bills }: { bills: Bill[] }) {
   )
 }
 
-function SubscribeCTA() {
-  return (
-    <div className="subscribe-cta">
-      <div>
-        <div className="subscribe-cta-title">Get alerts before the vote.</div>
-        <div className="subscribe-cta-sub">Free email alerts for issues you care about. No account required.</div>
-      </div>
-      <Link to="/subscribe" className="subscribe-cta-btn">Subscribe →</Link>
-    </div>
-  )
-}
 
 function BillDetailPanel({ id, onClose, showSummaries }: {
   id: number

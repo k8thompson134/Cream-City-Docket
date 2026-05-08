@@ -1,15 +1,12 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useContext, createContext, createElement } from 'react'
+import type { ReactNode } from 'react'
 
 export interface Settings {
-  // AI
   showSummaries: boolean
   showConfidenceIndicator: boolean
-  readingLevel: 'standard' | 'simple' | 'detailed'
-  // Display
   showTooltips: boolean
   showFileNumbers: boolean
   compactFeed: boolean
-  // Accessibility
   highContrast: boolean
   largeText: boolean
   reduceMotion: boolean
@@ -19,7 +16,6 @@ export interface Settings {
 const DEFAULTS: Settings = {
   showSummaries: true,
   showConfidenceIndicator: false,
-  readingLevel: 'standard',
   showTooltips: true,
   showFileNumbers: true,
   compactFeed: false,
@@ -38,7 +34,15 @@ function load(): Settings {
   }
 }
 
-export function useSettings() {
+interface SettingsCtxValue {
+  settings: Settings
+  update: <K extends keyof Settings>(key: K, value: Settings[K]) => void
+  reset: () => void
+}
+
+const SettingsCtx = createContext<SettingsCtxValue | null>(null)
+
+export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(load)
 
   const update = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -54,5 +58,11 @@ export function useSettings() {
     setSettings(DEFAULTS)
   }, [])
 
-  return { settings, update, reset }
+  return createElement(SettingsCtx.Provider, { value: { settings, update, reset } }, children)
+}
+
+export function useSettings() {
+  const ctx = useContext(SettingsCtx)
+  if (!ctx) throw new Error('useSettings must be used within SettingsProvider')
+  return ctx
 }

@@ -1,14 +1,19 @@
 /* Accessibility body classes */
-.dyslexia-font, .dyslexia-font * { font-family: 'Atkinson Hyperlegible', sans-serif !important; }
-.large-text { font-size: 18px !important; }
+.dyslexia-font body, .dyslexia-font * { font-family: 'Atkinson Hyperlegible', sans-serif !important; }
+.large-text body { zoom: 1.2; }
 .reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { transition: none !important; animation: none !important; }
-.high-contrast { --hc-bg: #fff; --hc-text: #000; --hc-border: #000; }
-.high-contrast body { background: #fff; color: #000; }
-.high-contrast .bill-row, .high-contrast .alder-card, .high-contrast .detail-panel, .high-contrast .sidebar-card { border-color: #000 !important; }
-.high-contrast .bill-type { background: #000; color: #fff; }
-.high-contrast .tag-chip { border-color: #000; color: #000; background: #fff; }
-.high-contrast a { color: #00008B; }
-.high-contrast .site-header { background: #000; border-bottom: 3px solid #fff; }
+.high-contrast body { background: #fff !important; color: #000 !important; }
+.high-contrast .bill-row, .high-contrast .alder-card, .high-contrast .detail-panel, .high-contrast .sidebar-card { background: #fff !important; border-color: #000 !important; color: #000 !important; }
+.high-contrast .bill-type { background: #000 !important; color: #fff !important; }
+.high-contrast .bill-status { background: #000 !important; color: #fff !important; }
+.high-contrast .tag-chip { border-color: #000 !important; color: #000 !important; background: #fff !important; }
+.high-contrast a { color: #00008B !important; }
+.high-contrast .site-header { background: #000 !important; }
+.high-contrast .site-header a, .high-contrast .site-header .nav-link { color: #fff !important; }
+.high-contrast .sidebar { background: #fff !important; border-color: #000 !important; }
+.high-contrast .filters select, .high-contrast .subscribe-input, .high-contrast .subscribe-select { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+.high-contrast .upcoming-section { background: #000 !important; }
+.high-contrast .upcoming-card { background: #111 !important; color: #fff !important; border-color: #fff !important; }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

@@ -32,7 +32,7 @@ export default function Settings() {
     <div className="page-wrap">
       <div className="page-hero">
         <h1>Settings</h1>
-        <p>Site-wide display preferences. Saved in your browser — no account required.</p>
+        <p>Site-wide display preferences. Saved in your browser, no account required.</p>
       </div>
 
       <div className="settings-body">
@@ -64,30 +64,6 @@ export default function Settings() {
               onChange={v => update('showConfidenceIndicator', v)}
             />
 
-            {settings.showSummaries && (
-              <div className="reading-level-row">
-                <div className="toggle-label" style={{ marginBottom: '0.3rem' }}>Reading level for summaries</div>
-                <div className="toggle-sub" style={{ marginBottom: '0.65rem' }}>
-                  Adjusts the complexity of AI-generated summaries.
-                </div>
-                <div className="reading-level-chips">
-                  {(['standard', 'simple', 'detailed'] as const).map(level => (
-                    <button
-                      key={level}
-                      className={`reading-chip${settings.readingLevel === level ? ' reading-chip--active' : ''}`}
-                      onClick={() => update('readingLevel', level)}
-                    >
-                      {level === 'standard' ? 'Standard (8th grade)'
-                        : level === 'simple' ? 'Simple (5th grade)'
-                        : 'Detailed'}
-                    </button>
-                  ))}
-                </div>
-                <div className="settings-info" style={{ marginTop: '0.6rem' }}>
-                  Reading level affects summaries generated going forward. Existing summaries use the standard level.
-                </div>
-              </div>
-            )}
           </section>
 
           {/* Accessibility */}
@@ -108,7 +84,7 @@ export default function Settings() {
             />
             <Toggle
               label="Reduce motion"
-              sub="Disables animations and transitions for users sensitive to motion."
+              sub="Disables animations and transitions."
               checked={settings.reduceMotion}
               onChange={v => update('reduceMotion', v)}
             />

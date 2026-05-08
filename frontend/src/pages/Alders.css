@@ -187,9 +187,7 @@
 .alder-sidebar {
   width: 280px;
   flex-shrink: 0;
-  transition: width 0.2s ease;
 }
-.alder-sidebar--detail { width: 220px; }
 
 .alder-quick-facts {
   background: #fff;
@@ -382,14 +380,12 @@
 /* ── Vote detail panel ─────────────────────────── */
 
 .vote-detail-panel {
-  background: #fff;
-  border: 1px solid #d0d6e0;
+  background: #12284B;
+  color: #e8edf5;
   border-radius: 6px;
-  padding: 1.1rem 1.25rem;
-  position: sticky;
-  top: 76px;
-  max-height: calc(100vh - 100px);
-  overflow-y: auto;
+  padding: 1.25rem 1.4rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .vote-detail-header {
@@ -403,21 +399,21 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #888;
+  color: #8ba3c4;
   font-size: 1rem;
   padding: 0.1rem 0.3rem;
   border-radius: 3px;
 }
-.vote-detail-close:hover { color: #1a1a1a; background: #f0f2f5; }
+.vote-detail-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
 .vote-detail-title {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #1a1a1a;
+  color: #fff;
   line-height: 1.5;
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e4e9f2;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .vote-detail-badges {
@@ -436,17 +432,17 @@
 
 .vote-detail-summary {
   font-size: 0.83rem;
-  color: #333;
+  color: #c8d4e8;
   line-height: 1.65;
   margin-bottom: 0.9rem;
   padding-bottom: 0.9rem;
-  border-bottom: 1px solid #e4e9f2;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .vote-detail-section {
   margin-bottom: 0.9rem;
   padding-bottom: 0.9rem;
-  border-bottom: 1px solid #e4e9f2;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .vote-detail-label {
@@ -454,7 +450,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: #888;
+  color: #FFC52F;
   margin-bottom: 0.5rem;
 }
 
@@ -463,21 +459,52 @@
   flex-direction: column;
   gap: 0.1rem;
   font-size: 0.8rem;
-  color: #333;
+  color: #c8d4e8;
   padding: 0.3rem 0;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .vote-detail-row:last-child { border-bottom: none; }
-.vote-detail-row span:last-child { font-size: 0.73rem; color: #888; }
+.vote-detail-row span:last-child { font-size: 0.73rem; color: #8ba3c4; }
 
 .vote-detail-legistar {
   font-size: 0.78rem;
-  color: #12284B;
+  color: #FFC52F;
   text-decoration: underline;
   display: inline-block;
   margin-top: 0.25rem;
 }
-.vote-detail-legistar:hover { color: #FFC52F; }
+.vote-detail-legistar:hover { color: #fff; }
+
+/* skeleton loader */
+.vd-skel {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  animation: vd-pulse 1.4s ease-in-out infinite;
+}
+@keyframes vd-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.vd-skel--chip  { width: 56px; height: 22px; margin-bottom: 0.9rem; border-radius: 3px; }
+.vd-skel--title { width: 100%; height: 14px; margin-bottom: 0.5rem; }
+.vd-skel--title-short { width: 65%; height: 14px; margin-bottom: 0.75rem; }
+.vd-skel--pill  { width: 80px; height: 20px; border-radius: 3px; }
+.vd-skel--line  { width: 100%; height: 11px; margin-top: 0.55rem; border-radius: 3px; }
+.vd-skel--short { width: 55%; }
+
+/* pills inside dark panel */
+.vote-detail-panel .bill-type {
+  background: rgba(255,255,255,0.1);
+  color: #c8d4e8;
+}
+.vote-detail-panel .bill-status {
+  filter: brightness(1.3);
+}
+.vote-detail-panel .tag-chip {
+  background: rgba(255,197,47,0.12);
+  border-color: rgba(255,197,47,0.5);
+  color: #FFC52F;
+}
 
 .alder-vote-header {
   display: flex;

@@ -97,11 +97,14 @@ function voteCardClass(value: string | null) {
   return 'alder-vote-card alder-vote-card--abstain'
 }
 
-function VoteHistory({ votes, showSummaries, selectedId, onSelect }: {
+function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detailLoading, onClose }: {
   votes: VoteRecord[]
   showSummaries: boolean
   selectedId: number | null
   onSelect: (matterId: number, voteValue: string | null) => void
+  detail: BillDetail | null
+  detailLoading: boolean
+  onClose: () => void
 }) {
   if (votes.length === 0) {
     return (
@@ -118,30 +121,39 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect }: {
           : null
         const isSelected = selectedId === v.matter.id
         return (
-          <button
-            key={i}
-            className={`${voteCardClass(v.vote_value)}${isSelected ? ' alder-vote-card--selected' : ''}`}
-            onClick={() => onSelect(v.matter.id, v.vote_value)}
-          >
-            <div className="alder-vote-header">
-              <span className={voteChipClass(v.vote_value)}>{v.vote_value ?? 'Unknown'}</span>
-              <span className="alder-vote-date">{formatDate(v.voted_at)}</span>
-            </div>
-            <div className="alder-bill-title">{v.matter.title}</div>
-            {showSummaries && summary && (
-              <div className="alder-bill-summary">{summary}</div>
+          <div key={i}>
+            <button
+              className={`${voteCardClass(v.vote_value)}${isSelected ? ' alder-vote-card--selected' : ''}`}
+              onClick={() => onSelect(v.matter.id, v.vote_value)}
+            >
+              <div className="alder-vote-header">
+                <span className={voteChipClass(v.vote_value)}>{v.vote_value ?? 'Unknown'}</span>
+                <span className="alder-vote-date">{formatDate(v.voted_at)}</span>
+              </div>
+              <div className="alder-bill-title">{v.matter.title}</div>
+              {showSummaries && summary && (
+                <div className="alder-bill-summary">{summary}</div>
+              )}
+              <div className="alder-bill-header" style={{ marginTop: '0.5rem' }}>
+                <span className="bill-type">{v.matter.matter_type}</span>
+                <span
+                  className="bill-status"
+                  style={{ background: STATUS_COLORS[v.matter.matter_status] ?? '#444' }}
+                >
+                  {v.matter.matter_status}
+                </span>
+                {v.matter.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
+              </div>
+            </button>
+            {isSelected && (
+              <VoteDetailPanel
+                detail={detail}
+                voteValue={v.vote_value}
+                loading={detailLoading}
+                onClose={onClose}
+              />
             )}
-            <div className="alder-bill-header" style={{ marginTop: '0.5rem' }}>
-              <span className="bill-type">{v.matter.matter_type}</span>
-              <span
-                className="bill-status"
-                style={{ background: STATUS_COLORS[v.matter.matter_status] ?? '#444' }}
-              >
-                {v.matter.matter_status}
-              </span>
-              {v.matter.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
-            </div>
-          </button>
+          </div>
         )
       })}
     </>
@@ -155,11 +167,24 @@ function VoteDetailPanel({ detail, voteValue, loading, onClose }: {
   onClose: () => void
 }) {
   if (loading) return (
-    <div className="alder-quick-facts">
-      <div style={{ padding: '1rem', color: '#888', fontSize: '0.85rem' }}>Loading…</div>
+    <div className="vote-detail-panel">
+      <div className="vd-skel vd-skel--chip" />
+      <div className="vd-skel vd-skel--title" />
+      <div className="vd-skel vd-skel--title-short" />
+      <div style={{ display: 'flex', gap: '0.4rem', margin: '0.75rem 0 0.5rem' }}>
+        <div className="vd-skel vd-skel--pill" />
+        <div className="vd-skel vd-skel--pill" />
+      </div>
+      <div className="vd-skel vd-skel--line" />
+      <div className="vd-skel vd-skel--line" />
+      <div className="vd-skel vd-skel--line vd-skel--short" />
     </div>
   )
-  if (!detail) return null
+  if (!detail) return (
+    <div className="vote-detail-panel">
+      <div style={{ color: '#888', fontSize: '0.85rem' }}>Could not load bill detail.</div>
+    </div>
+  )
 
   const summary = detail.summary
     ? detail.summary.split('\n').filter(l => !l.trimStart().startsWith('#')).join(' ').trim()
@@ -287,7 +312,10 @@ export default function AlderDetail() {
     setDetailLoading(true)
     fetchBill(selectedVote.matterId)
       .then(setBillDetail)
-      .catch(() => setBillDetail(null))
+      .catch(err => {
+        console.error('fetchBill failed:', selectedVote.matterId, err)
+        setBillDetail(null)
+      })
       .finally(() => setDetailLoading(false))
   }, [selectedVote])
 
@@ -380,6 +408,9 @@ export default function AlderDetail() {
                   setSelectedVote({ matterId, voteValue })
                 }
               }}
+              detail={billDetail}
+              detailLoading={detailLoading}
+              onClose={() => setSelectedVote(null)}
             />
           )}
           {tab === 'issues' && (
@@ -387,15 +418,7 @@ export default function AlderDetail() {
           )}
         </div>
 
-        <aside className={`alder-sidebar${tab === 'votes' && selectedVote ? ' alder-sidebar--detail' : ''}`}>
-          {tab === 'votes' && selectedVote ? (
-            <VoteDetailPanel
-              detail={billDetail}
-              voteValue={selectedVote.voteValue}
-              loading={detailLoading}
-              onClose={() => setSelectedVote(null)}
-            />
-          ) : (
+        <aside className="alder-sidebar">
           <div className="alder-quick-facts">
             <h3>Quick Facts</h3>
             {district && (
@@ -423,7 +446,6 @@ export default function AlderDetail() {
               <span className="alder-fact-value">{billCount}</span>
             </div>
           </div>
-          )}
         </aside>
       </div>
     </div>

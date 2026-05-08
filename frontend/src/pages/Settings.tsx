@@ -1,4 +1,5 @@
 import { useSettings } from '../useSettings'
+import { usePageTitle } from '../usePageTitle'
 import './Settings.css'
 
 function Toggle({ label, sub, checked, onChange }: {
@@ -16,6 +17,7 @@ function Toggle({ label, sub, checked, onChange }: {
       <button
         role="switch"
         aria-checked={checked}
+        aria-label={label}
         className={`toggle-btn${checked ? ' toggle-btn--on' : ''}`}
         onClick={() => onChange(!checked)}
       >
@@ -27,6 +29,7 @@ function Toggle({ label, sub, checked, onChange }: {
 
 export default function Settings() {
   const { settings, update, reset } = useSettings()
+  usePageTitle('Settings')
 
   return (
     <div className="page-wrap">

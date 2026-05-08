@@ -6,6 +6,14 @@ import os
 
 SITE_URL = os.getenv("SITE_URL", "https://creamcitydocket.com")
 
+_TRIGGER_LABELS = {
+    "introduced":        ("New legislation", "A new bill matching your interests was introduced."),
+    "hearing_scheduled": ("Hearing scheduled", "A bill matching your interests has a committee hearing coming up."),
+    "council_vote":      ("Council vote upcoming", "A bill matching your interests is headed to a full council vote."),
+    "mayor_signed":      ("Mayor signed", "A bill matching your interests was signed by the mayor."),
+    "mayor_vetoed":      ("Mayor vetoed", "A bill matching your interests was vetoed by the mayor."),
+}
+
 
 def _base_html(body: str) -> str:
     return f"""<!DOCTYPE html>
@@ -26,8 +34,8 @@ def _base_html(body: str) -> str:
   .summary {{ background: #f5f7fb; border-left: 4px solid #FFC52F; padding: 12px 16px; margin: 16px 0; font-size: 14px; line-height: 1.6; color: #333; }}
   .btn {{ display: inline-block; background: #12284B; color: #FFC52F !important; text-decoration: none; padding: 10px 20px; border-radius: 4px; font-weight: 700; font-size: 14px; margin-top: 8px; }}
   .divider {{ border: none; border-top: 1px solid #e4e9f2; margin: 20px 0; }}
-  ul {{ padding-left: 20px; margin: 8px 0; }}
-  li {{ margin-bottom: 4px; }}
+  .event-box {{ background: #fff8e7; border: 1px solid #e8a800; border-radius: 4px; padding: 10px 14px; margin: 12px 0; font-size: 14px; color: #1a1a1a; }}
+  .event-box strong {{ color: #12284B; }}
 </style>
 </head>
 <body><div class="card">{body}</div></body>
@@ -82,11 +90,14 @@ creamcitydocket.com"""
 
 def alert_email(
     *,
+    trigger_event: str,
     matter_title: str,
     matter_summary: str | None,
     matter_type: str,
     matter_status: str,
     intro_date: str | None,
+    agenda_date: str | None,
+    mayor_action_date: str | None,
     tags: list[str],
     sponsors: list[str],
     file_number: str | None,
@@ -94,25 +105,42 @@ def alert_email(
     manage_url: str,
     unsubscribe_url: str,
 ) -> tuple[str, str, str]:
+    label, headline = _TRIGGER_LABELS.get(
+        trigger_event,
+        ("Milwaukee legislation update", "A bill matching your interests was updated."),
+    )
     tag_label = tags[0] if tags else "Milwaukee legislation"
-    subject = f"New {tag_label} bill in Milwaukee — {matter_title[:60]}{'…' if len(matter_title) > 60 else ''}"
+    title_snippet = matter_title[:60] + ("…" if len(matter_title) > 60 else "")
+    subject = f"{label}: {title_snippet}"
 
     tag_chips = "".join(f'<span class="tag">{t}</span>' for t in tags)
     summary_block = f'<div class="summary">{matter_summary}</div>' if matter_summary else ""
     sponsor_text = ", ".join(sponsors) if sponsors else "—"
     file_text = f"File #{file_number}" if file_number else ""
-    date_text = intro_date or ""
+
+    # Trigger-specific callout block
+    event_block = ""
+    if trigger_event == "hearing_scheduled" and agenda_date:
+        event_block = f'<div class="event-box"><strong>Hearing date:</strong> {agenda_date}</div>'
+    elif trigger_event == "council_vote":
+        event_block = f'<div class="event-box"><strong>Status:</strong> {matter_status}</div>'
+    elif trigger_event == "mayor_signed" and mayor_action_date:
+        event_block = f'<div class="event-box"><strong>Signed:</strong> {mayor_action_date}</div>'
+    elif trigger_event == "mayor_vetoed" and mayor_action_date:
+        event_block = f'<div class="event-box"><strong>Vetoed:</strong> {mayor_action_date}</div>'
 
     html = _base_html(f"""
       <div class="header"><a href="{SITE_URL}">Cream City Docket</a></div>
       <div class="body">
-        <p style="font-size:12px;color:#888;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.08em;">{matter_type} · {matter_status}</p>
+        <p style="font-size:12px;color:#FFC52F;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.1em;background:#12284B;display:inline-block;padding:3px 8px;border-radius:3px;">{label}</p>
+        <p style="font-size:12px;color:#888;margin:4px 0 12px;">{matter_type} &nbsp;·&nbsp; {matter_status}</p>
         <h2>{matter_title}</h2>
         {tag_chips}
+        {event_block}
         {summary_block}
         <div class="meta">
           <strong>Sponsor:</strong> {sponsor_text}<br>
-          {f'<strong>Introduced:</strong> {date_text}<br>' if date_text else ''}
+          {f'<strong>Introduced:</strong> {intro_date}<br>' if intro_date else ''}
           {f'<strong>File:</strong> {file_text}' if file_text else ''}
         </div>
         <a href="https://milwaukee.legistar.com/Legislation.aspx" class="btn">Search Legistar {f'— File #{file_number}' if file_number else ''} ↗</a>
@@ -126,14 +154,24 @@ def alert_email(
       </div>
     """)
 
-    text = f"""{matter_type.upper()} · {matter_status}
+    extra_lines = []
+    if trigger_event == "hearing_scheduled" and agenda_date:
+        extra_lines.append(f"Hearing date: {agenda_date}")
+    elif trigger_event == "mayor_signed" and mayor_action_date:
+        extra_lines.append(f"Signed: {mayor_action_date}")
+    elif trigger_event == "mayor_vetoed" and mayor_action_date:
+        extra_lines.append(f"Vetoed: {mayor_action_date}")
+
+    text = f"""{label.upper()}
+{matter_type} · {matter_status}
 
 {matter_title}
 
+{chr(10).join(extra_lines)}
 {matter_summary or ''}
 
 Sponsor: {sponsor_text}
-{f'Introduced: {date_text}' if date_text else ''}
+{f'Introduced: {intro_date}' if intro_date else ''}
 {f'File: {file_text}' if file_text else ''}
 
 Search Legistar: https://milwaukee.legistar.com/Legislation.aspx

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { fetchAlder, legistarUrl } from '../api'
-import type { AlderDetail as AlderDetailType, Bill, VoteRecord } from '../api'
+import { fetchAlder, fetchBill, legistarUrl } from '../api'
+import type { AlderDetail as AlderDetailType, Bill, BillDetail, VoteRecord } from '../api'
 import { useSettings } from '../useSettings'
+import { usePageTitle } from '../usePageTitle'
+import { AlderHeroSkeleton } from '../Skeletons'
 import './Alders.css'
 
 type Tab = 'bills' | 'votes' | 'issues'
@@ -95,7 +97,12 @@ function voteCardClass(value: string | null) {
   return 'alder-vote-card alder-vote-card--abstain'
 }
 
-function VoteHistory({ votes, showSummaries }: { votes: VoteRecord[]; showSummaries: boolean }) {
+function VoteHistory({ votes, showSummaries, selectedId, onSelect }: {
+  votes: VoteRecord[]
+  showSummaries: boolean
+  selectedId: number | null
+  onSelect: (matterId: number, voteValue: string | null) => void
+}) {
   if (votes.length === 0) {
     return (
       <div className="alder-empty">
@@ -109,8 +116,13 @@ function VoteHistory({ votes, showSummaries }: { votes: VoteRecord[]; showSummar
         const summary = v.matter.summary
           ? v.matter.summary.split('\n').filter(l => !l.trimStart().startsWith('#')).join(' ').trim()
           : null
+        const isSelected = selectedId === v.matter.id
         return (
-          <div key={i} className={voteCardClass(v.vote_value)}>
+          <button
+            key={i}
+            className={`${voteCardClass(v.vote_value)}${isSelected ? ' alder-vote-card--selected' : ''}`}
+            onClick={() => onSelect(v.matter.id, v.vote_value)}
+          >
             <div className="alder-vote-header">
               <span className={voteChipClass(v.vote_value)}>{v.vote_value ?? 'Unknown'}</span>
               <span className="alder-vote-date">{formatDate(v.voted_at)}</span>
@@ -129,10 +141,75 @@ function VoteHistory({ votes, showSummaries }: { votes: VoteRecord[]; showSummar
               </span>
               {v.matter.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
             </div>
-          </div>
+          </button>
         )
       })}
     </>
+  )
+}
+
+function VoteDetailPanel({ detail, voteValue, loading, onClose }: {
+  detail: BillDetail | null
+  voteValue: string | null
+  loading: boolean
+  onClose: () => void
+}) {
+  if (loading) return (
+    <div className="alder-quick-facts">
+      <div style={{ padding: '1rem', color: '#888', fontSize: '0.85rem' }}>Loading…</div>
+    </div>
+  )
+  if (!detail) return null
+
+  const summary = detail.summary
+    ? detail.summary.split('\n').filter(l => !l.trimStart().startsWith('#')).join(' ').trim()
+    : null
+
+  return (
+    <div className="vote-detail-panel">
+      <div className="vote-detail-header">
+        <span className={voteChipClass(voteValue)}>{voteValue ?? 'Unknown'}</span>
+        <button className="vote-detail-close" onClick={onClose} aria-label="Close detail">✕</button>
+      </div>
+      <div className="vote-detail-title">{detail.title}</div>
+      <div className="vote-detail-badges">
+        <span className="bill-type">{detail.matter_type}</span>
+        <span className="bill-status" style={{ background: STATUS_COLORS[detail.matter_status] ?? '#444' }}>
+          {detail.matter_status}
+        </span>
+      </div>
+      {detail.tags.length > 0 && (
+        <div className="vote-detail-tags">
+          {detail.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
+        </div>
+      )}
+      {summary && <div className="vote-detail-summary">{summary}</div>}
+      {detail.history.length > 0 && (
+        <div className="vote-detail-section">
+          <div className="vote-detail-label">Timeline</div>
+          {detail.history.map((h, i) => (
+            <div key={i} className="vote-detail-row">
+              <span>{h.action_name}</span>
+              <span>{formatDate(h.action_date)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {detail.mayor_actions.length > 0 && (
+        <div className="vote-detail-section">
+          <div className="vote-detail-label">Mayor Action</div>
+          {detail.mayor_actions.map((a, i) => (
+            <div key={i} className="vote-detail-row">
+              <span style={{ textTransform: 'capitalize' }}>{a.action_type}</span>
+              <span>{formatDate(a.action_date)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <a href={legistarUrl(detail)} target="_blank" rel="noreferrer" className="vote-detail-legistar">
+        View on Legistar ↗
+      </a>
+    </div>
   )
 }
 
@@ -187,19 +264,36 @@ export default function AlderDetail() {
   const { id } = useParams<{ id: string }>()
   const [alder, setAlder] = useState<AlderDetailType | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [tab, setTab] = useState<Tab>('bills')
+  const [selectedVote, setSelectedVote] = useState<{ matterId: number; voteValue: string | null } | null>(null)
+  const [billDetail, setBillDetail] = useState<BillDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
   const { settings } = useSettings()
+  usePageTitle(alder ? formatName(alder.name) : undefined)
 
   useEffect(() => {
     if (!id) return
     setLoading(true)
+    setError(false)
     fetchAlder(parseInt(id))
       .then(setAlder)
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return <div className="loading" style={{ padding: '4rem' }}>Loading…</div>
-  if (!alder) return <div className="loading" style={{ padding: '4rem' }}>Alder not found.</div>
+  useEffect(() => {
+    if (!selectedVote) { setBillDetail(null); return }
+    setDetailLoading(true)
+    fetchBill(selectedVote.matterId)
+      .then(setBillDetail)
+      .catch(() => setBillDetail(null))
+      .finally(() => setDetailLoading(false))
+  }, [selectedVote])
+
+  if (loading) return <AlderHeroSkeleton />
+  if (error) return <div className="empty" style={{ padding: '4rem' }}>Could not load this alder — the API may be unavailable. Try refreshing.</div>
+  if (!alder) return <div className="empty" style={{ padding: '4rem' }}>Alder not found.</div>
 
   const displayName = formatName(alder.name)
   const district = districtLabel(alder.district)
@@ -275,14 +369,33 @@ export default function AlderDetail() {
           )}
 
           {tab === 'votes' && (
-            <VoteHistory votes={alder.vote_history} showSummaries={settings.showSummaries} />
+            <VoteHistory
+              votes={alder.vote_history}
+              showSummaries={settings.showSummaries}
+              selectedId={selectedVote?.matterId ?? null}
+              onSelect={(matterId, voteValue) => {
+                if (selectedVote?.matterId === matterId) {
+                  setSelectedVote(null)
+                } else {
+                  setSelectedVote({ matterId, voteValue })
+                }
+              }}
+            />
           )}
           {tab === 'issues' && (
             <IssueAreas bills={alder.sponsored_bills} alderId={alder.id} />
           )}
         </div>
 
-        <aside className="alder-sidebar">
+        <aside className={`alder-sidebar${tab === 'votes' && selectedVote ? ' alder-sidebar--detail' : ''}`}>
+          {tab === 'votes' && selectedVote ? (
+            <VoteDetailPanel
+              detail={billDetail}
+              voteValue={selectedVote.voteValue}
+              loading={detailLoading}
+              onClose={() => setSelectedVote(null)}
+            />
+          ) : (
           <div className="alder-quick-facts">
             <h3>Quick Facts</h3>
             {district && (
@@ -310,6 +423,7 @@ export default function AlderDetail() {
               <span className="alder-fact-value">{billCount}</span>
             </div>
           </div>
+          )}
         </aside>
       </div>
     </div>

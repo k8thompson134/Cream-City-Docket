@@ -448,3 +448,22 @@ body {
 .pagination button:not(:disabled):hover { background: #12284B; color: #FFC52F; border-color: #12284B; }
 
 .loading, .empty { text-align: center; padding: 3rem; color: #1a1a1a; font-size: 0.9rem; }
+
+/* ── Skeletons ─────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+.sk {
+  background: linear-gradient(90deg, #e4e9f2 25%, #f0f4f8 50%, #e4e9f2 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 4px;
+  display: block;
+}
+.sk-line  { height: 13px; margin-bottom: 8px; }
+.sk-line--sm  { height: 10px; }
+.sk-line--lg  { height: 20px; }
+.sk-line--xl  { height: 28px; }
+.sk-chip  { height: 22px; border-radius: 11px; display: inline-block; }
+.sk-circle { border-radius: 50%; }

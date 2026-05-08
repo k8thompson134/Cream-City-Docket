@@ -212,3 +212,20 @@
   font-size: 0.9rem;
 }
 .done-btn:hover { background: #1a3a6b; }
+
+@media (max-width: 768px) {
+  .subscribe-body {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 2rem;
+  }
+  .subscribe-sidebar { width: 100%; }
+  .subscribe-input { max-width: 100%; }
+  .subscribe-select { width: 100%; max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .subscribe-step { padding-left: 40px; }
+  .subscribe-submit-row { padding-left: 40px; }
+  .subscribe-btn { width: 100%; text-align: center; }
+}

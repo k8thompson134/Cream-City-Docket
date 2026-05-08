@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { subscribeToAlerts } from '../api'
+import { usePageTitle } from '../usePageTitle'
 import './Subscribe.css'
 
 const ISSUE_TAGS = [
@@ -23,6 +24,7 @@ const ALERT_TYPES = [
 type Step = 'form' | 'done'
 
 export default function Subscribe() {
+  usePageTitle('Get Alerts')
   const [searchParams] = useSearchParams()
   const [step, setStep] = useState<Step>('form')
   const [email, setEmail] = useState('')
@@ -139,6 +141,7 @@ export default function Subscribe() {
                     key={tag}
                     type="button"
                     className={`tag-toggle${selectedTags.has(tag) ? ' tag-toggle--on' : ''}`}
+                    aria-pressed={selectedTags.has(tag)}
                     onClick={() => toggleTag(tag)}
                   >
                     {tag}
@@ -151,12 +154,13 @@ export default function Subscribe() {
           <div className="subscribe-step">
             <div className="step-num">3</div>
             <div className="step-content">
-              <div className="step-label">
+              <label className="step-label" htmlFor="district-select">
                 Alert me about my aldermanic district
                 <span className="step-optional">optional</span>
-              </div>
+              </label>
               <div className="field-hint" style={{ marginBottom: '0.85rem' }}>Receive alerts for all legislation affecting your district, regardless of issue area.</div>
               <select
+                id="district-select"
                 className="subscribe-select"
                 value={district}
                 onChange={e => { setDistrict(e.target.value); setTagsError('') }}

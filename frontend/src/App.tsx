@@ -3,6 +3,8 @@ import { Routes, Route, useSearchParams, Link } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchMeta, fetchAlders, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, Meta, Alder } from './api'
 import { useSettings } from './useSettings'
+import { usePageTitle } from './usePageTitle'
+import { BillFeedSkeleton, DetailPanelSkeleton } from './Skeletons'
 import Nav from './Nav'
 import About from './pages/About'
 import ManageSubscription from './pages/ManageSubscription'
@@ -162,7 +164,15 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
     : null
 
   return (
-    <div className={`bill-row${selected ? ' bill-row--selected' : ''}`} onClick={onClick}>
+    <div
+      className={`bill-row${selected ? ' bill-row--selected' : ''}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      aria-label={`${bill.matter_type}: ${bill.title}`}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
+    >
       <div className="bill-row-top">
         <div className="bill-badges">
           {newBadge && <span className="badge-new">New</span>}
@@ -270,13 +280,21 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
   showSummaries: boolean
 }) {
   const [bill, setBill] = useState<BillDetail | null>(null)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     setBill(null)
-    fetchBill(id).then(setBill)
+    setError(false)
+    fetchBill(id).then(setBill).catch(() => setError(true))
   }, [id])
 
-  if (!bill) return <div className="detail-panel"><div className="loading">Loading…</div></div>
+  if (error) return (
+    <div className="detail-panel" role="complementary" aria-label="Bill details">
+      <button className="close-btn" onClick={onClose} aria-label="Close bill details">✕ Close</button>
+      <div className="empty">Could not load bill details. Try again in a moment.</div>
+    </div>
+  )
+  if (!bill) return <DetailPanelSkeleton />
 
   const sponsorLinks = bill.sponsors.length > 0
     ? bill.sponsors.map((s, i) => (
@@ -365,6 +383,7 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 }
 
 function Docket() {
+  usePageTitle()
   const { settings } = useSettings()
   const [searchParams] = useSearchParams()
   const [bills, setBills] = useState<Bill[]>([])
@@ -378,17 +397,20 @@ function Docket() {
   const [sponsorFilter, setSponsorFilter] = useState(() => searchParams.get('sponsored_by') ?? '')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [upcoming, setUpcoming] = useState<Bill[]>([])
   const LIMIT = 25
 
-  useEffect(() => { fetchMeta().then(setMeta) }, [])
+  useEffect(() => { fetchMeta().then(setMeta).catch(() => {}) }, [])
   useEffect(() => { fetchUpcoming().then(setUpcoming).catch(() => {}) }, [])
-  useEffect(() => { fetchAlders().then(data => setAlders(data.sort((a, b) => (parseInt(a.district ?? '99') - parseInt(b.district ?? '99'))))) }, [])
+  useEffect(() => { fetchAlders().then(data => setAlders(data.sort((a, b) => (parseInt(a.district ?? '99') - parseInt(b.district ?? '99'))))).catch(() => {}) }, [])
 
   useEffect(() => {
     setLoading(true)
+    setFetchError(false)
     fetchBills({ skip, limit: LIMIT, matter_type: typeFilter || undefined, status: statusFilter || undefined, tag: tagFilter || undefined, sponsored_by: sponsorFilter ? parseInt(sponsorFilter) : undefined })
       .then(res => { setBills(res.items); setTotal(res.total) })
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false))
   }, [skip, typeFilter, statusFilter, tagFilter, sponsorFilter])
 
@@ -439,9 +461,14 @@ function Docket() {
         <div className="count">{total} bills</div>
       </aside>
 
-      <main className="feed">
-        {loading && <div className="loading">Loading…</div>}
-        {!loading && bills.map(b => (
+      <main className="feed" id="main-content">
+        {loading && <BillFeedSkeleton />}
+        {!loading && fetchError && (
+          <div className="empty">
+            Could not load bills — the API may be unavailable. Try refreshing in a moment.
+          </div>
+        )}
+        {!loading && !fetchError && bills.map(b => (
           <BillRow
             key={b.id}
             bill={b}
@@ -452,7 +479,7 @@ function Docket() {
             compact={settings.compactFeed}
           />
         ))}
-        {!loading && bills.length === 0 && <div className="empty">No bills match these filters.</div>}
+        {!loading && !fetchError && bills.length === 0 && <div className="empty">No bills match these filters.</div>}
 
         {!loading && (
           <div className="pagination">

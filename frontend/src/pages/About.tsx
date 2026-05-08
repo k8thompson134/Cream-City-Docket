@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
+import { usePageTitle } from '../usePageTitle'
 import './About.css'
 
 export default function About() {
+  usePageTitle('About')
   return (
     <div className="page-wrap">
       <div className="page-hero">

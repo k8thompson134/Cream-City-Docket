@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { fetchSubscription, updateSubscription, deleteSubscription } from '../api'
 import type { Subscription } from '../api'
+import { usePageTitle } from '../usePageTitle'
 import './Subscribe.css'
 
 const ISSUE_TAGS = [
@@ -15,6 +16,7 @@ const DISTRICTS = Array.from({ length: 15 }, (_, i) => `District ${i + 1}`)
 type Screen = 'loading' | 'error' | 'form' | 'saved' | 'unsubscribed'
 
 export default function ManageSubscription() {
+  usePageTitle('Manage Alerts')
   const { token } = useParams<{ token: string }>()
   const [searchParams] = useSearchParams()
   const [screen, setScreen] = useState<Screen>('loading')
@@ -151,6 +153,7 @@ export default function ManageSubscription() {
                   key={tag}
                   type="button"
                   className={`tag-toggle${selectedTags.has(tag) ? ' tag-toggle--on' : ''}`}
+                  aria-pressed={selectedTags.has(tag)}
                   onClick={() => toggleTag(tag)}
                 >
                   {tag}
@@ -160,8 +163,11 @@ export default function ManageSubscription() {
           </div>
 
           <div className="subscribe-step">
-            <div className="step-label">Aldermanic district <span className="step-optional">(optional)</span></div>
+            <label className="step-label" htmlFor="manage-district-select">
+              Aldermanic district <span className="step-optional">(optional)</span>
+            </label>
             <select
+              id="manage-district-select"
               className="subscribe-select"
               value={district}
               onChange={e => { setDistrict(e.target.value); setError('') }}

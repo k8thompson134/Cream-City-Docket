@@ -103,6 +103,15 @@
 .reset-btn:hover { background: #e4e9f2; }
 .settings-reset p { font-size: 0.78rem; color: #888; }
 
+@media (max-width: 768px) {
+  .settings-body {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  .settings-sidebar { width: 100%; }
+}
+
 .settings-sidebar { width: 240px; flex-shrink: 0; }
 
 .sidebar-card {

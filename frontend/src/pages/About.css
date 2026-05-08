@@ -3,7 +3,7 @@
 .page-hero {
   background: #12284B;
   color: #fff;
-  padding: 2rem max(2rem, calc((100% - 1100px) / 2 + 2rem));
+  padding: 2rem 2.5rem;
   border-bottom: 3px solid #FFC52F;
 }
 .page-hero h1 { font-size: 1.5rem; font-weight: 700; color: #FFC52F; margin-bottom: 0.25rem; }
@@ -71,6 +71,16 @@
 .about-sources li { font-size: 0.875rem; color: #1a1a1a; }
 
 .about-contact { font-size: 0.875rem; color: #555; }
+
+@media (max-width: 768px) {
+  .page-body {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+  .page-sidebar { width: 100%; }
+  .glossary { position: static; }
+}
 
 .page-sidebar { width: 260px; flex-shrink: 0; }
 

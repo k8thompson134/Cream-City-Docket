@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchAlders } from '../api'
 import type { Alder } from '../api'
+import { usePageTitle } from '../usePageTitle'
+import { AlderGridSkeleton } from '../Skeletons'
 import './Alders.css'
 
 function formatName(raw: string) {
@@ -22,6 +24,7 @@ function districtLabel(d: string | null): string | null {
 }
 
 export default function Alders() {
+  usePageTitle('Council Members')
   const [alders, setAlders] = useState<Alder[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -47,7 +50,7 @@ export default function Alders() {
       </div>
 
       <div className="alders-grid-wrap">
-        {loading && <div className="loading">Loading…</div>}
+        {loading && <AlderGridSkeleton />}
         {!loading && error && (
           <div className="loading">Could not load alders — the API may be unavailable.</div>
         )}

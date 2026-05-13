@@ -2,19 +2,43 @@
 
 Milwaukee city government, made understandable.
 
-Cream City Docket tracks Milwaukee Common Council legislation and sends plain-English email alerts so residents can act before a vote happens, not after. Live at [creamcitydocket.com](https://creamcitydocket.com).
+Cream City Docket monitors Milwaukee Common Council legislation and delivers plain-English summaries and timely email alerts so residents can act before votes happen — not after.
+
+**Live at [creamcitydocket.com](https://creamcitydocket.com)**
 
 ---
 
-## What it does
+## Status
 
-- Polls Milwaukee's public [Legistar API](https://webapi.legistar.com/v1/milwaukee) every hour for new and updated legislation
-- Summarizes each bill in plain English using Claude Haiku
-- Tags bills by issue area using a 12-category taxonomy
-- Sends email alerts to subscribers when matching bills are introduced, scheduled for a hearing, or voted on
-- Profiles all 15 Milwaukee alders with sponsored bills, vote history, and issue area breakdowns
-- Tracks mayoral actions including signatures, vetoes, and veto overrides
-- Inline glossary tooltips explain civic terms throughout the app
+**Milestone 3 (Backend API + Frontend)** — In progress. Core browsing and discovery features live and deployed. Email alerts system in development (Milestone 4).
+
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| 1 — Data Foundation | Legistar API + PostgreSQL poller | Complete |
+| 2 — Enrichment Pipeline | Claude Haiku summaries & issue tags | Complete |
+| 3 — Backend API + Frontend | FastAPI + React, live at creamcitydocket.com | In progress |
+| 4 — Alerts + Subscriptions | Email alerts and preferences | Next |
+
+---
+
+## What's live right now
+
+- **Bill feed** — Browse all Milwaukee legislation with type, status, and issue area filters
+- **Search & filter** — Find bills by keyword, status, type, and issue area
+- **Plain-language summaries** — AI-generated summaries at 8th-grade reading level
+- **Issue tagging** — 13-category taxonomy (housing, labor, policing, etc.)
+- **Timeline view** — Committee votes, council votes, mayoral actions
+- **Legistar links** — Direct links to official city records
+- **Real-time updates** — Database polls the Legistar API every hour
+- **Accessible** — WCAG AA standards (in progress)
+
+---
+
+## What's coming (Milestone 4)
+
+- **Email alerts** — Subscribe by district and issue area
+- **Smart notifications** — Alerts before key hearings and votes
+- **Preferences** — Manage subscriptions and customize alert rules
 
 ---
 
@@ -22,141 +46,106 @@ Cream City Docket tracks Milwaukee Common Council legislation and sends plain-En
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.11 + FastAPI |
-| Database | PostgreSQL (Railway) |
-| Scheduler | APScheduler (hourly poll + enrich + dispatch) |
-| LLM | Claude Haiku via Anthropic API |
+| Backend | Python + FastAPI |
+| Database | PostgreSQL |
+| Scheduler | APScheduler |
+| LLM | Claude Haiku (Anthropic API) |
 | Frontend | React + TypeScript + Vite |
-| Email | Resend |
-| Hosting | Railway (backend + DB), Vercel (frontend) |
+| Email | Resend (coming in M4) |
+| Hosting | Railway (backend) + Vercel (frontend) |
 
 ---
 
-## Architecture
+## Project structure
 
 ```
-Legistar API (hourly)
-    └── Poller — upserts matters, sponsors, history, events, votes
-    └── Enrichment worker — Claude Haiku summaries + issue tags
-    └── Dispatcher — matches subscribers, sends Resend alerts
-
-FastAPI
-    GET  /api/bills          — paginated feed, filterable by type/status/tag/sponsor
-    GET  /api/bills/:id      — full detail with timeline and mayor actions
-    GET  /api/upcoming       — bills with hearings in the next 14 days
-    GET  /api/alders         — all 15 council members
-    GET  /api/alders/:id     — profile with sponsored bills and vote history
-    GET  /api/meta           — filter dropdown options
-    POST /api/subscriptions  — subscribe (sends confirmation email)
-    GET  /api/subscriptions/:token   — fetch preferences
-    PATCH /api/subscriptions/:token  — update preferences
-    DELETE /api/subscriptions/:token — unsubscribe
-
-React frontend (creamcitydocket.com)
-    /           — bill feed with filters, upcoming hearings, tooltips
-    /alders     — council directory
-    /alders/:id — alder profile with tabs
-    /subscribe  — subscription form
-    /manage/:token — manage preferences / unsubscribe
-    /about      — about page + civic glossary
-    /settings   — display, AI, and accessibility preferences
+.
+├── backend/
+│   ├── app/                    # FastAPI application
+│   │   ├── main.py            # Entry point, CORS setup, lifespan handlers
+│   │   ├── api/               # Route handlers
+│   │   │   ├── bills.py       # GET /api/bills and /api/bills/:id
+│   │   │   └── meta.py        # GET /api/meta (filter options)
+│   │   ├── models.py          # SQLAlchemy ORM models (15 tables)
+│   │   └── schemas.py         # Pydantic response schemas
+│   ├── enrichment/            # Claude Haiku integration
+│   │   ├── worker.py          # Fetch text, generate summaries & tags
+│   │   └── prompts.py         # 8th-grade summary + issue taxonomy
+│   ├── poller/                # Legistar API poller
+│   │   ├── fetch.py           # HTTP client with retry logic
+│   │   ├── upsert.py          # Matter, Alder, MatterHistory ingestion
+│   │   └── models.py          # API response types
+│   ├── explore/               # (M1) API reconnaissance scripts
+│   ├── migrations/            # Alembic schema migrations
+│   ├── scheduler.py           # APScheduler setup (hourly poll + enrich)
+│   ├── requirements.txt       # Python dependencies
+│   └── alembic.ini            # Migration config
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # React components
+│   │   │   ├── BillFeed.tsx   # Paginated bill list with filters
+│   │   │   ├── BillDetail.tsx # Full bill view with timeline
+│   │   │   └── ...
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── api.ts             # API client
+│   │   ├── types.ts           # TypeScript interfaces
+│   │   └── main.tsx           # Entry point
+│   ├── package.json           # Node dependencies
+│   ├── vite.config.ts         # Build config
+│   └── tsconfig.json
+└── docs/
+    └── cream-city-docket-dev-plan.md  # Full development roadmap
 ```
 
 ---
 
-## Local development
+## Development
 
 ### Prerequisites
 
 - Python 3.11+
+- PostgreSQL (or connect to Railway instance)
 - Node.js 18+
-- A PostgreSQL database (local or Railway)
 
-### Backend setup
+### Setup
 
+**Backend:**
 ```bash
 cd backend
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-# Mac/Linux
 source venv/bin/activate
-
 pip install -r requirements.txt
-cp .env.example .env   # fill in your values
-alembic upgrade head   # apply all migrations
-uvicorn app.main:app --reload
+cp .env.example .env
+# Add DATABASE_URL, ANTHROPIC_API_KEY
+alembic upgrade head
+python -m app.main  # Starts FastAPI + scheduler
 ```
 
-### Frontend setup
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev  # Vite dev server on localhost:5173
 ```
+
+The frontend connects to the live backend API at `creamcitydocket.com/api` by default (configurable in `src/api.ts`).
 
 ### Environment variables
 
-**Backend** (`backend/.env`):
-
-```
-DATABASE_URL=postgresql://user:pass@host:5432/dbname
-ANTHROPIC_API_KEY=sk-ant-...
-RESEND_API_KEY=re_...
-FROM_EMAIL=alerts@creamcitydocket.com
-SITE_URL=https://creamcitydocket.com
-```
-
-**Frontend** (Vercel environment or `frontend/.env.local`):
-
-```
-VITE_API_URL=https://your-backend.railway.app
-```
+Backend requires:
+- `DATABASE_URL` — PostgreSQL connection string
+- `ANTHROPIC_API_KEY` — Claude API key for enrichment
+- `RESEND_API_KEY` — (M4, email alerts)
 
 ---
 
-## One-time data scripts
+## Key files
 
-Run these after first deploy or when alder data needs refreshing:
-
-```bash
-cd backend
-python -m scripts.patch_alder_districts   # set correct district numbers
-python -m scripts.patch_alder_contacts    # email + phone from city website
-python -m scripts.patch_alder_photos      # headshot URLs from city website
-```
+- **dev-plan** — Full project roadmap, architecture decisions, and milestone status
+- **FINDINGS.md** (backend/explore/) — API reconnaissance results, MatterTypes, MatterStatus values
+- **schema diagram** — See Alembic migrations for full data model
 
 ---
 
-## Deployment
-
-Backend and database are hosted on [Railway](https://railway.app). Frontend is on [Vercel](https://vercel.com).
-
-After deploying a new backend version:
-
-```bash
-# Apply any pending database migrations
-alembic upgrade head
-```
-
-Railway environment variables to set: `DATABASE_URL`, `ANTHROPIC_API_KEY`, `RESEND_API_KEY`, `FROM_EMAIL`, `SITE_URL`.
-
-Vercel environment variables to set: `VITE_API_URL`.
-
----
-
-## Known limitations
-
-- **Legistar deep links don't work.** The Legistar web interface uses a `LegislationID` that isn't exposed by the API. All bill links go to the Legistar search page instead of a direct URL. See `backend/explore/FINDINGS.md` for details.
-- **Vote history populates over time.** Vote data is collected from council meeting events as they are polled. Historical votes before the first poll are not backfilled.
-- **Alder photos** are sourced from the city website and may become stale when council membership changes.
-
----
-
-## Built by
-
-Kate Thompson, Software Engineering student at Milwaukee School of Engineering and Milwaukee resident.
-
-[Portfolio](https://k8thompson.dev) · [hello@creamcitydocket.com](mailto:hello@creamcitydocket.com)
+Built by Kate Thompson — Software Engineering student, Milwaukee School of Engineering.
+[Portfolio](https://k8thompson.dev)

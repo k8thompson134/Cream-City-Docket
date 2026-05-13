@@ -1,0 +1,158 @@
+.profile-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.profile-body {
+  background: #fff;
+  border-radius: 6px;
+  padding: 2rem;
+}
+
+.contact-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #f0f2f5;
+  border-radius: 6px;
+  margin-bottom: 2rem;
+}
+
+.contact-row {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.contact-label {
+  font-weight: 600;
+  color: #12284B;
+  min-width: 60px;
+}
+
+.contact-row a {
+  color: #12284B;
+  text-decoration: none;
+  word-break: break-word;
+}
+.contact-row a:hover {
+  color: #FFC52F;
+  text-decoration: underline;
+}
+
+.profile-section {
+  margin-bottom: 2rem;
+}
+.profile-section:last-child {
+  margin-bottom: 0;
+}
+
+.profile-section h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12284B;
+  margin-bottom: 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+
+.bills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bill-row {
+  background: #f8f9fa;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+.bill-row:hover {
+  background: #fff;
+  border-color: #12284B;
+}
+
+.bill-row-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.bill-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #12284B;
+  background: #e4e9f2;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+
+.bill-status {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+}
+
+.bill-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.bill-summary {
+  font-size: 0.82rem;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tag-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #12284B;
+  background: #fff8e7;
+  border: 1px solid #e8a800;
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+}
+
+.bill-meta {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.8rem;
+  color: #1a1a1a;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.error,
+.loading {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}

@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { subscribeToAlerts } from '../api'
+import { fetchMeta, fetchAlders } from '../api'
+import type { Meta, Alder } from '../api'
 import { usePageTitle } from '../usePageTitle'
 import './Subscribe.css'
 
-const ISSUE_TAGS = [
-  'Housing', 'Food Access', 'Policing and Public Safety', 'Labor',
-  'Immigration', 'Transportation', 'Environment', 'Education',
-  'Healthcare', 'Small Business', 'Budget and Finance', 'Land Use and Zoning',
-]
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
-const DISTRICTS = Array.from({ length: 15 }, (_, i) => `District ${i + 1}`)
+const DIGEST_OPTIONS = [
+  { value: 'daily', label: 'Daily Digest', desc: 'One email per day with all matching updates' },
+  { value: 'weekly', label: 'Weekly Digest', desc: 'One email on Mondays with the week\'s updates' },
+  { value: 'immediate', label: 'Immediate', desc: 'Individual email for every matching update (can be noisy)' },
+]
 
 const ALERT_TYPES = [
   'New bill introduced',
@@ -21,26 +22,63 @@ const ALERT_TYPES = [
   'Bill amended — new substitute filed',
 ]
 
-type Step = 'form' | 'done'
-
 export default function Subscribe() {
   usePageTitle('Get Alerts')
   const [searchParams] = useSearchParams()
-  const [step, setStep] = useState<Step>('form')
+  const [meta, setMeta] = useState<Meta | null>(null)
+  const [alders, setAlders] = useState<Alder[]>([])
+
+  // Form state
   const [email, setEmail] = useState('')
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
   const [district, setDistrict] = useState(() => {
     const d = searchParams.get('district')
-    if (d && /^\d+$/.test(d)) {
-      const candidate = `District ${d}`
-      return DISTRICTS.includes(candidate) ? candidate : ''
-    }
+    if (d && /^\d+$/.test(d)) return d
     return ''
   })
+  const [digestMode, setDigestMode] = useState('daily')
+  const [priorityTags, setPriorityTags] = useState<Set<string>>(new Set())
+  const [priorityDistrict, setPriorityDistrict] = useState(false)
+
+  // UI state
+  const [step, setStep] = useState<'form' | 'done' | 'manage'>('form')
+  const [token, setToken] = useState<string | null>(null)
   const [emailError, setEmailError] = useState('')
   const [tagsError, setTagsError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+
+  // Check for manage token in URL
+  useEffect(() => {
+    const t = searchParams.get('token')
+    if (t) {
+      setToken(t)
+      loadExisting(t)
+    }
+    if (searchParams.get('action') === 'unsub' && t) {
+      handleUnsubscribe(t)
+    }
+  }, [])
+
+  useEffect(() => { fetchMeta().then(setMeta).catch(() => {}) }, [])
+  useEffect(() => { fetchAlders().then(setAlders).catch(() => {}) }, [])
+
+  async function loadExisting(t: string) {
+    try {
+      const res = await fetch(`${API_BASE}/api/subscribe/${t}`)
+      if (!res.ok) throw new Error('Subscription not found')
+      const data = await res.json()
+      setEmail(data.email)
+      setSelectedTags(new Set(data.tags))
+      setDistrict(data.districts?.[0] ?? '')
+      setDigestMode(data.digest_mode)
+      setPriorityTags(new Set(data.priority_tags))
+      setPriorityDistrict(data.priority_district)
+      setStep('manage')
+    } catch {
+      setSubmitError('Could not load subscription. The link may be expired.')
+    }
+  }
 
   function toggleTag(tag: string) {
     setSelectedTags(prev => {
@@ -49,6 +87,14 @@ export default function Subscribe() {
       return next
     })
     setTagsError('')
+  }
+
+  function togglePriorityTag(tag: string) {
+    setPriorityTags(prev => {
+      const next = new Set(prev)
+      next.has(tag) ? next.delete(tag) : next.add(tag)
+      return next
+    })
   }
 
   function validate() {
@@ -73,15 +119,67 @@ export default function Subscribe() {
     if (!validate()) return
     setSubmitting(true)
     setSubmitError('')
+
     try {
-      await subscribeToAlerts({ email, tags: Array.from(selectedTags), district: district || null })
+      const body = {
+        email,
+        tags: Array.from(selectedTags),
+        districts: district ? [district] : [],
+        digest_mode: digestMode,
+        priority_tags: Array.from(priorityTags),
+        priority_district: priorityDistrict,
+      }
+
+      const url = token
+        ? `${API_BASE}/api/subscribe/${token}`
+        : `${API_BASE}/api/subscribe`
+      const method = token ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.detail || 'Subscription failed')
+      }
+      const data = await res.json()
+      if (data.token) setToken(data.token)
       setStep('done')
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } catch (err: any) {
+      setSubmitError(err.message || 'Something went wrong')
     } finally {
       setSubmitting(false)
     }
   }
+
+  async function handleUnsubscribe(t: string) {
+    try {
+      await fetch(`${API_BASE}/api/subscribe/${t}`, { method: 'DELETE' })
+      setStep('form')
+      setEmail('')
+      setSelectedTags(new Set())
+      setDistrict('')
+      setPriorityTags(new Set())
+      setToken(null)
+      setSubmitError('')
+      alert('You have been unsubscribed.')
+    } catch {
+      setSubmitError('Failed to unsubscribe')
+    }
+  }
+
+  // Unique sorted districts from alders
+  const districts = [...new Set(
+    alders.filter(a => a.district).map(a => a.district!)
+  )].sort((a, b) => parseInt(a) - parseInt(b))
+
+  const issueTags = meta?.tags ?? [
+    'Housing', 'Food Access', 'Policing and Public Safety', 'Labor',
+    'Immigration', 'Transportation', 'Environment', 'Education',
+    'Healthcare', 'Small Business', 'Budget and Finance', 'Land Use and Zoning',
+  ]
 
   if (step === 'done') {
     return (
@@ -91,9 +189,19 @@ export default function Subscribe() {
           <p>Check your inbox for a confirmation email.</p>
         </div>
         <div className="subscribe-done">
-          <p>You'll get alerts when Milwaukee legislation matching your preferences is introduced, scheduled for a hearing, or voted on.</p>
+          <p>
+            <strong>Delivery:</strong> {DIGEST_OPTIONS.find(o => o.value === digestMode)?.label}<br />
+            <strong>Topics:</strong> {selectedTags.size > 0 ? Array.from(selectedTags).join(', ') : 'None'}<br />
+            {district && <><strong>District:</strong> {district}<br /></>}
+            {priorityTags.size > 0 && (
+              <><strong>Priority alerts:</strong> {Array.from(priorityTags).join(', ')}<br /></>
+            )}
+          </p>
           <p>Update your preferences or unsubscribe any time using the link in any alert email.</p>
-          <a href="/" className="done-btn">Back to The Docket →</a>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            <a href="/" className="done-btn">Back to The Docket →</a>
+            <button className="done-btn done-btn--edit" onClick={() => setStep(token ? 'manage' : 'form')}>Edit preferences</button>
+          </div>
         </div>
       </div>
     )
@@ -102,13 +210,14 @@ export default function Subscribe() {
   return (
     <div className="page-wrap">
       <div className="page-hero">
-        <h1>Get alerts before the vote.</h1>
+        <h1>{step === 'manage' ? 'Manage your alerts.' : 'Get alerts before the vote.'}</h1>
         <p>Free email alerts. No account. No spam. Unsubscribe any time.</p>
       </div>
 
       <div className="subscribe-body">
         <form className="subscribe-form" onSubmit={handleSubmit} noValidate>
 
+          {/* Step 1: Email */}
           <div className="subscribe-step">
             <div className="step-num">1</div>
             <div className="step-content">
@@ -120,6 +229,7 @@ export default function Subscribe() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={e => { setEmail(e.target.value); setEmailError('') }}
+                disabled={step === 'manage'}
                 autoComplete="email"
                 aria-describedby={emailError ? 'email-error' : undefined}
                 aria-invalid={!!emailError}
@@ -129,14 +239,43 @@ export default function Subscribe() {
             </div>
           </div>
 
+          {/* Step 2: Delivery frequency */}
           <div className="subscribe-step">
             <div className="step-num">2</div>
+            <div className="step-content">
+              <div className="step-label">Delivery frequency</div>
+              <div className="field-hint" style={{ marginBottom: '0.85rem' }}>
+                Control how often you receive emails. Daily digest is recommended to avoid inbox overload.
+              </div>
+              <div className="digest-options">
+                {DIGEST_OPTIONS.map(opt => (
+                  <label key={opt.value} className={`digest-option${digestMode === opt.value ? ' digest-option--active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="digest_mode"
+                      value={opt.value}
+                      checked={digestMode === opt.value}
+                      onChange={() => setDigestMode(opt.value)}
+                    />
+                    <div>
+                      <div className="digest-label">{opt.label}</div>
+                      <div className="digest-desc">{opt.desc}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3: Issue areas */}
+          <div className="subscribe-step">
+            <div className="step-num">3</div>
             <div className="step-content">
               <div className="step-label">Alert me about these issue areas</div>
               <div className="field-hint" style={{ marginBottom: '0.85rem' }}>Select all that apply. Bills are auto-tagged using AI.</div>
               {tagsError && <div className="field-error" role="alert">{tagsError}</div>}
               <div className="tag-grid">
-                {ISSUE_TAGS.map(tag => (
+                {issueTags.map(tag => (
                   <button
                     key={tag}
                     type="button"
@@ -151,8 +290,9 @@ export default function Subscribe() {
             </div>
           </div>
 
+          {/* Step 4: District */}
           <div className="subscribe-step">
-            <div className="step-num">3</div>
+            <div className="step-num">4</div>
             <div className="step-content">
               <label className="step-label" htmlFor="district-select">
                 Alert me about my aldermanic district
@@ -166,7 +306,7 @@ export default function Subscribe() {
                 onChange={e => { setDistrict(e.target.value); setTagsError('') }}
               >
                 <option value="">Select your district</option>
-                {DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
+                {districts.map(d => <option key={d} value={d}>District {d}</option>)}
               </select>
               <div className="field-hint" style={{ marginTop: '0.6rem' }}>
                 Not sure which district you're in?{' '}
@@ -175,10 +315,53 @@ export default function Subscribe() {
             </div>
           </div>
 
+          {/* Step 5: Priority alerts */}
+          <div className="subscribe-step subscribe-step--priority">
+            <div className="step-num step-num--priority">⚡</div>
+            <div className="step-content">
+              <div className="step-label">Priority alerts</div>
+              <div className="field-hint" style={{ marginBottom: '0.85rem' }}>
+                These topics send you an <strong>immediate individual email</strong> even on daily or weekly digest.
+                Use this for issues you can't afford to miss — like budget votes or housing bills.
+              </div>
+              <div className="tag-grid">
+                {issueTags.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`tag-toggle tag-toggle--priority${priorityTags.has(tag) ? ' tag-toggle--priority-on' : ''}`}
+                    aria-pressed={priorityTags.has(tag)}
+                    onClick={() => togglePriorityTag(tag)}
+                  >
+                    ⚡ {tag}
+                  </button>
+                ))}
+              </div>
+
+              <label className="priority-district-toggle">
+                <input
+                  type="checkbox"
+                  checked={priorityDistrict}
+                  onChange={e => setPriorityDistrict(e.target.checked)}
+                />
+                <span>Also send priority alerts for bills in my tracked district</span>
+              </label>
+            </div>
+          </div>
+
           <div className="subscribe-submit-row">
             <button type="submit" className="subscribe-btn" disabled={submitting}>
-              {submitting ? 'Subscribing…' : 'Subscribe →'}
+              {submitting ? 'Saving…' : step === 'manage' ? 'Update Preferences' : 'Subscribe →'}
             </button>
+            {step === 'manage' && token && (
+              <button
+                type="button"
+                className="unsubscribe-btn"
+                onClick={() => { if (confirm('Are you sure you want to unsubscribe?')) handleUnsubscribe(token) }}
+              >
+                Unsubscribe
+              </button>
+            )}
             {submitError && <div className="field-error">{submitError}</div>}
             <div className="field-hint">
               You'll receive a confirmation email. Update preferences any time via the link in every alert.
@@ -193,6 +376,11 @@ export default function Subscribe() {
             <ul className="alert-types">
               {ALERT_TYPES.map(a => <li key={a}>{a}</li>)}
             </ul>
+          </div>
+          <div className="sidebar-card sidebar-card--digest">
+            <h3>About digest mode</h3>
+            <p>Instead of getting one email per bill, your updates are batched into a single email — sent daily at 7 AM CT or weekly on Mondays.</p>
+            <p style={{ marginTop: '0.5rem' }}><strong>Priority tags</strong> bypass the digest and send immediately, so you never miss urgent legislation.</p>
           </div>
           <div className="sidebar-card">
             <h3>Milwaukee's 15 districts</h3>

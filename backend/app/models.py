@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import (
-    Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+    Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint,
+    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -188,11 +189,22 @@ class Subscriber(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(300), unique=True, nullable=False)
     unsubscribe_token: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    # "immediate" = one email per matching matter (original behavior)
+    # "daily"     = one digest email per day (default — prevents flood)
+    # "weekly"    = one digest email per week
+    digest_mode: Mapped[str] = mapped_column(String(20), default="daily", nullable=False)
+    # JSON list of tag names / matter types that always send immediately
+    # regardless of digest_mode, e.g. ["Budget and Finance", "Housing"]
+    priority_tags: Mapped[list | None] = mapped_column(JSON, default=list)
+    # Whether to also get priority alerts for the subscriber's own district
+    priority_district: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    preferences: Mapped[list["SubscriberPreference"]] = relationship(back_populates="subscriber")
-    alert_log: Mapped[list["AlertLog"]] = relationship(back_populates="subscriber")
+    preferences: Mapped[list["SubscriberPreference"]] = relationship(back_populates="subscriber", cascade="all, delete-orphan")
+    alert_log: Mapped[list["AlertLog"]] = relationship(back_populates="subscriber", cascade="all, delete-orphan")
+    queued_notifications: Mapped[list["NotificationQueue"]] = relationship(back_populates="subscriber", cascade="all, delete-orphan")
 
 
 class SubscriberPreference(Base):
@@ -207,6 +219,24 @@ class SubscriberPreference(Base):
     subscriber: Mapped["Subscriber"] = relationship(back_populates="preferences")
 
 
+class NotificationQueue(Base):
+    """Staging table for alerts that haven't been sent yet.
+    The digest worker drains this table on schedule.
+    Priority items are sent immediately and skip the queue."""
+    __tablename__ = "notification_queue"
+    __table_args__ = (UniqueConstraint("subscriber_id", "matter_id", "trigger_event"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    subscriber_id: Mapped[int] = mapped_column(ForeignKey("subscribers.id"), nullable=False)
+    matter_id: Mapped[int] = mapped_column(ForeignKey("matters.id"), nullable=False)
+    trigger_event: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_priority: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    subscriber: Mapped["Subscriber"] = relationship(back_populates="queued_notifications")
+    matter: Mapped["Matter"] = relationship()
+
+
 class AlertLog(Base):
     __tablename__ = "alert_log"
 
@@ -214,6 +244,8 @@ class AlertLog(Base):
     subscriber_id: Mapped[int] = mapped_column(ForeignKey("subscribers.id"), nullable=False)
     matter_id: Mapped[int] = mapped_column(ForeignKey("matters.id"), nullable=False)
     trigger_event: Mapped[str] = mapped_column(String(100), nullable=False)   # e.g. "introduced", "hearing_scheduled"
+    # "immediate" for priority sends, "digest" for batched sends
+    delivery_type: Mapped[str] = mapped_column(String(20), default="digest", nullable=False)
     sent_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     subscriber: Mapped["Subscriber"] = relationship(back_populates="alert_log")

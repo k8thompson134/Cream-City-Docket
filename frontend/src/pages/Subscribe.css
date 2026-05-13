@@ -212,6 +212,132 @@
   font-size: 0.9rem;
 }
 .done-btn:hover { background: #1a3a6b; }
+.done-btn--edit {
+  background: none;
+  border: 1px solid #b0bbcc;
+  color: #12284B;
+  cursor: pointer;
+  font-family: inherit;
+}
+.done-btn--edit:hover { background: #e4e9f2; }
+
+/* Digest mode radio cards */
+.digest-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.digest-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e4e9f2;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.digest-option:hover {
+  border-color: #b0bbcc;
+  background: #f8f9fb;
+}
+.digest-option--active {
+  border-color: #12284B;
+  background: #f0f4ff;
+}
+.digest-option input[type="radio"] {
+  margin-top: 3px;
+  accent-color: #12284B;
+}
+.digest-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.digest-desc {
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Priority tag toggles */
+.tag-toggle--priority {
+  border-color: #e8a800;
+  background: #fffcf0;
+  color: #8b6d00;
+}
+.tag-toggle--priority:hover {
+  border-color: #FFC52F;
+  background: #fff8e0;
+}
+.tag-toggle--priority-on {
+  background: #FFC52F;
+  color: #12284B;
+  border-color: #e8a800;
+  font-weight: 700;
+}
+.tag-toggle--priority-on:hover {
+  background: #ffca3d;
+}
+
+/* Priority step */
+.subscribe-step--priority {
+  background: #fffdf5;
+  margin-left: -12px;
+  margin-right: -12px;
+  padding: 1.25rem 12px 1.25rem 56px;
+  border-radius: 6px;
+  border: 1px solid #f0e4b8;
+  border-bottom: 1px solid #f0e4b8;
+}
+.step-num--priority {
+  background: #FFC52F;
+  color: #12284B;
+  font-size: 0.85rem;
+}
+
+.priority-district-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+.priority-district-toggle input[type="checkbox"] {
+  accent-color: #FFC52F;
+  width: 16px;
+  height: 16px;
+}
+
+/* Unsubscribe */
+.unsubscribe-btn {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid #d0d6e0;
+  color: #888;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.unsubscribe-btn:hover {
+  border-color: #c53030;
+  color: #8b0000;
+}
+
+.subscribe-input:disabled {
+  background: #f0f2f5;
+  color: #666;
+}
+
+/* Digest sidebar card */
+.sidebar-card--digest {
+  background: #fffdf5;
+  border-color: #f0e4b8;
+}
 
 @media (max-width: 768px) {
   .subscribe-body {
@@ -222,10 +348,17 @@
   .subscribe-sidebar { width: 100%; }
   .subscribe-input { max-width: 100%; }
   .subscribe-select { width: 100%; max-width: 100%; }
+  .subscribe-step--priority {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding-left: 48px;
+  }
 }
 
 @media (max-width: 480px) {
   .subscribe-step { padding-left: 40px; }
   .subscribe-submit-row { padding-left: 40px; }
   .subscribe-btn { width: 100%; text-align: center; }
+  .subscribe-step--priority { padding-left: 40px; }
 }
+

@@ -133,7 +133,7 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detai
     <>
       {votes.map((v, i) => {
         const summary = v.matter.summary
-          ? v.matter.summary.split('\n').filter(l => !l.trimStart().startsWith('#')).join(' ').trim()
+          ? v.matter.summary.split('\n').filter((l: string) => !l.trimStart().startsWith('#')).join(' ').trim()
           : null
         const isSelected = selectedId === v.matter.id
         return (
@@ -158,7 +158,7 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detai
                 >
                   {v.matter.matter_status}
                 </span>
-                {v.matter.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
+                {v.matter.tags?.map((t: string) => <span key={t} className="tag-chip">{t}</span>)}
               </div>
             </button>
             {isSelected && (

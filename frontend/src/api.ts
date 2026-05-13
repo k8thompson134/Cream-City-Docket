@@ -1,4 +1,5 @@
 export interface Sponsor {
+  id: number
   name: string
   district: string | null
 }
@@ -13,6 +14,7 @@ export interface Bill {
   matter_status: string
   body_name: string | null
   intro_date: string | null
+  agenda_date: string | null
   passed_date: string | null
   sponsors: Sponsor[]
   summary: string | null
@@ -44,14 +46,32 @@ export interface Alder {
   district: string | null
   email: string | null
   phone: string | null
+  photo_url: string | null
   active: boolean
+}
+
+export interface VoteRecord {
+  vote_value: string | null
+  voted_at: string | null
+  matter: Bill
 }
 
 export interface AlderDetail extends Alder {
   sponsored_bills: Bill[]
+  vote_history: VoteRecord[]
+}
+
+export interface Subscription {
+  email: string
+  tags: string[]
+  district: string | null
 }
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
+
+export function legistarUrl(bill: Pick<Bill, 'legistar_matter_id'>): string {
+  return `https://milwaukee.legistar.com/LegislationDetail.aspx?ID=${bill.legistar_matter_id}`
+}
 
 export async function fetchBills(params: {
   skip?: number
@@ -59,6 +79,7 @@ export async function fetchBills(params: {
   matter_type?: string
   status?: string
   tag?: string
+  sponsored_by?: number
 }): Promise<BillsResponse> {
   const url = new URL(`${API_BASE}/api/bills`, window.location.origin)
   Object.entries(params).forEach(([k, v]) => {
@@ -81,6 +102,12 @@ export async function fetchMeta(): Promise<Meta> {
   return res.json()
 }
 
+export async function fetchUpcoming(): Promise<Bill[]> {
+  const res = await fetch(`${API_BASE}/api/upcoming`)
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
+
 export async function fetchAlders(): Promise<Alder[]> {
   const res = await fetch(`${API_BASE}/api/alders`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
@@ -91,4 +118,39 @@ export async function fetchAlder(id: number): Promise<AlderDetail> {
   const res = await fetch(`${API_BASE}/api/alders/${id}`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
+}
+
+export async function subscribeToAlerts(body: { email: string; tags: string[]; district: string | null }): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/subscriptions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `API error ${res.status}`)
+  }
+}
+
+export async function fetchSubscription(token: string): Promise<Subscription> {
+  const res = await fetch(`${API_BASE}/api/subscriptions/${token}`)
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
+
+export async function updateSubscription(token: string, body: { tags: string[]; district: string | null }): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/subscriptions/${token}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `API error ${res.status}`)
+  }
+}
+
+export async function deleteSubscription(token: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/subscriptions/${token}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`API error ${res.status}`)
 }

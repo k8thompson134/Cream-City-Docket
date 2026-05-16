@@ -32,7 +32,7 @@ from app.models import (
     SubscriberPreference, IssueTag,
 )
 from notifications.templates import render_digest_email, render_priority_email
-from notifications.sender import send_email
+from notifications.email import send_email
 
 log = logging.getLogger("notifications")
 
@@ -178,10 +178,10 @@ def queue_notifications(since_minutes: int = 65) -> dict:
                 # Priority items: send immediately regardless of digest mode
                 if is_priority and subscriber.digest_mode != "immediate":
                     try:
-                        subject, html = render_priority_email(
+                        subject, html, text = render_priority_email(
                             matter, trigger_event, _unsubscribe_url(subscriber)
                         )
-                        send_email(subscriber.email, subject, html)
+                        send_email(to=subscriber.email, subject=subject, html=html, text=text)
                         session.add(AlertLog(
                             subscriber_id=subscriber.id,
                             matter_id=matter.id,
@@ -199,10 +199,10 @@ def queue_notifications(since_minutes: int = 65) -> dict:
                 # Immediate mode subscribers get everything right away
                 if subscriber.digest_mode == "immediate":
                     try:
-                        subject, html = render_priority_email(
+                        subject, html, text = render_priority_email(
                             matter, trigger_event, _unsubscribe_url(subscriber)
                         )
-                        send_email(subscriber.email, subject, html)
+                        send_email(to=subscriber.email, subject=subject, html=html, text=text)
                         session.add(AlertLog(
                             subscriber_id=subscriber.id,
                             matter_id=matter.id,
@@ -281,10 +281,10 @@ def send_digests(period: str = "daily") -> dict:
                 })
 
             try:
-                subject, html = render_digest_email(
+                subject, html, text = render_digest_email(
                     digest_items, period, _unsubscribe_url(subscriber)
                 )
-                send_email(subscriber.email, subject, html)
+                send_email(to=subscriber.email, subject=subject, html=html, text=text)
 
                 # Log all items as sent and clear queue
                 for q in queued:

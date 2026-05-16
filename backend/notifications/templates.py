@@ -184,3 +184,161 @@ Unsubscribe: {unsubscribe_url}
 creamcitydocket.com"""
 
     return subject, html, text
+
+
+def render_priority_email(
+    matter,
+    trigger_event: str,
+    unsubscribe_url: str,
+) -> tuple[str, str, str]:
+    """Render a priority/immediate alert email for a single matter."""
+    from app.models import Matter
+
+    matter_tags = {mt.tag.name for mt in matter.tags if mt.tag}
+    sponsor_names = [
+        s.alder.name.replace("ALD. ", "Ald. ").title()
+        for s in matter.sponsors if s.alder
+    ]
+
+    trigger_label, trigger_msg = _TRIGGER_LABELS.get(
+        trigger_event,
+        ("Milwaukee legislation update", "A bill matching your interests was updated."),
+    )
+
+    subject = f"{trigger_label}: {matter.title[:60]}{'…' if len(matter.title) > 60 else ''}"
+
+    tag_chips = "".join(f'<span class="tag">{t}</span>' for t in matter_tags)
+    summary_block = f'<div class="summary">{matter.summary}</div>' if matter.summary else ""
+    sponsor_text = ", ".join(sponsor_names) if sponsor_names else "—"
+    file_text = f"File #{matter.file_number}" if matter.file_number else ""
+
+    event_block = ""
+    if trigger_event == "hearing_scheduled" and matter.agenda_date:
+        event_block = f'<div class="event-box"><strong>Hearing date:</strong> {matter.agenda_date.strftime("%b %d, %Y")}</div>'
+    elif trigger_event == "passed":
+        event_block = f'<div class="event-box"><strong>Status:</strong> {matter.matter_status}</div>'
+
+    html = _base_html(f"""
+      <div class="header"><a href="{SITE_URL}">Cream City Docket</a></div>
+      <div class="body">
+        <p style="font-size:12px;color:#FFC52F;margin:0 0 8px;text-transform:uppercase;letter-spacing:0.1em;background:#12284B;display:inline-block;padding:3px 8px;border-radius:3px;">{trigger_label}</p>
+        <p style="font-size:12px;color:#888;margin:4px 0 12px;">{matter.matter_type} &nbsp;·&nbsp; {matter.matter_status}</p>
+        <h2>{matter.title}</h2>
+        {tag_chips}
+        {event_block}
+        {summary_block}
+        <div class="meta">
+          <strong>Sponsor:</strong> {sponsor_text}<br>
+          {f'<strong>Introduced:</strong> {matter.intro_date.strftime("%b %d, %Y")}<br>' if matter.intro_date else ''}
+          {f'<strong>File:</strong> {file_text}' if file_text else ''}
+        </div>
+        <a href="https://milwaukee.legistar.com/Legislation.aspx" class="btn">Search Legistar {f'— File #{matter.file_number}' if matter.file_number else ''} ↗</a>
+        <hr class="divider">
+      </div>
+      <div class="footer">
+        <a href="{unsubscribe_url}">Unsubscribe</a> &nbsp;·&nbsp;
+        <a href="{SITE_URL}">creamcitydocket.com</a><br>
+        Milwaukee civic alerts — free, no account required.
+      </div>
+    """)
+
+    text = f"""{trigger_label.upper()}
+{matter.matter_type} · {matter.matter_status}
+
+{matter.title}
+
+Sponsor: {sponsor_text}
+{f'Introduced: {matter.intro_date.strftime("%b %d, %Y")}' if matter.intro_date else ''}
+{f'File: {file_text}' if file_text else ''}
+
+Search Legistar: https://milwaukee.legistar.com/Legislation.aspx
+
+Unsubscribe: {unsubscribe_url}
+
+creamcitydocket.com"""
+
+    return subject, html, text
+
+
+def render_digest_email(
+    items: list[dict],
+    period: str,
+    unsubscribe_url: str,
+) -> tuple[str, str, str]:
+    """Render a digest email with multiple matters."""
+    period_label = "Daily" if period == "daily" else "Weekly"
+    subject = f"Cream City Docket {period_label} Digest"
+
+    items_html = ""
+    items_text = ""
+
+    for item in items:
+        matter = item["matter"]
+        trigger_event = item["trigger_event"]
+        is_priority = item["is_priority"]
+
+        matter_tags = {mt.tag.name for mt in matter.tags if mt.tag}
+        sponsor_names = [
+            s.alder.name.replace("ALD. ", "Ald. ").title()
+            for s in matter.sponsors if s.alder
+        ]
+
+        trigger_label, _ = _TRIGGER_LABELS.get(
+            trigger_event,
+            ("Update", ""),
+        )
+
+        tag_chips = "".join(f'<span class="tag">{t}</span>' for t in matter_tags)
+        sponsor_text = ", ".join(sponsor_names) if sponsor_names else "—"
+        file_text = f"File #{matter.file_number}" if matter.file_number else ""
+
+        priority_badge = '<span style="background:#FFC52F;color:#12284B;font-weight:700;padding:2px 6px;border-radius:3px;font-size:11px;margin-right:8px;">PRIORITY</span>' if is_priority else ""
+
+        items_html += f"""
+        <div style="border-top:1px solid #e4e9f2;padding-top:16px;margin-top:16px;">
+          {priority_badge}<span style="font-size:12px;color:#666;">{trigger_label}</span>
+          <h3 style="font-size:16px;color:#12284B;margin:8px 0 4px;line-height:1.3;">{matter.title}</h3>
+          {tag_chips}
+          <p style="font-size:13px;color:#555;margin:8px 0;">
+            <strong>Sponsor:</strong> {sponsor_text}<br>
+            {f'<strong>Introduced:</strong> {matter.intro_date.strftime("%b %d, %Y")}<br>' if matter.intro_date else ''}
+            {f'<strong>File:</strong> {file_text}' if file_text else ''}
+          </p>
+        </div>"""
+
+        items_text += f"""
+{trigger_label.upper()}
+{matter.title}
+Tags: {', '.join(matter_tags) if matter_tags else 'None'}
+Sponsor: {sponsor_text}
+{f'Introduced: {matter.intro_date.strftime("%b %d, %Y")}' if matter.intro_date else ''}
+{f'File: {file_text}' if file_text else ''}
+
+"""
+
+    html = _base_html(f"""
+      <div class="header"><a href="{SITE_URL}">Cream City Docket</a></div>
+      <div class="body">
+        <h2>{period_label} Digest</h2>
+        <p>Here are the bills from your watched categories and districts:</p>
+        {items_html}
+        <hr class="divider">
+      </div>
+      <div class="footer">
+        <a href="{unsubscribe_url}">Unsubscribe</a> &nbsp;·&nbsp;
+        <a href="{SITE_URL}">creamcitydocket.com</a><br>
+        Milwaukee civic alerts — free, no account required.
+      </div>
+    """)
+
+    text = f"""Cream City Docket {period_label} Digest
+
+Here are the bills from your watched categories and districts:
+
+{items_text}
+
+Unsubscribe: {unsubscribe_url}
+
+creamcitydocket.com"""
+
+    return subject, html, text

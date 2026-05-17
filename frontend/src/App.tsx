@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Routes, Route } from 'react-router-dom'
-import { fetchBills, fetchBill, fetchMeta } from './api'
-import type { Bill, BillDetail, Meta } from './api'
+import { Routes, Route, useSearchParams } from 'react-router-dom'
+import { fetchBills, fetchBill, fetchBillVotes, fetchMeta } from './api'
+import type { Bill, BillDetail, BillVote, Meta } from './api'
 import { useSettings } from './useSettings'
 import { statusColor, formatDate, cleanSummary } from './utils'
 import { usePageTitle } from './usePageTitle'
@@ -43,16 +43,23 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
   )
 }
 
+function formatAlderName(raw: string) {
+  return raw.replace('ALD. ', 'Ald. ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
+}
+
 function BillDetailPanel({ id, onClose, showSummaries }: {
   id: number
   onClose: () => void
   showSummaries: boolean
 }) {
   const [bill, setBill] = useState<BillDetail | null>(null)
+  const [votes, setVotes] = useState<BillVote[]>([])
 
   useEffect(() => {
     setBill(null)
+    setVotes([])
     fetchBill(id).then(setBill)
+    fetchBillVotes(id).then(setVotes)
   }, [id])
 
   if (!bill) return <div className="detail-panel"><div className="loading">Loading…</div></div>
@@ -60,6 +67,13 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
   const sponsors = bill.sponsors.map(s =>
     `${s.name.replace('ALD. ', 'Ald. ')}${s.district ? ` (Dist. ${s.district})` : ''}`
   ).join(', ') || '—'
+
+  const nextHearing = bill.agenda_date && new Date(bill.agenda_date) > new Date()
+    ? bill.agenda_date : null
+
+  const yeas = votes.filter(v => v.vote_value?.toLowerCase() === 'yea')
+  const nays = votes.filter(v => v.vote_value?.toLowerCase() === 'nay')
+  const others = votes.filter(v => v.vote_value && !['yea', 'nay'].includes(v.vote_value.toLowerCase()))
 
   return (
     <div className="detail-panel">
@@ -72,6 +86,15 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
         {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
       <h2>{bill.title}</h2>
+
+      {nextHearing && (
+        <div className="next-hearing-callout">
+          <span className="next-hearing-label">Next hearing</span>
+          <span className="next-hearing-date">{formatDate(nextHearing)}</span>
+          {bill.body_name && <span className="next-hearing-body">{bill.body_name}</span>}
+        </div>
+      )}
+
       <div className="detail-meta">
         <div><strong>File</strong> {bill.file_number ?? `#${bill.legistar_matter_id}`}</div>
         <div><strong>Sponsor{bill.sponsors.length !== 1 ? 's' : ''}</strong> {sponsors}</div>
@@ -84,6 +107,32 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
         <div className="detail-section">
           <h3>Summary</h3>
           <p>{cleanSummary(bill.summary)}</p>
+        </div>
+      )}
+
+      {votes.length > 0 && (
+        <div className="detail-section">
+          <h3>Council Vote</h3>
+          <div className="vote-breakdown">
+            {yeas.length > 0 && (
+              <div className="vote-breakdown-row vote-breakdown-row--yea">
+                <span className="vb-label">Yea ({yeas.length})</span>
+                <span className="vb-names">{yeas.map(v => formatAlderName(v.alder_name)).join(', ')}</span>
+              </div>
+            )}
+            {nays.length > 0 && (
+              <div className="vote-breakdown-row vote-breakdown-row--nay">
+                <span className="vb-label">Nay ({nays.length})</span>
+                <span className="vb-names">{nays.map(v => formatAlderName(v.alder_name)).join(', ')}</span>
+              </div>
+            )}
+            {others.length > 0 && (
+              <div className="vote-breakdown-row vote-breakdown-row--other">
+                <span className="vb-label">Other ({others.length})</span>
+                <span className="vb-names">{others.map(v => `${formatAlderName(v.alder_name)} (${v.vote_value})`).join(', ')}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -129,6 +178,7 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 function Docket() {
   usePageTitle(undefined, 'Track Milwaukee Common Council legislation in real time. Filter by issue area, read plain-English summaries, and get free email alerts before the vote.')
   const { settings } = useSettings()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [bills, setBills] = useState<Bill[]>([])
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(0)
@@ -136,9 +186,17 @@ function Docket() {
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
-  const [selectedId, setSelectedId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const LIMIT = 25
+
+  const selectedId = searchParams.get('bill') ? parseInt(searchParams.get('bill')!) : null
+
+  function selectBill(id: number) {
+    setSearchParams(prev => { prev.set('bill', String(id)); return prev })
+  }
+  function closeBill() {
+    setSearchParams(prev => { prev.delete('bill'); return prev })
+  }
 
   useEffect(() => { fetchMeta().then(setMeta) }, [])
 
@@ -151,7 +209,7 @@ function Docket() {
 
   function handleFilterChange() {
     setSkip(0)
-    setSelectedId(null)
+    closeBill()
   }
 
   return (
@@ -189,7 +247,7 @@ function Docket() {
           <BillRow
             key={b.id}
             bill={b}
-            onClick={() => setSelectedId(b.id)}
+            onClick={() => selectBill(b.id)}
             selected={selectedId === b.id}
             showSummaries={settings.showSummaries}
             showFileNumbers={settings.showFileNumbers}
@@ -210,7 +268,7 @@ function Docket() {
       {selectedId !== null && (
         <BillDetailPanel
           id={selectedId}
-          onClose={() => setSelectedId(null)}
+          onClose={closeBill}
           showSummaries={settings.showSummaries}
         />
       )}

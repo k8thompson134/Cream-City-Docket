@@ -61,6 +61,14 @@ export interface AlderDetail extends Alder {
   vote_history: VoteRecord[]
 }
 
+export interface BillVote {
+  alder_id: number | null
+  alder_name: string
+  alder_district: string | null
+  vote_value: string | null
+  voted_at: string | null
+}
+
 export interface Subscription {
   email: string
   tags: string[]
@@ -93,6 +101,12 @@ export async function fetchBills(params: {
 export async function fetchBill(id: number): Promise<BillDetail> {
   const res = await fetch(`${API_BASE}/api/bills/${id}`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
+
+export async function fetchBillVotes(id: number): Promise<BillVote[]> {
+  const res = await fetch(`${API_BASE}/api/bills/${id}/votes`)
+  if (!res.ok) return []
   return res.json()
 }
 

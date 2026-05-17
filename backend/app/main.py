@@ -162,6 +162,31 @@ def get_bill(bill_id: int):
         session.close()
 
 
+@app.get("/api/bills/{bill_id}/votes")
+def get_bill_votes(bill_id: int):
+    session = SessionLocal()
+    try:
+        votes = (
+            session.query(Vote)
+            .options(joinedload(Vote.alder))
+            .filter(Vote.matter_id == bill_id)
+            .order_by(Vote.voted_at)
+            .all()
+        )
+        return [
+            {
+                "alder_id": v.alder.id if v.alder else None,
+                "alder_name": v.alder.name if v.alder else "Unknown",
+                "alder_district": v.alder.district if v.alder else None,
+                "vote_value": v.vote_value,
+                "voted_at": v.voted_at.isoformat() if v.voted_at else None,
+            }
+            for v in votes
+        ]
+    finally:
+        session.close()
+
+
 @app.get("/api/upcoming")
 def get_upcoming():
     """Bills with agenda dates in the next 14 days, ordered soonest first."""

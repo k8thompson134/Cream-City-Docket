@@ -726,6 +726,60 @@ body {
   border-radius: 3px;
 }
 
+.next-hearing-callout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: #fff8e7;
+  border: 1px solid #e8a800;
+  border-left: 4px solid #FFC52F;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.next-hearing-label {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #b07d00;
+}
+.next-hearing-date {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12284B;
+}
+.next-hearing-body {
+  font-size: 0.78rem;
+  color: #555;
+}
+
+.vote-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.vote-breakdown-row {
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+}
+.vote-breakdown-row--yea { background: #e6f4ea; }
+.vote-breakdown-row--nay { background: #fce8e8; }
+.vote-breakdown-row--other { background: #f0f2f5; }
+.vb-label {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.vote-breakdown-row--yea .vb-label { color: #1a5c2a; }
+.vote-breakdown-row--nay .vb-label { color: #7a1a1a; }
+.vote-breakdown-row--other .vb-label { color: #555; }
+.vb-names { color: #333; line-height: 1.5; }
+
 .legistar-link {
   display: inline-block;
   margin-top: 1rem;

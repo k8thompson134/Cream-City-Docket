@@ -55,9 +55,8 @@ function cleanSummary(text: string | null) {
   return cleaned || null
 }
 
-function BillCard({ bill, showSummaries, isSelected, onClick, detail, detailLoading, onClose }: {
+function BillCard({ bill, isSelected, onClick, detail, detailLoading, onClose }: {
   bill: Bill
-  showSummaries: boolean
   isSelected: boolean
   onClick: () => void
   detail: BillDetail | null
@@ -82,7 +81,7 @@ function BillCard({ bill, showSummaries, isSelected, onClick, detail, detailLoad
           {bill.tags?.map(t => <span key={t} className="tag-chip">{t}</span>)}
         </div>
         <div className="alder-bill-title">{bill.title}</div>
-        {showSummaries && summary && (
+        {summary && (
           <div className="alder-bill-summary">{summary}</div>
         )}
         <div className="alder-bill-meta">
@@ -123,9 +122,8 @@ const isNayValue = (v: string | null) => ['nay', 'no'].includes((v ?? '').toLowe
 
 type VoteFilter = 'all' | 'yea' | 'nay' | 'other'
 
-function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detailLoading, onClose }: {
+function VoteHistory({ votes, selectedId, onSelect, detail, detailLoading, onClose }: {
   votes: VoteRecord[]
-  showSummaries: boolean
   selectedId: number | null
   onSelect: (matterId: number, voteValue: string | null) => void
   detail: BillDetail | null
@@ -190,7 +188,7 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detai
                 <span className="alder-vote-date">{formatDate(v.voted_at)}</span>
               </div>
               <div className="alder-bill-title">{v.matter.title}</div>
-              {showSummaries && summary && (
+              {summary && (
                 <div className="alder-bill-summary">{summary}</div>
               )}
               <div className="alder-bill-header" style={{ marginTop: '0.5rem' }}>
@@ -471,7 +469,6 @@ export default function AlderDetail() {
                 <BillCard
                   key={bill.id}
                   bill={bill}
-                  showSummaries={settings.showSummaries}
                   isSelected={selected?.matterId === bill.id}
                   onClick={() => selectMatter(bill.id, null)}
                   detail={billDetail}
@@ -486,7 +483,6 @@ export default function AlderDetail() {
           {tab === 'votes' && (
             <VoteHistory
               votes={alder.vote_history}
-              showSummaries={settings.showSummaries}
               selectedId={selected?.matterId ?? null}
               onSelect={(matterId, voteValue) => selectMatter(matterId, voteValue)}
               detail={billDetail}

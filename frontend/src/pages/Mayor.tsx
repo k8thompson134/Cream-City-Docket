@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { fetchMayor, legistarUrl } from '../api'
-import type { MayorProfile, MayorActionRecord } from '../api'
+import { fetchMayor, fetchBill, legistarUrl } from '../api'
+import type { MayorProfile, MayorActionRecord, BillDetail } from '../api'
 import { usePageTitle } from '../usePageTitle'
 import './Mayor.css'
 
@@ -21,26 +21,69 @@ function ActionBadge({ type }: { type: string }) {
   return <span className={`mayor-badge ${meta.className}`}>{meta.label}</span>
 }
 
-function ActionRow({ action }: { action: MayorActionRecord }) {
+function cleanSummary(text: string | null) {
+  if (!text) return null
+  return text.split('\n').filter(l => !l.trimStart().startsWith('#')).join(' ').trim() || null
+}
+
+function BillQuickView({ detail, loading, onClose }: {
+  detail: BillDetail | null
+  loading: boolean
+  onClose: () => void
+}) {
+  if (loading) return (
+    <div className="mayor-quick-view">
+      <div className="mayor-qv-loading">Loading…</div>
+    </div>
+  )
+  if (!detail) return null
+
+  const summary = cleanSummary(detail.summary)
+
   return (
-    <div className="mayor-action-row">
-      <span className="mayor-action-date">{formatDate(action.action_date)}</span>
-      <ActionBadge type={action.action_type} />
-      <div className="mayor-action-info">
-        <div className="mayor-action-title">{action.matter.title}</div>
-        <div className="mayor-action-meta">
-          {action.matter.file_number && <span>File #{action.matter.file_number}</span>}
-          {action.matter.body_name && <span>{action.matter.body_name}</span>}
-          <a
-            href={legistarUrl(action.matter)}
-            target="_blank"
-            rel="noreferrer"
-            className="mayor-action-legistar"
-          >
-            Legistar ↗
-          </a>
+    <div className="mayor-quick-view">
+      <button className="mayor-qv-close" onClick={onClose}>✕ Close</button>
+      {summary && <p className="mayor-qv-summary">{summary}</p>}
+      {detail.history.length > 0 && (
+        <div className="mayor-qv-timeline">
+          {detail.history.map((h, i) => (
+            <div key={i} className="mayor-qv-timeline-row">
+              <span className="mayor-qv-timeline-date">{formatDate(h.action_date)}</span>
+              <span className="mayor-qv-timeline-action">{h.action_name}</span>
+              {h.result && <span className="mayor-qv-timeline-result">{h.result}</span>}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
+      <a href={legistarUrl(detail)} target="_blank" rel="noreferrer" className="mayor-action-legistar">
+        View on Legistar ↗
+      </a>
+    </div>
+  )
+}
+
+function ActionRow({ action, isSelected, onClick }: {
+  action: MayorActionRecord
+  isSelected: boolean
+  onClick: () => void
+}) {
+  return (
+    <div>
+      <button
+        className={`mayor-action-row${isSelected ? ' mayor-action-row--selected' : ''}`}
+        onClick={onClick}
+      >
+        <span className="mayor-action-date">{formatDate(action.action_date)}</span>
+        <ActionBadge type={action.action_type} />
+        <div className="mayor-action-info">
+          <div className="mayor-action-title">{action.matter.title}</div>
+          <div className="mayor-action-meta">
+            {action.matter.file_number && <span>File #{action.matter.file_number}</span>}
+            {action.matter.body_name && <span>{action.matter.body_name}</span>}
+            <span className="mayor-action-expand-hint">{isSelected ? '▲ Hide detail' : '▼ Show detail'}</span>
+          </div>
+        </div>
+      </button>
     </div>
   )
 }
@@ -50,12 +93,30 @@ export default function Mayor() {
   const [mayor, setMayor] = useState<MayorProfile | null>(null)
   const [error, setError] = useState(false)
   const [filter, setFilter] = useState<string>('all')
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [billDetail, setBillDetail] = useState<BillDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   useEffect(() => {
     fetchMayor()
       .then(setMayor)
       .catch(() => setError(true))
   }, [])
+
+  function selectBill(matterId: number) {
+    if (selectedId === matterId) {
+      setSelectedId(null)
+      setBillDetail(null)
+      return
+    }
+    setSelectedId(matterId)
+    setBillDetail(null)
+    setDetailLoading(true)
+    fetchBill(matterId)
+      .then(setBillDetail)
+      .catch(() => setBillDetail(null))
+      .finally(() => setDetailLoading(false))
+  }
 
   if (error) return (
     <div className="page-wrap">
@@ -145,9 +206,26 @@ export default function Mayor() {
             <div className="mayor-empty">No {filter} actions on record.</div>
           ) : (
             <div className="mayor-actions-list">
-              {filtered.map((a, i) => (
-                <ActionRow key={i} action={a} />
-              ))}
+              {filtered.map((a, i) => {
+                const mid = a.matter.id
+                const isSelected = selectedId === mid
+                return (
+                  <div key={i}>
+                    <ActionRow
+                      action={a}
+                      isSelected={isSelected}
+                      onClick={() => selectBill(mid)}
+                    />
+                    {isSelected && (
+                      <BillQuickView
+                        detail={billDetail}
+                        loading={detailLoading}
+                        onClose={() => { setSelectedId(null); setBillDetail(null) }}
+                      />
+                    )}
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>

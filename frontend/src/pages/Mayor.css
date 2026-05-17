@@ -205,6 +205,11 @@
   border: 1px solid #d0d6e0;
   border-top: none;
   transition: background 0.1s;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
 }
 
 .mayor-actions-list .mayor-action-row:first-child {
@@ -277,6 +282,90 @@
 
 .mayor-action-legistar:hover {
   color: #FFC52F;
+}
+
+.mayor-action-row--selected {
+  background: #f0f4fa;
+  border-left: 3px solid #12284B;
+}
+
+.mayor-action-expand-hint {
+  font-size: 0.72rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+.mayor-quick-view {
+  background: #f7f9fb;
+  border: 1px solid #d0d6e0;
+  border-top: none;
+  border-left: 3px solid #12284B;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1px;
+}
+
+.mayor-qv-loading {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.mayor-qv-summary {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #1a1a1a;
+  margin-bottom: 0.85rem;
+}
+
+.mayor-qv-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #e4e9f2;
+}
+
+.mayor-qv-timeline-row {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  align-items: baseline;
+}
+
+.mayor-qv-timeline-date {
+  color: #888;
+  font-weight: 600;
+  flex-shrink: 0;
+  width: 90px;
+}
+
+.mayor-qv-timeline-action {
+  color: #1a1a1a;
+}
+
+.mayor-qv-timeline-result {
+  font-size: 0.72rem;
+  background: #e4e9f2;
+  color: #12284B;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+.mayor-qv-close {
+  float: right;
+  background: none;
+  border: 1px solid #b0bbcc;
+  border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #666;
+  font-family: inherit;
+  margin-left: 1rem;
+}
+
+.mayor-qv-close:hover {
+  background: #e4e9f2;
 }
 
 .mayor-empty {

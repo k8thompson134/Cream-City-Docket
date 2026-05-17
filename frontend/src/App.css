@@ -624,6 +624,30 @@ body {
   top: 0;
 }
 
+.detail-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.copy-link-btn {
+  background: none;
+  border: 1px solid #b0bbcc;
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #12284B;
+  font-family: inherit;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.copy-link-btn:hover {
+  background: #e4e9f2;
+  border-color: #12284B;
+}
+
 .close-btn {
   background: none;
   border: 1px solid #b0bbcc;
@@ -631,7 +655,6 @@ body {
   padding: 0.3rem 0.75rem;
   font-size: 0.8rem;
   cursor: pointer;
-  margin-bottom: 1rem;
   color: #1a1a1a;
 }
 

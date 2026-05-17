@@ -262,53 +262,101 @@
 
 /* Priority tag toggles */
 .tag-toggle--priority {
-  border-color: #e8a800;
-  background: #fffcf0;
-  color: #8b6d00;
+  border-color: #d0b840;
+  background: #fffdf0;
+  color: #7a5f00;
+  gap: 0.3rem;
+  display: inline-flex;
+  align-items: center;
 }
 .tag-toggle--priority:hover {
   border-color: #FFC52F;
-  background: #fff8e0;
+  background: #fff8d6;
+  color: #5a4400;
 }
 .tag-toggle--priority-on {
-  background: #FFC52F;
-  color: #12284B;
-  border-color: #e8a800;
+  background: #12284B;
+  color: #FFC52F;
+  border-color: #12284B;
   font-weight: 700;
 }
 .tag-toggle--priority-on:hover {
-  background: #ffca3d;
+  background: #1a3a6b;
+  border-color: #1a3a6b;
+}
+
+.tag-bolt {
+  font-size: 0.75em;
+  line-height: 1;
+  opacity: 0.9;
 }
 
 /* Priority step */
 .subscribe-step--priority {
-  background: #fffdf5;
+  background: linear-gradient(135deg, #fffdf0 0%, #fffbe8 100%);
   margin-left: -12px;
   margin-right: -12px;
-  padding: 1.25rem 12px 1.25rem 56px;
-  border-radius: 6px;
-  border: 1px solid #f0e4b8;
-  border-bottom: 1px solid #f0e4b8;
+  padding: 1.5rem 1.25rem 1.5rem 56px;
+  border-radius: 8px;
+  border: 1.5px solid #e8c840;
+  border-bottom: 1.5px solid #e8c840;
 }
 .step-num--priority {
   background: #FFC52F;
   color: #12284B;
   font-size: 0.85rem;
+  box-shadow: 0 0 0 3px rgba(255, 197, 47, 0.25);
+}
+
+.priority-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+.priority-header .step-label {
+  margin-bottom: 0;
+}
+.priority-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #FFC52F;
+  color: #12284B;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.priority-empty {
+  font-size: 0.82rem;
+  color: #8b6d00;
+  font-style: italic;
+  padding: 0.6rem 0.85rem;
+  background: rgba(255, 197, 47, 0.12);
+  border-radius: 4px;
+  border: 1px dashed #d0b840;
 }
 
 .priority-district-toggle {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   font-size: 0.82rem;
   color: #1a1a1a;
   cursor: pointer;
 }
 .priority-district-toggle input[type="checkbox"] {
-  accent-color: #FFC52F;
+  accent-color: #12284B;
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
+}
+.priority-district-toggle--disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 /* Unsubscribe */
@@ -351,7 +399,7 @@
   .subscribe-step--priority {
     margin-left: -8px;
     margin-right: -8px;
-    padding-left: 48px;
+    padding: 1.25rem 1rem 1.25rem 48px;
   }
 }
 

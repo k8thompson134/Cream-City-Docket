@@ -55,6 +55,7 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 }) {
   const [bill, setBill] = useState<BillDetail | null>(null)
   const [votes, setVotes] = useState<BillVote[]>([])
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     setBill(null)
@@ -62,6 +63,12 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
     fetchBill(id).then(setBill)
     fetchBillVotes(id).then(setVotes)
   }, [id])
+
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (!bill) return <div className="detail-panel"><div className="loading">Loading…</div></div>
 
@@ -78,7 +85,12 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 
   return (
     <div className="detail-panel">
-      <button className="close-btn" onClick={onClose}>✕ Close</button>
+      <div className="detail-panel-header">
+        <button className="close-btn" onClick={onClose}>✕ Close</button>
+        <button className="copy-link-btn" onClick={copyLink}>
+          {copied ? '✓ Copied!' : '⎘ Copy link'}
+        </button>
+      </div>
       <div className="detail-type-row">
         <span className="bill-type">{bill.matter_type}</span>
         <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>

@@ -83,7 +83,12 @@ export default function Subscribe() {
   function toggleTag(tag: string) {
     setSelectedTags(prev => {
       const next = new Set(prev)
-      next.has(tag) ? next.delete(tag) : next.add(tag)
+      if (next.has(tag)) {
+        next.delete(tag)
+        setPriorityTags(p => { const n = new Set(p); n.delete(tag); return n })
+      } else {
+        next.add(tag)
+      }
       return next
     })
     setTagsError('')
@@ -319,33 +324,53 @@ export default function Subscribe() {
           <div className="subscribe-step subscribe-step--priority">
             <div className="step-num step-num--priority">⚡</div>
             <div className="step-content">
-              <div className="step-label">Priority alerts</div>
-              <div className="field-hint" style={{ marginBottom: '0.85rem' }}>
-                These topics send you an <strong>immediate individual email</strong> even on daily or weekly digest.
-                Use this for issues you can't afford to miss — like budget votes or housing bills.
+              <div className="priority-header">
+                <div className="step-label">Priority alerts</div>
+                <span className="priority-badge">Bypasses digest</span>
               </div>
-              <div className="tag-grid">
-                {issueTags.map(tag => (
-                  <button
-                    key={tag}
-                    type="button"
-                    className={`tag-toggle tag-toggle--priority${priorityTags.has(tag) ? ' tag-toggle--priority-on' : ''}`}
-                    aria-pressed={priorityTags.has(tag)}
-                    onClick={() => togglePriorityTag(tag)}
-                  >
-                    ⚡ {tag}
-                  </button>
-                ))}
+              <div className="field-hint" style={{ marginBottom: '0.85rem' }}>
+                Get an <strong>instant individual email</strong> for these topics — even on daily or weekly digest.
+                Perfect for issues you can't afford to miss.
               </div>
 
-              <label className="priority-district-toggle">
-                <input
-                  type="checkbox"
-                  checked={priorityDistrict}
-                  onChange={e => setPriorityDistrict(e.target.checked)}
-                />
-                <span>Also send priority alerts for bills in my tracked district</span>
-              </label>
+              {selectedTags.size === 0 && !district ? (
+                <div className="priority-empty">
+                  Select topics or a district above to enable priority alerts.
+                </div>
+              ) : (
+                <>
+                  {selectedTags.size > 0 && (
+                    <div className="tag-grid" style={{ marginBottom: district ? '0.75rem' : 0 }}>
+                      {Array.from(selectedTags).sort().map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={`tag-toggle tag-toggle--priority${priorityTags.has(tag) ? ' tag-toggle--priority-on' : ''}`}
+                          aria-pressed={priorityTags.has(tag)}
+                          onClick={() => togglePriorityTag(tag)}
+                        >
+                          {priorityTags.has(tag) && <span className="tag-bolt">⚡</span>}
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {district && (
+                    <label className={`priority-district-toggle${!district ? ' priority-district-toggle--disabled' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={priorityDistrict}
+                        disabled={!district}
+                        onChange={e => setPriorityDistrict(e.target.checked)}
+                      />
+                      <span>
+                        Send priority alerts for bills in District {district}
+                      </span>
+                    </label>
+                  )}
+                </>
+              )}
             </div>
           </div>
 

@@ -502,6 +502,20 @@ export default function AlderDetail() {
         <aside className="alder-sidebar">
           <div className="alder-quick-facts">
             <h3>Quick Facts</h3>
+            {(() => {
+              const vh = alder.vote_history
+              if (vh.length === 0) return null
+              const nays = vh.filter(v => isNayValue(v.vote_value))
+              const pct = Math.round(vh.filter(v => isYeaValue(v.vote_value)).length * 100 / vh.length)
+              const sentence = nays.length === 0
+                ? `Voted with the majority on all ${vh.length} recorded votes.`
+                : `Voted with the majority on ${pct}% of ${vh.length} recorded votes, with ${nays.length} dissenting vote${nays.length === 1 ? '' : 's'}.`
+              return (
+                <div className="alder-fact-row alder-fact-row--full">
+                  <span className="alder-vote-pattern">{sentence}</span>
+                </div>
+              )
+            })()}
             {district && (
               <div className="alder-fact-row">
                 <span className="alder-fact-label">District</span>

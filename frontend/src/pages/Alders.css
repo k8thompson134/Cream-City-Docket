@@ -239,6 +239,8 @@
 .alder-fact-value { color: #1a1a1a; font-weight: 600; }
 .alder-fact-value a { color: #12284B; text-decoration: none; }
 .alder-fact-value a:hover { color: #FFC52F; text-decoration: underline; }
+.alder-fact-row--full { margin-top: 0.25rem; border-top: 1px solid #eaecf0; padding-top: 0.75rem; }
+.alder-vote-pattern { font-size: 0.78rem; color: #555; line-height: 1.45; }
 
 /* ── Bill cards ────────────────────────────────── */
 

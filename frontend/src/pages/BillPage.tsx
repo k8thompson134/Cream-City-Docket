@@ -48,9 +48,26 @@ export default function BillPage() {
   const nextHearing = bill.agenda_date && new Date(bill.agenda_date) > new Date()
     ? bill.agenda_date : null
 
-  const yeas = votes.filter(v => v.vote_value?.toLowerCase() === 'yea')
-  const nays = votes.filter(v => v.vote_value?.toLowerCase() === 'nay')
-  const others = votes.filter(v => v.vote_value && !['yea', 'nay'].includes(v.vote_value.toLowerCase()))
+  const isYea = (val: string | null) => ['yea', 'aye', 'yes'].includes((val ?? '').toLowerCase())
+  const isNay = (val: string | null) => ['nay', 'no'].includes((val ?? '').toLowerCase())
+
+  const yeas = votes.filter(v => isYea(v.vote_value))
+  const nays = votes.filter(v => isNay(v.vote_value))
+  const others = votes.filter(v => v.vote_value && !isYea(v.vote_value) && !isNay(v.vote_value))
+
+  function voteSummary(): string | null {
+    if (votes.length === 0) return null
+    const y = yeas.length, n = nays.length
+    const passed = y > n
+    const result = passed ? 'Passed' : 'Failed'
+    if (n === 0) return `${result} unanimously (${y}–0)`
+    const score = `${y}–${n}`
+    if (n <= 2) {
+      const names = nays.map(v => formatAlderName(v.alder_name)).join(' and ')
+      return `${result} ${score}, with ${names} dissenting`
+    }
+    return `${result} ${score}`
+  }
 
   return (
     <div className="bill-page">
@@ -99,6 +116,7 @@ export default function BillPage() {
           {votes.length > 0 && (
             <section className="bill-page-section">
               <h2>Council Vote</h2>
+              {voteSummary() && <p className="bill-vote-summary">{voteSummary()}</p>}
               <div className="bill-page-vote-breakdown">
                 {yeas.length > 0 && (
                   <div className="bp-vote-row bp-vote-row--yea">

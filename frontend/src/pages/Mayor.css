@@ -1,0 +1,287 @@
+/* Hero */
+.mayor-hero {
+  background: #0b1929;
+  color: #fff;
+  padding: 2rem 1.5rem 1.75rem;
+  border-bottom: 3px solid #FFC52F;
+}
+
+.mayor-hero-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.mayor-hero-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.2rem;
+}
+
+.mayor-hero-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #FFC52F;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 1rem;
+}
+
+.mayor-hero-note {
+  font-size: 0.875rem;
+  color: #8ba3c4;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+/* Stats bar */
+.mayor-stats-bar {
+  display: flex;
+  gap: 0;
+  background: #fff;
+  border-bottom: 2px solid #e4e9f2;
+  overflow-x: auto;
+}
+
+.mayor-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-right: 1px solid #e4e9f2;
+  border-bottom: 3px solid transparent;
+  font-family: inherit;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+  min-width: 90px;
+}
+
+.mayor-stat:hover {
+  background: #f0f2f5;
+}
+
+.mayor-stat--active {
+  border-bottom-color: #12284B;
+  background: #f0f2f5;
+}
+
+.mayor-stat--signed.mayor-stat--active  { border-bottom-color: #2e7d32; }
+.mayor-stat--vetoed.mayor-stat--active  { border-bottom-color: #c62828; }
+.mayor-stat--lapsed.mayor-stat--active  { border-bottom-color: #888; }
+.mayor-stat--published.mayor-stat--active { border-bottom-color: #12284B; }
+
+.mayor-stat-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #12284B;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.mayor-stat--signed   .mayor-stat-count { color: #2e7d32; }
+.mayor-stat--vetoed   .mayor-stat-count { color: #c62828; }
+.mayor-stat--lapsed   .mayor-stat-count { color: #888; }
+
+.mayor-stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #666;
+}
+
+/* Body layout */
+.mayor-body {
+  display: flex;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 2rem;
+  padding: 1.5rem;
+  align-items: flex-start;
+}
+
+.mayor-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.mayor-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mayor-sidebar-card {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+}
+
+.mayor-sidebar-card h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #12284B;
+  margin-bottom: 0.75rem;
+}
+
+.mayor-sidebar-card p {
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.6;
+}
+
+/* Glossary */
+.mayor-glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mayor-glossary dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #12284B;
+}
+
+.mayor-glossary dd {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.5;
+  margin-left: 0;
+  margin-bottom: 0.25rem;
+}
+
+/* Action list */
+.mayor-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mayor-action-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-top: none;
+  transition: background 0.1s;
+}
+
+.mayor-actions-list .mayor-action-row:first-child {
+  border-top: 1px solid #d0d6e0;
+  border-radius: 6px 6px 0 0;
+}
+
+.mayor-actions-list .mayor-action-row:last-child {
+  border-radius: 0 0 6px 6px;
+}
+
+.mayor-action-row:hover {
+  background: #f7f9fb;
+}
+
+.mayor-action-date {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+  white-space: nowrap;
+  min-width: 90px;
+  padding-top: 2px;
+}
+
+/* Action type badge */
+.mayor-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mayor-badge--signed    { background: #e6f4ea; color: #1a5c2a; }
+.mayor-badge--vetoed    { background: #fce8e8; color: #7a1a1a; }
+.mayor-badge--lapsed    { background: #f0f2f5; color: #555; }
+.mayor-badge--published { background: #e4e9f2; color: #12284B; }
+
+/* Action info */
+.mayor-action-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mayor-action-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 0.2rem;
+}
+
+.mayor-action-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: #888;
+  flex-wrap: wrap;
+}
+
+.mayor-action-legistar {
+  color: #12284B;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.mayor-action-legistar:hover {
+  color: #FFC52F;
+}
+
+.mayor-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .mayor-hero {
+    padding: 1.25rem 1rem 1.25rem;
+  }
+
+  .mayor-hero-name {
+    font-size: 1.35rem;
+  }
+
+  .mayor-body {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .mayor-sidebar {
+    width: 100%;
+  }
+
+  .mayor-action-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .mayor-action-date {
+    min-width: auto;
+  }
+}

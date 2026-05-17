@@ -10,6 +10,7 @@ import About from './pages/About'
 import Settings from './pages/Settings'
 import Alders from './pages/Alders'
 import AlderDetail from './pages/AlderDetail'
+import Mayor from './pages/Mayor'
 import Subscribe from './pages/Subscribe'
 import './App.css'
 
@@ -344,6 +345,7 @@ export default function App() {
         <Route path="/" element={<Docket />} />
         <Route path="/alders" element={<Alders />} />
         <Route path="/alders/:id" element={<AlderDetail />} />
+        <Route path="/mayor" element={<Mayor />} />
         <Route path="/about" element={<About />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/subscribe" element={<Subscribe />} />

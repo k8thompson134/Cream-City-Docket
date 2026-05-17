@@ -69,6 +69,20 @@ export interface BillVote {
   voted_at: string | null
 }
 
+export interface MayorActionRecord {
+  action_type: string
+  action_date: string | null
+  matter: Bill
+}
+
+export interface MayorProfile {
+  name: string
+  title: string
+  photo_url: string | null
+  stats: { signed: number; vetoed: number; lapsed: number; published: number }
+  actions: MayorActionRecord[]
+}
+
 export interface Subscription {
   email: string
   tags: string[]
@@ -118,6 +132,12 @@ export async function fetchMeta(): Promise<Meta> {
 
 export async function fetchUpcoming(): Promise<Bill[]> {
   const res = await fetch(`${API_BASE}/api/upcoming`)
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
+
+export async function fetchMayor(): Promise<MayorProfile> {
+  const res = await fetch(`${API_BASE}/api/mayor`)
   if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
 }

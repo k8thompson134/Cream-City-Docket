@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import joinedload
 
 from .database import SessionLocal
-from .models import Alder, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, Subscriber, SubscriberPreference, Vote
+from .models import Alder, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, MayorAction, Subscriber, SubscriberPreference, Vote
 
 
 @asynccontextmanager
@@ -212,6 +212,45 @@ def get_upcoming():
             .all()
         )
         return [_serialize_matter(m) for m in matters]
+    finally:
+        session.close()
+
+
+@app.get("/api/mayor")
+def get_mayor():
+    session = SessionLocal()
+    try:
+        actions = (
+            session.query(MayorAction)
+            .options(
+                joinedload(MayorAction.matter).joinedload(Matter.tags).joinedload(MatterTag.tag),
+                joinedload(MayorAction.matter).joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+            )
+            .filter(MayorAction.matter_id.isnot(None))
+            .order_by(MayorAction.action_date.desc().nullslast())
+            .all()
+        )
+
+        stats: dict[str, int] = {"signed": 0, "vetoed": 0, "lapsed": 0, "published": 0}
+        serialized = []
+        for a in actions:
+            t = a.action_type.lower()
+            if t in stats:
+                stats[t] += 1
+            if a.matter:
+                serialized.append({
+                    "action_type": a.action_type,
+                    "action_date": a.action_date.isoformat() if a.action_date else None,
+                    "matter": _serialize_matter(a.matter),
+                })
+
+        return {
+            "name": "Cavalier Johnson",
+            "title": "Mayor of Milwaukee",
+            "photo_url": None,
+            "stats": stats,
+            "actions": serialized,
+        }
     finally:
         session.close()
 

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSettings } from '../useSettings'
 import { usePageTitle } from '../usePageTitle'
 import './Settings.css'
@@ -29,6 +30,7 @@ function Toggle({ label, sub, checked, onChange }: {
 
 export default function Settings() {
   const { settings, update, reset } = useSettings()
+  const [confirmReset, setConfirmReset] = useState(false)
   usePageTitle('Settings')
 
   return (
@@ -123,7 +125,15 @@ export default function Settings() {
           </section>
 
           <div className="settings-reset">
-            <button className="reset-btn" onClick={reset}>Reset all settings to default</button>
+            {confirmReset ? (
+              <div className="reset-confirm">
+                <span>Reset all settings to default?</span>
+                <button className="reset-btn reset-btn--confirm" onClick={() => { reset(); setConfirmReset(false) }}>Yes, reset</button>
+                <button className="reset-btn reset-btn--cancel" onClick={() => setConfirmReset(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button className="reset-btn" onClick={() => setConfirmReset(true)}>Reset all settings to default</button>
+            )}
             <p>Settings are stored in your browser. Clearing browser data will reset them.</p>
           </div>
         </div>

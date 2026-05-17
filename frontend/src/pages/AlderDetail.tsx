@@ -113,6 +113,42 @@ function voteCardClass(value: string | null) {
   return 'alder-vote-card alder-vote-card--abstain'
 }
 
+function VoteIssueBreakdown({ votes }: { votes: VoteRecord[] }) {
+  const byTag: Record<string, { yea: number; nay: number; other: number }> = {}
+
+  for (const v of votes) {
+    const val = (v.vote_value ?? '').toLowerCase()
+    for (const tag of v.matter.tags ?? []) {
+      if (!byTag[tag]) byTag[tag] = { yea: 0, nay: 0, other: 0 }
+      if (val === 'yea') byTag[tag].yea++
+      else if (val === 'nay') byTag[tag].nay++
+      else byTag[tag].other++
+    }
+  }
+
+  const sorted = Object.entries(byTag).sort((a, b) => (b[1].yea + b[1].nay + b[1].other) - (a[1].yea + a[1].nay + a[1].other))
+  if (sorted.length === 0) return null
+
+  return (
+    <div className="vote-issue-breakdown">
+      <div className="vote-issue-header">
+        <span className="vote-issue-col-tag" />
+        <span className="vote-issue-col">Yea</span>
+        <span className="vote-issue-col">Nay</span>
+        <span className="vote-issue-col">Other</span>
+      </div>
+      {sorted.map(([tag, counts]) => (
+        <div key={tag} className="vote-issue-row">
+          <span className="vote-issue-col-tag">{tag}</span>
+          <span className="vote-issue-col vote-issue-col--yea">{counts.yea || '—'}</span>
+          <span className="vote-issue-col vote-issue-col--nay">{counts.nay || '—'}</span>
+          <span className="vote-issue-col vote-issue-col--other">{counts.other || '—'}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detailLoading, onClose }: {
   votes: VoteRecord[]
   showSummaries: boolean
@@ -422,6 +458,9 @@ export default function AlderDetail() {
             </>
           )}
 
+          {tab === 'votes' && alder.vote_history.length > 0 && (
+            <VoteIssueBreakdown votes={alder.vote_history} />
+          )}
           {tab === 'votes' && (
             <VoteHistory
               votes={alder.vote_history}

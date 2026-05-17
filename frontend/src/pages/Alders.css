@@ -58,6 +58,16 @@
 }
 .alder-card:hover .alder-card-cta { color: #FFC52F; }
 
+.alder-card-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.72rem;
+  color: #555;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
 /* ── Alder detail page ─────────────────────────── */
 
 .alder-hero {
@@ -333,6 +343,43 @@
 .issue-area-count { font-size: 0.78rem; color: #888; width: 54px; text-align: right; flex-shrink: 0; }
 
 .issue-area-note { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #aaa; border-top: 1px solid #e4e9f2; background: #fafbfc; }
+
+/* ── Vote issue breakdown ──────────────────────── */
+
+.vote-issue-breakdown {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  font-size: 0.82rem;
+}
+
+.vote-issue-header {
+  display: flex;
+  padding: 0.5rem 1rem;
+  background: #f5f7fb;
+  border-bottom: 1px solid #e4e9f2;
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.vote-issue-row {
+  display: flex;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f0f2f5;
+  align-items: center;
+}
+.vote-issue-row:last-child { border-bottom: none; }
+.vote-issue-row:hover { background: #fafbfc; }
+
+.vote-issue-col-tag { flex: 1; color: #1a1a1a; font-weight: 500; min-width: 0; }
+.vote-issue-col { width: 48px; text-align: center; flex-shrink: 0; color: #888; }
+.vote-issue-col--yea { color: #1a5c2a; font-weight: 600; }
+.vote-issue-col--nay { color: #7a1a1a; font-weight: 600; }
 
 /* ── Vote chips ────────────────────────────────── */
 

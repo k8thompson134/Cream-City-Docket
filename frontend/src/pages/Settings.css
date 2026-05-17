@@ -101,6 +101,10 @@
   margin-bottom: 0.5rem;
 }
 .reset-btn:hover { background: #e4e9f2; }
+.reset-confirm { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: #1a1a1a; flex-wrap: wrap; }
+.reset-btn--confirm { background: #5a1a1a; color: #fff; border-color: #5a1a1a; }
+.reset-btn--confirm:hover { background: #7a2020; }
+.reset-btn--cancel { color: #666; border-color: #ccc; }
 .settings-reset p { font-size: 0.78rem; color: #888; }
 
 @media (max-width: 768px) {

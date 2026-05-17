@@ -83,10 +83,11 @@ function formatAlderName(raw: string) {
   return raw.replace('ALD. ', 'Ald. ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function BillDetailPanel({ id, onClose, showSummaries }: {
+function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   id: number
   onClose: () => void
   showSummaries: boolean
+  showConfidence: boolean
 }) {
   const [bill, setBill] = useState<BillDetail | null>(null)
   const [votes, setVotes] = useState<BillVote[]>([])
@@ -158,6 +159,11 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
         <div className="detail-section">
           <h3>Summary</h3>
           <p>{cleanSummary(bill.summary)}</p>
+          {showConfidence && (bill.summary?.length ?? 0) < 150 && (
+            <div className="confidence-notice">
+              This summary is based on limited bill text and may be incomplete.
+            </div>
+          )}
         </div>
       )}
 
@@ -440,6 +446,7 @@ function Docket() {
           id={selectedId}
           onClose={closeBill}
           showSummaries={settings.showSummaries}
+          showConfidence={settings.showConfidenceIndicator}
         />
       )}
     </div>

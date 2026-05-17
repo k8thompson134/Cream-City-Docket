@@ -330,7 +330,10 @@ def get_meta():
 def list_alders():
     session = SessionLocal()
     try:
-        from sqlalchemy import cast, Integer, case
+        from sqlalchemy import cast, Integer, case, func
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        seven_days_ago = datetime.utcnow() - timedelta(days=7)
+
         alders = (
             session.query(Alder)
             .filter(Alder.active == True)
@@ -340,6 +343,22 @@ def list_alders():
             )
             .all()
         )
+
+        # Recent activity counts per alder
+        recent_bills = dict(
+            session.query(MatterSponsor.alder_id, func.count())
+            .join(Matter, MatterSponsor.matter_id == Matter.id)
+            .filter(Matter.intro_date >= thirty_days_ago)
+            .group_by(MatterSponsor.alder_id)
+            .all()
+        )
+        recent_votes = dict(
+            session.query(Vote.alder_id, func.count())
+            .filter(Vote.voted_at >= seven_days_ago)
+            .group_by(Vote.alder_id)
+            .all()
+        )
+
         return [
             {
                 "id": a.id,
@@ -349,6 +368,8 @@ def list_alders():
                 "email": a.email,
                 "phone": a.phone,
                 "photo_url": a.photo_url,
+                "recent_bills": recent_bills.get(a.id, 0),
+                "recent_votes": recent_votes.get(a.id, 0),
             }
             for a in alders
         ]

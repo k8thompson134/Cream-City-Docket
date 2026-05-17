@@ -880,6 +880,15 @@ body {
 .vote-breakdown-row--other .vb-label { color: #555; }
 .vb-names { color: #333; line-height: 1.5; }
 
+.confidence-notice {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  color: #888;
+  font-style: italic;
+  border-top: 1px solid #e4e9f2;
+  padding-top: 0.5rem;
+}
+
 .legistar-link {
   display: inline-block;
   margin-top: 1rem;

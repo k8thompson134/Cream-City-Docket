@@ -33,6 +33,7 @@ MAYOR_ACTION_MAP = {
     "SIGNED": "signed",
     "VETOED": "vetoed",
     "RETURNED": "vetoed",
+    "RETURNED NOT SIGNED": "vetoed",
     "PUBLISHED": "published",
     "LAPSED": "lapsed",
 }

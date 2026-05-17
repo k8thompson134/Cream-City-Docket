@@ -49,6 +49,8 @@ export interface Alder {
   phone: string | null
   photo_url: string | null
   active: boolean
+  recent_bills: number
+  recent_votes: number
 }
 
 export interface VoteRecord {

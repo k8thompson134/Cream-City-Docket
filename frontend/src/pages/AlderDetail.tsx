@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { fetchAlder, fetchBill, legistarUrl } from '../api'
 import type { AlderDetail as AlderDetailType, Bill, BillDetail, VoteRecord } from '../api'
-import { useSettings } from '../useSettings'
 import { usePageTitle } from '../usePageTitle'
 import { AlderHeroSkeleton } from '../Skeletons'
 import './Alders.css'
@@ -373,7 +372,6 @@ export default function AlderDetail() {
     setSelected(prev => prev?.matterId === matterId ? null : { matterId, voteValue })
   }
   function switchTab(t: Tab) { setTab(t); setSelected(null); setBillDetail(null) }
-  const { settings } = useSettings()
   usePageTitle(alder ? formatName(alder.name) : undefined)
 
   useEffect(() => {

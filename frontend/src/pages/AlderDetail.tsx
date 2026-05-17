@@ -116,43 +116,12 @@ function voteCardClass(value: string | null) {
   return 'alder-vote-card alder-vote-card--abstain'
 }
 
-function VoteIssueBreakdown({ votes }: { votes: VoteRecord[] }) {
-  const byTag: Record<string, { yea: number; nay: number; other: number }> = {}
 
-  const isYea = (v: string | null) => ['yea', 'aye', 'yes'].includes((v ?? '').toLowerCase())
-  const isNay = (v: string | null) => ['nay', 'no'].includes((v ?? '').toLowerCase())
 
-  for (const v of votes) {
-    for (const tag of v.matter.tags ?? []) {
-      if (!byTag[tag]) byTag[tag] = { yea: 0, nay: 0, other: 0 }
-      if (isYea(v.vote_value)) byTag[tag].yea++
-      else if (isNay(v.vote_value)) byTag[tag].nay++
-      else byTag[tag].other++
-    }
-  }
+const isYeaValue = (v: string | null) => ['yea', 'aye', 'yes'].includes((v ?? '').toLowerCase())
+const isNayValue = (v: string | null) => ['nay', 'no'].includes((v ?? '').toLowerCase())
 
-  const sorted = Object.entries(byTag).sort((a, b) => (b[1].yea + b[1].nay + b[1].other) - (a[1].yea + a[1].nay + a[1].other))
-  if (sorted.length === 0) return null
-
-  return (
-    <div className="vote-issue-breakdown">
-      <div className="vote-issue-header">
-        <span className="vote-issue-col-tag" />
-        <span className="vote-issue-col">Yea</span>
-        <span className="vote-issue-col">Nay</span>
-        <span className="vote-issue-col">Other</span>
-      </div>
-      {sorted.map(([tag, counts]) => (
-        <div key={tag} className="vote-issue-row">
-          <span className="vote-issue-col-tag">{tag}</span>
-          <span className="vote-issue-col vote-issue-col--yea">{counts.yea || '—'}</span>
-          <span className="vote-issue-col vote-issue-col--nay">{counts.nay || '—'}</span>
-          <span className="vote-issue-col vote-issue-col--other">{counts.other || '—'}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
+type VoteFilter = 'all' | 'yea' | 'nay' | 'other'
 
 function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detailLoading, onClose }: {
   votes: VoteRecord[]
@@ -163,6 +132,8 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detai
   detailLoading: boolean
   onClose: () => void
 }) {
+  const [filter, setFilter] = useState<VoteFilter>('all')
+
   if (votes.length === 0) {
     return (
       <div className="alder-empty">
@@ -170,9 +141,40 @@ function VoteHistory({ votes, showSummaries, selectedId, onSelect, detail, detai
       </div>
     )
   }
+
+  const filtered = votes.filter(v => {
+    if (filter === 'yea') return isYeaValue(v.vote_value)
+    if (filter === 'nay') return isNayValue(v.vote_value)
+    if (filter === 'other') return !isYeaValue(v.vote_value) && !isNayValue(v.vote_value)
+    return true
+  })
+
+  const counts = {
+    yea: votes.filter(v => isYeaValue(v.vote_value)).length,
+    nay: votes.filter(v => isNayValue(v.vote_value)).length,
+    other: votes.filter(v => !isYeaValue(v.vote_value) && !isNayValue(v.vote_value)).length,
+  }
+
   return (
     <>
-      {votes.map((v, i) => {
+      <div className="vote-filter-bar">
+        {(['all', 'yea', 'nay', 'other'] as VoteFilter[]).map(f => {
+          const label = f === 'all' ? `All (${votes.length})` : f === 'yea' ? `Yea (${counts.yea})` : f === 'nay' ? `Nay (${counts.nay})` : `Other (${counts.other})`
+          return (
+            <button
+              key={f}
+              className={`vote-filter-btn vote-filter-btn--${f}${filter === f ? ' vote-filter-btn--active' : ''}`}
+              onClick={() => { setFilter(f); onClose() }}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+      {filtered.length === 0 && (
+        <div className="alder-empty">No {filter} votes on record.</div>
+      )}
+      {filtered.map((v, i) => {
         const summary = v.matter.summary
           ? v.matter.summary.split('\n').filter((l: string) => !l.trimStart().startsWith('#')).join(' ').trim()
           : null
@@ -480,9 +482,7 @@ export default function AlderDetail() {
             </>
           )}
 
-          {tab === 'votes' && alder.vote_history.length > 0 && (
-            <VoteIssueBreakdown votes={alder.vote_history} />
-          )}
+
           {tab === 'votes' && (
             <VoteHistory
               votes={alder.vote_history}

@@ -90,7 +90,10 @@ def list_bills(
     tag: str | None = Query(None),
     sponsored_by: int | None = Query(None),
     legislative_only: bool = Query(False),
+    sort: str = Query('urgency'),
+    search: str | None = Query(None),
 ):
+    from sqlalchemy import case, or_
     session = SessionLocal()
     try:
         q = session.query(Matter).options(
@@ -114,13 +117,37 @@ def list_bills(
         if sponsored_by:
             q = q.filter(Matter.sponsors.any(MatterSponsor.alder_id == sponsored_by))
 
+        if search:
+            pattern = f'%{search}%'
+            q = q.filter(or_(
+                Matter.title.ilike(pattern),
+                Matter.summary.ilike(pattern),
+            ))
+
         total = q.count()
-        matters = (
-            q.order_by(Matter.intro_date.desc().nullslast(), Matter.id.desc())
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+
+        if sort == 'urgency':
+            now = datetime.utcnow()
+            week_out = now + timedelta(days=7)
+            two_weeks_ago = now - timedelta(days=14)
+            urgency_bucket = case(
+                (Matter.agenda_date.between(now, week_out), 0),
+                (Matter.intro_date >= two_weeks_ago, 1),
+                else_=2,
+            )
+            matters = (
+                q.order_by(urgency_bucket, Matter.agenda_date.asc().nullslast(), Matter.intro_date.desc().nullslast(), Matter.id.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+        else:
+            matters = (
+                q.order_by(Matter.intro_date.desc().nullslast(), Matter.id.desc())
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
 
         return {"total": total, "skip": skip, "limit": limit, "items": [_serialize_matter(m) for m in matters]}
     finally:

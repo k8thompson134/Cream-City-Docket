@@ -295,6 +295,9 @@ function Docket() {
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [sort, setSort] = useState('urgency')
   const [loading, setLoading] = useState(true)
   const LIMIT = 25
 
@@ -322,6 +325,11 @@ function Docket() {
   useEffect(() => { fetchUpcoming().then(setUpcoming).catch(() => {}) }, [])
 
   useEffect(() => {
+    const t = setTimeout(() => { setSearch(searchInput); setSkip(0); closeBill() }, 300)
+    return () => clearTimeout(t)
+  }, [searchInput])
+
+  useEffect(() => {
     setLoading(true)
     fetchBills({
       skip,
@@ -330,10 +338,12 @@ function Docket() {
       status: statusFilter || undefined,
       tag: tagFilter || undefined,
       legislative_only: legislativeOnly || undefined,
+      sort,
+      search: search || undefined,
     })
       .then(res => { setBills(res.items); setTotal(res.total) })
       .finally(() => setLoading(false))
-  }, [skip, typeFilter, statusFilter, tagFilter, showAll])
+  }, [skip, typeFilter, statusFilter, tagFilter, showAll, sort, search])
 
   function handleFilterChange() {
     setSkip(0)
@@ -343,6 +353,20 @@ function Docket() {
   return (
     <div className="layout">
       <aside className="sidebar">
+        <div className="search-box">
+          <input
+            className="search-input"
+            type="search"
+            placeholder="Search bills…"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            aria-label="Search bills by title or summary"
+          />
+        </div>
+        <div className="sort-toggle">
+          <button className={`sort-btn${sort === 'urgency' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('urgency'); setSkip(0) }}>Urgent first</button>
+          <button className={`sort-btn${sort === 'recent' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('recent'); setSkip(0) }}>Most recent</button>
+        </div>
         <div className="filters">
           <label>
             Type

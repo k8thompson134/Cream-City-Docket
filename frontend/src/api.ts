@@ -108,6 +108,8 @@ export async function fetchBills(params: {
   tag?: string
   sponsored_by?: number
   legislative_only?: boolean
+  sort?: string
+  search?: string
 }): Promise<BillsResponse> {
   const url = new URL(`${API_BASE}/api/bills`, window.location.origin)
   Object.entries(params).forEach(([k, v]) => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Routes, Route, useSearchParams } from 'react-router-dom'
-import { fetchBills, fetchBill, fetchBillVotes, fetchMeta } from './api'
+import { fetchBills, fetchBill, fetchBillVotes, fetchMeta, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, BillVote, Meta } from './api'
 import { useSettings } from './useSettings'
 import { statusColor, formatDate, cleanSummary } from './utils'
@@ -165,12 +165,69 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 
       <a
         className="legistar-link"
-        href="https://milwaukee.legistar.com/Legislation.aspx"
+        href={legistarUrl(bill)}
         target="_blank"
         rel="noreferrer"
       >
-        Search Legistar{bill.file_number ? ` — File #${bill.file_number}` : ''} ↗
+        View on Legistar{bill.file_number ? ` — File #${bill.file_number}` : ''} ↗
       </a>
+    </div>
+  )
+}
+
+function UpcomingSection({ bills, onSelect }: { bills: Bill[]; onSelect: (id: number) => void }) {
+  if (bills.length === 0) return null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  function daysUntil(dateStr: string) {
+    const d = new Date(dateStr)
+    d.setHours(0, 0, 0, 0)
+    return Math.round((d.getTime() - today.getTime()) / 86400000)
+  }
+
+  function urgencyLabel(dateStr: string) {
+    const diff = daysUntil(dateStr)
+    if (diff === 0) return 'Today'
+    if (diff === 1) return 'Tomorrow'
+    return `${diff} days away`
+  }
+
+  return (
+    <div className="upcoming-section">
+      <div className="upcoming-label">Upcoming Hearings</div>
+      <div className="upcoming-cards">
+        {bills.slice(0, 5).map(bill => {
+          const isToday = bill.agenda_date ? daysUntil(bill.agenda_date) === 0 : false
+          return (
+            <div
+              key={bill.id}
+              className={`upcoming-card${isToday ? ' upcoming-card--today' : ''}`}
+              onClick={() => onSelect(bill.id)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="upcoming-date">{formatDate(bill.agenda_date)}</div>
+              <div className="upcoming-title">{bill.title}</div>
+              {bill.body_name && <div className="upcoming-body">{bill.body_name}</div>}
+              {bill.agenda_date && (
+                <div className="upcoming-urgency">{urgencyLabel(bill.agenda_date)}</div>
+              )}
+              <div className="upcoming-legistar-row">
+                <a
+                  className="upcoming-legistar-link"
+                  href={legistarUrl(bill)}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={e => e.stopPropagation()}
+                >
+                  View on Legistar ↗
+                </a>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -180,6 +237,7 @@ function Docket() {
   const { settings } = useSettings()
   const [searchParams, setSearchParams] = useSearchParams()
   const [bills, setBills] = useState<Bill[]>([])
+  const [upcoming, setUpcoming] = useState<Bill[]>([])
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(0)
   const [meta, setMeta] = useState<Meta | null>(null)
@@ -199,6 +257,7 @@ function Docket() {
   }
 
   useEffect(() => { fetchMeta().then(setMeta) }, [])
+  useEffect(() => { fetchUpcoming().then(setUpcoming).catch(() => {}) }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -242,6 +301,7 @@ function Docket() {
       </aside>
 
       <main className="feed">
+        <UpcomingSection bills={upcoming} onSelect={selectBill} />
         {loading && <div className="loading">Loading…</div>}
         {!loading && bills.map(b => (
           <BillRow

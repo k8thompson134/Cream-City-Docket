@@ -23,7 +23,7 @@ const ALERT_TYPES = [
 ]
 
 export default function Subscribe() {
-  usePageTitle('Get Alerts')
+  usePageTitle('Get Alerts', 'Subscribe to free email alerts for Milwaukee Common Council legislation. Choose issue areas, your aldermanic district, and how often you want to hear from us.')
   const [searchParams] = useSearchParams()
   const [meta, setMeta] = useState<Meta | null>(null)
   const [alders, setAlders] = useState<Alder[]>([])

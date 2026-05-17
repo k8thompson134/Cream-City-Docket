@@ -1,5 +1,5 @@
 # Cream City Docket — Development Plan
-*Version 0.6 | Updated May 7, 2026*
+*Version 0.7 | Updated May 8, 2026*
 
 ---
 
@@ -107,33 +107,37 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 | Alert email template — responsive HTML + plain text | 2 hrs | ✅ Done | Built May 7 |
 | Add dispatcher to APScheduler (runs after each enrich cycle) | 30 min | ✅ Done | Built May 7 |
 | End-to-end test: subscribe → confirmation email delivered | 1 hr | ✅ Done | Confirmed working May 7 |
-| Veto alert, hearing alert, substitute amendment alert variants | 2 hrs | ⬜ Pending | Currently only "introduced" trigger |
-| Status-change alerts (e.g. bill moves to full council) | 2 hrs | ⬜ Pending | Requires tracking previous status |
+| Veto alert, hearing alert, substitute amendment alert variants | 2 hrs | ✅ Done | hearing_scheduled, council_vote, mayor_signed, mayor_vetoed triggers live |
+| Status-change alerts (e.g. bill moves to full council) | 2 hrs | ✅ Done | Uses last_modified_utc window + AlertLog dedup |
 
 ### Production polish
 
 | Task | Effort | Status | Notes |
 |---|---|---|---|
-| Mobile responsiveness | 2 hrs | ⬜ Pending | |
-| SEO: page titles, meta descriptions, Open Graph tags | 1 hr | ⬜ Pending | |
-| Error states and empty states across all pages | 1 hr | ⬜ Pending | |
-| Loading states and skeleton screens | 1 hr | ⬜ Pending | |
-| Final accessibility pass — keyboard nav, screen reader | 2 hrs | ⬜ Pending | |
+| Mobile responsiveness | 2 hrs | ✅ Done | Media queries across all pages, mobile nav |
+| SEO: page titles, meta descriptions, Open Graph tags | 1 hr | ✅ Done | usePageTitle hook, meta tags on all routes |
+| Error states and empty states across all pages | 1 hr | ✅ Done | |
+| Loading states and skeleton screens | 1 hr | ✅ Done | AlderHeroSkeleton + bill feed skeletons |
+| Final accessibility pass — keyboard nav, screen reader | 2 hrs | ⬜ Pending | Partial — tooltips, tabs, forms done; full audit not done |
 | Performance check — Lighthouse, API response times | 1 hr | ⬜ Pending | |
-| Environment variables and secrets on Railway | 30 min | ⬜ Pending | Add RESEND_API_KEY, FROM_EMAIL, SITE_URL |
-| README — project overview, setup instructions, architecture | 2 hrs | ⬜ Pending | Portfolio artifact |
+| Environment variables and secrets on Railway | 30 min | ✅ Done | RESEND_API_KEY, FROM_EMAIL, SITE_URL set |
+| README — project overview, setup instructions, architecture | 2 hrs | ✅ Done | Updated May 7 |
+| Vercel SPA rewrite rule (404 on refresh) | 30 min | ✅ Done | vercel.json added May 8 |
+| Vote history backfill script | 1 hr | ✅ Done | 3,799+ votes loaded May 8 |
 
-**Remaining estimated effort: ~15 hours**
+**Remaining estimated effort: ~3 hours**
 
 ### Definition of done
 
 - ✅ A real subscriber receives a real confirmation email
-- ⬜ A real subscriber receives a real alert when a new matching bill is introduced
-- ⬜ Status-change alerts working (hearing scheduled, full council vote)
-- ⬜ Unsubscribe and preference management work end-to-end *(endpoints done, needs QA)*
-- ⬜ No duplicate alerts for the same Matter and trigger event *(logic done, needs real-world test)*
-- ⬜ Mobile layout functional on 375px viewport
-- ⬜ README complete, project presentable as a portfolio piece
+- ⬜ A real subscriber receives a real alert when a new matching bill is introduced *(needs real-world test)*
+- ✅ Status-change alerts implemented (hearing scheduled, council vote, mayor signed/vetoed)
+- ✅ Unsubscribe and preference management work end-to-end
+- ✅ Duplicate alert prevention via AlertLog
+- ✅ Mobile layout functional
+- ✅ README complete
+- ⬜ Full accessibility audit (keyboard nav, screen reader)
+- ⬜ Lighthouse / performance pass
 
 ---
 

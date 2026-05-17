@@ -3,7 +3,7 @@ import { usePageTitle } from '../usePageTitle'
 import './About.css'
 
 export default function About() {
-  usePageTitle('About')
+  usePageTitle('About', 'Learn how Cream City Docket works — Milwaukee legislative data, plain-English AI summaries, and free email alerts before council votes.')
   return (
     <div className="page-wrap">
       <div className="page-hero">

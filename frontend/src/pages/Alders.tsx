@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchAlders } from '../api'
 import type { Alder } from '../api'
+import { usePageTitle } from '../usePageTitle'
 import './Alders.css'
 
 export default function Alders() {
+  usePageTitle('Common Council', 'Contact info and sponsored legislation for all 15 Milwaukee Common Council alders, one per aldermanic district.')
   const [alders, setAlders] = useState<Alder[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 

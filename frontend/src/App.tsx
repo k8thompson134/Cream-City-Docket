@@ -4,11 +4,12 @@ import { fetchBills, fetchBill, fetchMeta } from './api'
 import type { Bill, BillDetail, Meta } from './api'
 import { useSettings } from './useSettings'
 import { statusColor, formatDate, cleanSummary } from './utils'
+import { usePageTitle } from './usePageTitle'
 import Nav from './Nav'
 import About from './pages/About'
 import Settings from './pages/Settings'
 import Alders from './pages/Alders'
-import AlderProfile from './pages/AlderProfile'
+import AlderDetail from './pages/AlderDetail'
 import Subscribe from './pages/Subscribe'
 import './App.css'
 
@@ -126,6 +127,7 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
 }
 
 function Docket() {
+  usePageTitle(undefined, 'Track Milwaukee Common Council legislation in real time. Filter by issue area, read plain-English summaries, and get free email alerts before the vote.')
   const { settings } = useSettings()
   const [bills, setBills] = useState<Bill[]>([])
   const [total, setTotal] = useState(0)
@@ -223,7 +225,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Docket />} />
         <Route path="/alders" element={<Alders />} />
-        <Route path="/alders/:id" element={<AlderProfile />} />
+        <Route path="/alders/:id" element={<AlderDetail />} />
         <Route path="/about" element={<About />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/subscribe" element={<Subscribe />} />

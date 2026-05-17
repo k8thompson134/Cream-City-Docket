@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { fetchAlder } from '../api'
 import type { AlderDetail, Bill } from '../api'
 import { statusColor, formatDate, cleanSummary } from '../utils'
+import { usePageTitle } from '../usePageTitle'
 import './AlderProfile.css'
 
 function BillRow({ bill }: { bill: Bill }) {
@@ -32,6 +33,13 @@ export default function AlderProfile() {
   const { id } = useParams<{ id: string }>()
   const [alder, setAlder] = useState<AlderDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  usePageTitle(
+    alder ? `${alder.name}, District ${alder.district}` : 'Alder Profile',
+    alder
+      ? `${alder.name} represents Milwaukee's Aldermanic District ${alder.district}. View sponsored legislation and contact info.`
+      : undefined
+  )
 
   useEffect(() => {
     if (!id) return

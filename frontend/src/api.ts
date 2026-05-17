@@ -79,6 +79,10 @@ export interface MayorProfile {
   name: string
   title: string
   photo_url: string | null
+  bio: string
+  address: string
+  phone: string
+  hours: string
   stats: { signed: number; vetoed: number; lapsed: number; published: number }
   actions: MayorActionRecord[]
 }

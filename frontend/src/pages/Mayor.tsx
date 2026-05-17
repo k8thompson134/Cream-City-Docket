@@ -79,14 +79,22 @@ export default function Mayor() {
     <div className="page-wrap">
       <div className="mayor-hero">
         <div className="mayor-hero-inner">
+          {mayor.photo_url && (
+            <img
+              src={mayor.photo_url}
+              alt={mayor.name}
+              className="mayor-photo"
+            />
+          )}
           <div className="mayor-hero-info">
             <div className="mayor-hero-name">{mayor.name}</div>
             <div className="mayor-hero-title">{mayor.title}</div>
-            <p className="mayor-hero-note">
-              The mayor cannot introduce legislation directly — bills originate with Common Council alders.
-              Once the full council passes a bill, the mayor may sign it into law, veto it, or allow it
-              to lapse into law without signature.
-            </p>
+            <p className="mayor-hero-bio">{mayor.bio}</p>
+            <div className="mayor-hero-contact">
+              <span>📍 {mayor.address}</span>
+              <span>📞 <a href={`tel:${mayor.phone}`}>{mayor.phone}</a></span>
+              <span>🕐 {mayor.hours}</span>
+            </div>
           </div>
         </div>
       </div>

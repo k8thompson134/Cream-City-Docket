@@ -247,7 +247,19 @@ def get_mayor():
         return {
             "name": "Cavalier Johnson",
             "title": "Mayor of Milwaukee",
-            "photo_url": None,
+            "photo_url": "/mayor-johnson.jpg",
+            "bio": (
+                "Mayor Cavalier Johnson took office as Acting Mayor in late 2021 and was elected the "
+                "forty-fifth chief executive of the City of Milwaukee in April 2022, winning with more "
+                "than seventy percent of the vote. He is the first Black Mayor elected in the city and "
+                "only the fourth elected mayor in the past sixty-two years. Before taking on his role "
+                "as Acting Mayor, Johnson served as Common Council President while representing the "
+                "city's 2nd Aldermanic District. He has prioritized violence reduction, economic "
+                "development, and roadway safety."
+            ),
+            "address": "City Hall, 200 E. Wells Street, Room 201, Milwaukee, WI 53202",
+            "phone": "414-286-2200",
+            "hours": "Monday–Friday, 8:00 AM–4:45 PM",
             "stats": stats,
             "actions": serialized,
         }

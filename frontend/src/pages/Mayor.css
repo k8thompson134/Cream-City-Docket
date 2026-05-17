@@ -9,6 +9,19 @@
 .mayor-hero-inner {
   max-width: 860px;
   margin: 0 auto;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.mayor-photo {
+  width: 140px;
+  height: 175px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 6px;
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 197, 47, 0.4);
 }
 
 .mayor-hero-name {
@@ -27,11 +40,28 @@
   margin-bottom: 1rem;
 }
 
-.mayor-hero-note {
+.mayor-hero-bio {
   font-size: 0.875rem;
   color: #8ba3c4;
   line-height: 1.6;
-  max-width: 640px;
+  margin-bottom: 0.85rem;
+}
+
+.mayor-hero-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: #6a8aad;
+}
+
+.mayor-hero-contact a {
+  color: #8ba3c4;
+  text-decoration: underline;
+}
+
+.mayor-hero-contact a:hover {
+  color: #FFC52F;
 }
 
 /* Stats bar */
@@ -260,6 +290,16 @@
 @media (max-width: 768px) {
   .mayor-hero {
     padding: 1.25rem 1rem 1.25rem;
+  }
+
+  .mayor-hero-inner {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mayor-photo {
+    width: 100px;
+    height: 125px;
   }
 
   .mayor-hero-name {

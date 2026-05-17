@@ -2,6 +2,8 @@ export interface Sponsor {
   id: number
   name: string
   district: string | null
+  email: string | null
+  phone: string | null
 }
 
 export interface Bill {
@@ -59,10 +61,23 @@ export interface VoteRecord {
   matter: Bill
 }
 
+export interface OfficeRecord {
+  body_name: string | null
+  title: string | null
+  start_date: string | null
+  end_date: string | null
+  is_current: boolean
+}
+
 export interface AlderDetail extends Alder {
   sponsored_bills: Bill[]
   vote_history: VoteRecord[]
   tag_ranks: Record<string, { rank: number; total: number }>
+  council_terms: OfficeRecord[]
+  committee_roles: OfficeRecord[]
+  website: string | null
+  twitter: string | null
+  facebook: string | null
 }
 
 export interface BillVote {
@@ -71,6 +86,8 @@ export interface BillVote {
   alder_district: string | null
   vote_value: string | null
   voted_at: string | null
+  event_body_name: string | null
+  event_date: string | null
 }
 
 export interface MayorActionRecord {

@@ -17,12 +17,33 @@ class Alder(Base):
     email: Mapped[str | None] = mapped_column(String(200))
     phone: Mapped[str | None] = mapped_column(String(50))
     photo_url: Mapped[str | None] = mapped_column(String(500))
+    website: Mapped[str | None] = mapped_column(String(500))
+    twitter: Mapped[str | None] = mapped_column(String(100))
+    facebook: Mapped[str | None] = mapped_column(String(200))
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     sponsored_matters: Mapped[list["MatterSponsor"]] = relationship(back_populates="alder")
     votes: Mapped[list["Vote"]] = relationship(back_populates="alder")
+    office_records: Mapped[list["AlderOfficeRecord"]] = relationship(back_populates="alder", cascade="all, delete-orphan")
+
+
+class AlderOfficeRecord(Base):
+    __tablename__ = "alder_office_records"
+    __table_args__ = (UniqueConstraint("alder_id", "legistar_office_record_id", name="uq_alder_office_record"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    alder_id: Mapped[int] = mapped_column(ForeignKey("alders.id"), nullable=False)
+    legistar_office_record_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    legistar_body_id: Mapped[int | None] = mapped_column(Integer)
+    body_name: Mapped[str | None] = mapped_column(String(300))
+    title: Mapped[str | None] = mapped_column(String(200))
+    start_date: Mapped[datetime | None] = mapped_column(DateTime)
+    end_date: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    alder: Mapped["Alder"] = relationship(back_populates="office_records")
 
 
 class Committee(Base):

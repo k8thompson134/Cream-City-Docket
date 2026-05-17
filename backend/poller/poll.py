@@ -16,7 +16,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 from app.database import SessionLocal
 from app.models import (
-    Alder, Event, EventItem, Matter, MatterHistory,
+    Alder, AlderOfficeRecord, Event, EventItem, Matter, MatterHistory,
     MatterSponsor, MayorAction, PollLog, Vote,
 )
 from poller import client
@@ -291,6 +291,45 @@ def _upsert_votes(session, event_item: EventItem, event_date: datetime | None) -
             ))
 
 
+def _upsert_office_records(session, alder: Alder) -> None:
+    records = client.get_person_office_records(alder.legistar_person_id)
+    for r in records:
+        record_id = r.get("OfficeRecordId")
+        if not record_id:
+            continue
+        existing = session.query(AlderOfficeRecord).filter_by(
+            alder_id=alder.id,
+            legistar_office_record_id=record_id,
+        ).first()
+        start = _parse_dt(r.get("OfficeRecordStartDate"))
+        end = _parse_dt(r.get("OfficeRecordEndDate"))
+        if existing:
+            existing.body_name = r.get("OfficeRecordBodyName")
+            existing.title = r.get("OfficeRecordTitle")
+            existing.start_date = start
+            existing.end_date = end
+        else:
+            session.add(AlderOfficeRecord(
+                alder_id=alder.id,
+                legistar_office_record_id=record_id,
+                legistar_body_id=r.get("OfficeRecordBodyId"),
+                body_name=r.get("OfficeRecordBodyName"),
+                title=r.get("OfficeRecordTitle"),
+                start_date=start,
+                end_date=end,
+                created_at=datetime.now(timezone.utc),
+            ))
+
+
+def _sync_all_office_records(session) -> None:
+    alders = session.query(Alder).filter_by(active=True).all()
+    for alder in alders:
+        try:
+            _upsert_office_records(session, alder)
+        except Exception:
+            log.exception("Failed to sync office records for alder %s", alder.name)
+
+
 def _poll_events_and_votes(session, since_str: str) -> None:
     events_data = client.get_events_since(since_str)
     log.info("Fetched %d events from Legistar", len(events_data))
@@ -348,6 +387,7 @@ def run_poll() -> None:
             matters_upserted += 1
 
         _poll_events_and_votes(session, since_str)
+        _sync_all_office_records(session)
 
         session.add(PollLog(
             polled_at=poll_start,

@@ -560,4 +560,152 @@
   .issue-area-tag { width: 120px; }
 
   .alders-grid { grid-template-columns: 1fr; }
+
+  .ph-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Political History tab ─────────────────────── */
+
+.political-history {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ph-section {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ph-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #12284B;
+  padding: 0.75rem 1.25rem;
+  background: #f0f4fa;
+  border-bottom: 1px solid #d0d6e0;
+}
+
+.ph-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.ph-stat {
+  padding: 1rem 1.25rem;
+  border-right: 1px solid #e4e9f2;
+  text-align: center;
+}
+
+.ph-stat:last-child { border-right: none; }
+
+.ph-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #12284B;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+
+.ph-stat-label {
+  font-size: 0.72rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.ph-roles {
+  display: flex;
+  flex-direction: column;
+}
+
+.ph-role {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  border-bottom: 1px solid #f0f2f5;
+  font-size: 0.85rem;
+}
+
+.ph-role:last-child { border-bottom: none; }
+
+.ph-role--current {
+  background: #fafcff;
+}
+
+.ph-role--current .ph-role-dates {
+  color: #12284B;
+  font-weight: 600;
+}
+
+.ph-role-dates {
+  font-size: 0.78rem;
+  color: #999;
+  white-space: nowrap;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.ph-role-body {
+  color: #1a1a1a;
+  font-weight: 500;
+  flex: 1;
+}
+
+.ph-role-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #FFC52F;
+  color: #12284B;
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.ph-election-placeholder {
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ph-election-placeholder p {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.ph-election-link {
+  font-size: 0.85rem;
+  color: #12284B;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.ph-election-link:hover { color: #FFC52F; }
+
+/* ── Alder hero links ──────────────────────────── */
+
+.alder-hero-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.alder-hero-links a {
+  font-size: 0.8rem;
+  color: #8ba3c4;
+  text-decoration: underline;
+}
+
+.alder-hero-links a:hover { color: #FFC52F; }

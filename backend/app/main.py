@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import joinedload
 
 from .database import SessionLocal
-from .models import Alder, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, MayorAction, Subscriber, SubscriberPreference, Vote
+from .models import Alder, AlderOfficeRecord, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, MayorAction, Subscriber, SubscriberPreference, Vote
 
 
 @asynccontextmanager
@@ -52,7 +52,13 @@ LEGISLATIVE_TYPES = {
 
 def _serialize_matter(m: Matter) -> dict:
     sponsors = [
-        {"id": s.alder.id, "name": s.alder.name, "district": s.alder.district}
+        {
+            "id": s.alder.id,
+            "name": s.alder.name,
+            "district": s.alder.district,
+            "email": s.alder.email,
+            "phone": s.alder.phone,
+        }
         for s in m.sponsors if s.alder
     ]
     # Deduplicate sponsors (multiple versions can repeat same alder)
@@ -203,7 +209,10 @@ def get_bill_votes(bill_id: int):
     try:
         votes = (
             session.query(Vote)
-            .options(joinedload(Vote.alder))
+            .options(
+                joinedload(Vote.alder),
+                joinedload(Vote.event_item).joinedload(EventItem.event),
+            )
             .filter(Vote.matter_id == bill_id)
             .order_by(Vote.voted_at)
             .all()
@@ -215,6 +224,14 @@ def get_bill_votes(bill_id: int):
                 "alder_district": v.alder.district if v.alder else None,
                 "vote_value": v.vote_value,
                 "voted_at": v.voted_at.isoformat() if v.voted_at else None,
+                "event_body_name": (
+                    v.event_item.event.body_name
+                    if v.event_item and v.event_item.event else None
+                ),
+                "event_date": (
+                    v.event_item.event.date.isoformat()
+                    if v.event_item and v.event_item.event and v.event_item.event.date else None
+                ),
             }
             for v in votes
         ]
@@ -456,6 +473,33 @@ def get_alder(alder_id: int):
                 rank = sum(1 for c in counts if c > my_count) + 1
                 tag_ranks[tag_name] = {"rank": rank, "total": len(counts)}
 
+        now = datetime.utcnow()
+
+        def _serialize_office_record(r: AlderOfficeRecord) -> dict:
+            return {
+                "body_name": r.body_name,
+                "title": r.title,
+                "start_date": r.start_date.isoformat() if r.start_date else None,
+                "end_date": r.end_date.isoformat() if r.end_date else None,
+                "is_current": r.end_date is None or r.end_date > now,
+            }
+
+        COUNCIL_BODY_KEYWORDS = {"common council", "city council"}
+
+        def _is_council_seat(r: AlderOfficeRecord) -> bool:
+            body = (r.body_name or "").lower()
+            return any(kw in body for kw in COUNCIL_BODY_KEYWORDS)
+
+        office_records = (
+            session.query(AlderOfficeRecord)
+            .filter_by(alder_id=a.id)
+            .order_by(AlderOfficeRecord.start_date.desc().nullslast())
+            .all()
+        )
+
+        council_terms = [_serialize_office_record(r) for r in office_records if _is_council_seat(r)]
+        committee_roles = [_serialize_office_record(r) for r in office_records if not _is_council_seat(r)]
+
         return {
             "id": a.id,
             "legistar_person_id": a.legistar_person_id,
@@ -464,9 +508,14 @@ def get_alder(alder_id: int):
             "email": a.email,
             "phone": a.phone,
             "photo_url": a.photo_url,
+            "website": a.website,
+            "twitter": a.twitter,
+            "facebook": a.facebook,
             "sponsored_bills": [_serialize_matter(m) for m in sponsored_bills],
             "vote_history": vote_history,
             "tag_ranks": tag_ranks,
+            "council_terms": council_terms,
+            "committee_roles": committee_roles,
         }
     finally:
         session.close()

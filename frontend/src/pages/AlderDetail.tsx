@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { fetchAlder, fetchBill, legistarUrl } from '../api'
-import type { AlderDetail as AlderDetailType, Bill, BillDetail, VoteRecord } from '../api'
+import type { AlderDetail as AlderDetailType, Bill, BillDetail, OfficeRecord, VoteRecord } from '../api'
 import { usePageTitle } from '../usePageTitle'
 import { AlderHeroSkeleton } from '../Skeletons'
 import './Alders.css'
 
-type Tab = 'bills' | 'votes' | 'issues'
+type Tab = 'bills' | 'votes' | 'issues' | 'history'
 
 const STATUS_COLORS: Record<string, string> = {
   'Passed': '#12284B',
@@ -358,6 +358,107 @@ function IssueAreas({ bills, alderId, tagRanks }: {
   )
 }
 
+function formatYear(iso: string | null) {
+  if (!iso) return '—'
+  return new Date(iso).getFullYear().toString()
+}
+
+function formatRoleDate(start: string | null, end: string | null, isCurrent: boolean) {
+  const s = start ? new Date(start).getFullYear() : '?'
+  if (isCurrent) return `${s} – present`
+  const e = end ? new Date(end).getFullYear() : '?'
+  return `${s} – ${e}`
+}
+
+function PoliticalHistory({ councilTerms, committeeRoles }: {
+  councilTerms: OfficeRecord[]
+  committeeRoles: OfficeRecord[]
+}) {
+  const oldest = councilTerms.at(-1)
+  const firstYear = oldest?.start_date ? new Date(oldest.start_date).getFullYear() : null
+  const yearsInOffice = firstYear ? new Date().getFullYear() - firstYear : null
+  const currentTerm = councilTerms.find(t => t.is_current)
+  const termExpiry = currentTerm?.end_date ? new Date(currentTerm.end_date).getFullYear() : null
+
+  const currentRoles = committeeRoles.filter(r => r.is_current)
+  const pastRoles = committeeRoles.filter(r => !r.is_current)
+
+  return (
+    <div className="political-history">
+      {councilTerms.length > 0 && (
+        <div className="ph-section">
+          <div className="ph-section-label">Service Summary</div>
+          <div className="ph-stats">
+            {firstYear && (
+              <div className="ph-stat">
+                <div className="ph-stat-value">{firstYear}</div>
+                <div className="ph-stat-label">First elected</div>
+              </div>
+            )}
+            <div className="ph-stat">
+              <div className="ph-stat-value">{councilTerms.length}</div>
+              <div className="ph-stat-label">Term{councilTerms.length !== 1 ? 's' : ''} served</div>
+            </div>
+            {yearsInOffice !== null && (
+              <div className="ph-stat">
+                <div className="ph-stat-value">{yearsInOffice}</div>
+                <div className="ph-stat-label">Years in office</div>
+              </div>
+            )}
+            {termExpiry && (
+              <div className="ph-stat">
+                <div className="ph-stat-value">{termExpiry}</div>
+                <div className="ph-stat-label">Term expires</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {committeeRoles.length > 0 && (
+        <div className="ph-section">
+          <div className="ph-section-label">Council Roles &amp; Committee Memberships</div>
+          <div className="ph-roles">
+            {currentRoles.map((r, i) => (
+              <div key={i} className="ph-role ph-role--current">
+                <span className="ph-role-dates">{formatRoleDate(r.start_date, r.end_date, true)}</span>
+                <span className="ph-role-body">{r.body_name}</span>
+                {r.title && r.title.toLowerCase() !== 'member' && (
+                  <span className="ph-role-title">{r.title}</span>
+                )}
+              </div>
+            ))}
+            {pastRoles.map((r, i) => (
+              <div key={i} className="ph-role">
+                <span className="ph-role-dates">{formatRoleDate(r.start_date, r.end_date, false)}</span>
+                <span className="ph-role-body">{r.body_name}</span>
+                {r.title && r.title.toLowerCase() !== 'member' && (
+                  <span className="ph-role-title">{r.title}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="ph-section">
+        <div className="ph-section-label">Election History</div>
+        <div className="ph-election-placeholder">
+          <p>Election results are not available through the Legistar API.</p>
+          <a
+            href="https://city.milwaukee.gov/election/ElectionResults"
+            target="_blank"
+            rel="noreferrer"
+            className="ph-election-link"
+          >
+            View results on Milwaukee Elections Commission ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AlderDetail() {
   const { id } = useParams<{ id: string }>()
   const [alder, setAlder] = useState<AlderDetailType | null>(null)
@@ -428,6 +529,13 @@ export default function AlderDetail() {
               )}
               {alder.phone && <span>✆ {alder.phone}</span>}
             </div>
+            {(alder.website || alder.twitter || alder.facebook) && (
+              <div className="alder-hero-links">
+                {alder.website && <a href={alder.website} target="_blank" rel="noreferrer">🌐 Website ↗</a>}
+                {alder.twitter && <a href={`https://twitter.com/${alder.twitter.replace('@','')}`} target="_blank" rel="noreferrer">𝕏 {alder.twitter}</a>}
+                {alder.facebook && <a href={alder.facebook} target="_blank" rel="noreferrer">📘 Facebook ↗</a>}
+              </div>
+            )}
           </div>
 
           <div className="alder-hero-actions">
@@ -454,6 +562,10 @@ export default function AlderDetail() {
           className={`alder-tab${tab === 'issues' ? ' alder-tab--active' : ''}`}
           onClick={() => switchTab('issues')}
         >Issue Areas</button>
+        <button role="tab" aria-selected={tab === 'history'} aria-controls="tab-history"
+          className={`alder-tab${tab === 'history' ? ' alder-tab--active' : ''}`}
+          onClick={() => switchTab('history')}
+        >Political History</button>
       </div>
 
       <div className="alder-body">
@@ -490,6 +602,12 @@ export default function AlderDetail() {
           )}
           {tab === 'issues' && (
             <IssueAreas bills={alder.sponsored_bills} alderId={alder.id} tagRanks={alder.tag_ranks ?? {}} />
+          )}
+          {tab === 'history' && (
+            <PoliticalHistory
+              councilTerms={alder.council_terms ?? []}
+              committeeRoles={alder.committee_roles ?? []}
+            />
           )}
         </div>
 
@@ -530,6 +648,27 @@ export default function AlderDetail() {
                 <span className="alder-fact-value">{alder.phone}</span>
               </div>
             )}
+            {(() => {
+              const terms = alder.council_terms ?? []
+              if (terms.length === 0) return null
+              const oldest = terms.at(-1)
+              const firstYear = oldest?.start_date ? new Date(oldest.start_date).getFullYear() : null
+              const years = firstYear ? new Date().getFullYear() - firstYear : null
+              return (
+                <>
+                  {firstYear && (
+                    <div className="alder-fact-row">
+                      <span className="alder-fact-label">In office since</span>
+                      <span className="alder-fact-value">{firstYear}</span>
+                    </div>
+                  )}
+                  <div className="alder-fact-row">
+                    <span className="alder-fact-label">Terms served</span>
+                    <span className="alder-fact-value">{terms.length}{years ? ` · ${years} yrs` : ''}</span>
+                  </div>
+                </>
+              )
+            })()}
             <div className="alder-fact-row">
               <span className="alder-fact-label">Bills Sponsored</span>
               <span className="alder-fact-value">{billCount}</span>

@@ -62,6 +62,7 @@ export interface VoteRecord {
 export interface AlderDetail extends Alder {
   sponsored_bills: Bill[]
   vote_history: VoteRecord[]
+  tag_ranks: Record<string, { rank: number; total: number }>
 }
 
 export interface BillVote {

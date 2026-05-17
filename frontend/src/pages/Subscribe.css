@@ -93,6 +93,20 @@
 }
 .deselect-all-btn:hover { color: #FFC52F; }
 
+.mayor-toggle {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.mayor-toggle input[type="checkbox"] {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: #12284B;
+}
+
 .subscribe-summary {
   background: #f5f7fb;
   border: 1px solid #d0d6e0;

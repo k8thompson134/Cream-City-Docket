@@ -334,7 +334,9 @@
 .issue-area-row:last-of-type { border-bottom: none; }
 .issue-area-row:hover { background: #f5f7fb; }
 
-.issue-area-tag { font-size: 0.82rem; font-weight: 700; color: #12284B; width: 160px; flex-shrink: 0; }
+.issue-area-tag-col { display: flex; flex-direction: column; width: 160px; flex-shrink: 0; gap: 0.1rem; }
+.issue-area-tag { font-size: 0.82rem; font-weight: 700; color: #12284B; }
+.issue-area-rank { font-size: 0.67rem; color: #FFC52F; font-weight: 700; background: #12284B; padding: 0.05rem 0.35rem; border-radius: 2px; display: inline-block; width: fit-content; }
 
 .issue-area-bar-wrap { flex: 1; height: 8px; background: #e4e9f2; border-radius: 4px; overflow: hidden; }
 

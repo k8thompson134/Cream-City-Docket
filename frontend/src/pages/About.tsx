@@ -111,6 +111,12 @@ export default function About() {
 
               <dt>Placed on File</dt>
               <dd>The bill is shelved without a final vote. It can be recalled later but is effectively on hold.</dd>
+
+              <dt>In Council-Passage</dt>
+              <dd>The full 15-member council is voting to pass an ordinance into law. This is the final legislative vote before the mayor acts.</dd>
+
+              <dt>In Council-Adoption</dt>
+              <dd>The full council is voting to formally adopt a resolution or other non-ordinance matter. Similar to passage but used for resolutions.</dd>
             </dl>
           </div>
         </aside>

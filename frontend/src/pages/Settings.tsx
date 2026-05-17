@@ -122,6 +122,23 @@ export default function Settings() {
               checked={settings.compactFeed}
               onChange={v => update('compactFeed', v)}
             />
+            <div className="toggle-row">
+              <div className="toggle-text">
+                <div className="toggle-label">Default bill type</div>
+                <div className="toggle-sub">What type of legislation the feed shows when you first visit. You can always change it on the feed page.</div>
+              </div>
+              <select
+                className="settings-select"
+                value={settings.defaultTypeFilter}
+                onChange={e => update('defaultTypeFilter', e.target.value)}
+              >
+                <option value="">Legislative matters only (default)</option>
+                <option value="__all__">All types</option>
+                <option value="Ordinance">Ordinances only</option>
+                <option value="Resolution">Resolutions only</option>
+                <option value="Charter Ordinance">Charter Ordinances only</option>
+              </select>
+            </div>
           </section>
 
           <div className="settings-reset">

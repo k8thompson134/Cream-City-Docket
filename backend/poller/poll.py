@@ -34,6 +34,7 @@ MAYOR_ACTION_MAP = {
     "VETOED": "vetoed",
     "RETURNED": "vetoed",
     "RETURNED NOT SIGNED": "vetoed",
+    "VETO OVERRIDDEN": "veto_overridden",
     "PUBLISHED": "published",
     "LAPSED": "lapsed",
 }
@@ -129,7 +130,7 @@ def _upsert_matter(session, raw: dict) -> Matter:
         "enactment_date": _parse_dt(raw.get("MatterEnactmentDate")),
         "enactment_number": raw.get("MatterEnactmentNumber"),
         "last_modified_utc": _parse_dt(raw.get("MatterLastModifiedUtc")),
-        "updated_at": datetime.utcnow(),
+        "updated_at": datetime.now(timezone.utc),
     }
 
     if matter:
@@ -223,7 +224,7 @@ def _upsert_event(session, raw: dict) -> Event | None:
         event.date = date
         event.body_name = body_name
         event.location = location
-        event.updated_at = datetime.utcnow()
+        event.updated_at = datetime.now(timezone.utc)
     else:
         event = Event(
             legistar_event_id=legistar_event_id,
@@ -318,14 +319,14 @@ def _get_last_poll_time(session) -> str:
     if last:
         dt = last.polled_at
     else:
-        dt = datetime.utcnow() - timedelta(days=7)
+        dt = datetime.now(timezone.utc) - timedelta(days=7)
         log.info("No prior poll found — bootstrapping from %s", dt.date())
     return dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def run_poll() -> None:
     session = SessionLocal()
-    poll_start = datetime.utcnow()
+    poll_start = datetime.now(timezone.utc)
     matters_fetched = 0
     matters_upserted = 0
     error_message = None

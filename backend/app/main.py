@@ -425,6 +425,37 @@ def get_alder(alder_id: int):
             for v in votes if v.matter
         ]
 
+        # Tag ranks: how does this alder compare to others per issue area?
+        from sqlalchemy import func as sqlfunc, distinct as sqldistinct
+        my_tag_counts = {}
+        for bill in sponsored_bills:
+            for mt in bill.tags:
+                if mt.tag:
+                    my_tag_counts[mt.tag.name] = my_tag_counts.get(mt.tag.name, 0) + 1
+
+        tag_ranks = {}
+        if my_tag_counts:
+            all_tag_counts = (
+                session.query(
+                    IssueTag.name,
+                    MatterSponsor.alder_id,
+                    sqlfunc.count(sqldistinct(MatterTag.matter_id)).label("cnt"),
+                )
+                .join(MatterTag, MatterTag.tag_id == IssueTag.id)
+                .join(MatterSponsor, MatterSponsor.matter_id == MatterTag.matter_id)
+                .filter(IssueTag.name.in_(list(my_tag_counts.keys())))
+                .group_by(IssueTag.name, MatterSponsor.alder_id)
+                .all()
+            )
+            tag_count_lists: dict[str, list[int]] = {}
+            for tag_name, _, cnt in all_tag_counts:
+                tag_count_lists.setdefault(tag_name, []).append(cnt)
+
+            for tag_name, my_count in my_tag_counts.items():
+                counts = sorted(tag_count_lists.get(tag_name, [my_count]), reverse=True)
+                rank = sum(1 for c in counts if c > my_count) + 1
+                tag_ranks[tag_name] = {"rank": rank, "total": len(counts)}
+
         return {
             "id": a.id,
             "legistar_person_id": a.legistar_person_id,
@@ -435,6 +466,7 @@ def get_alder(alder_id: int):
             "photo_url": a.photo_url,
             "sponsored_bills": [_serialize_matter(m) for m in sponsored_bills],
             "vote_history": vote_history,
+            "tag_ranks": tag_ranks,
         }
     finally:
         session.close()
@@ -444,6 +476,7 @@ class SubscribeRequest(BaseModel):
     email: str
     tags: list[str] = []
     district: str | None = None
+    mayor_actions: bool = False
 
 
 @app.post("/api/subscriptions")
@@ -476,6 +509,12 @@ def create_subscription(body: SubscribeRequest):
                 subscriber_id=sub.id,
                 preference_type="district",
                 preference_value=body.district,
+            ))
+        if body.mayor_actions:
+            session.add(SubscriberPreference(
+                subscriber_id=sub.id,
+                preference_type="mayor_actions",
+                preference_value="true",
             ))
 
         session.commit()
@@ -518,6 +557,7 @@ def get_subscription(token: str):
             "email": sub.email,
             "tags": [p.preference_value for p in sub.preferences if p.preference_type == "tag"],
             "district": next((p.preference_value for p in sub.preferences if p.preference_type == "district"), None),
+            "mayor_actions": any(p.preference_type == "mayor_actions" for p in sub.preferences),
         }
     finally:
         session.close()

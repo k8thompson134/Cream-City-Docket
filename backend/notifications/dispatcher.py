@@ -158,17 +158,38 @@ def run_dispatcher() -> None:
 
                 matched_tags = matter_tags & tag_prefs
                 matched_districts = sponsor_districts & district_prefs
+                wants_mayor_alerts = any(
+                    p.preference_type == "mayor_actions" for p in subscriber.preferences
+                )
 
-                if not matched_tags and not matched_districts:
+                mayor_triggers = {t for t in triggers if t in ("mayor_signed", "mayor_vetoed")}
+                non_mayor_triggers = {t for t in triggers if t not in ("mayor_signed", "mayor_vetoed")}
+
+                # Skip if subscriber has no matching interest
+                has_match = matched_tags or matched_districts
+                has_mayor_match = wants_mayor_alerts and mayor_triggers
+                if not has_match and not has_mayor_match:
+                    continue
+
+                # Only send non-mayor triggers if tag/district matches
+                active_triggers = set()
+                if has_match:
+                    active_triggers |= non_mayor_triggers
+                    active_triggers |= mayor_triggers  # also send mayor if tag matched
+                if has_mayor_match:
+                    active_triggers |= mayor_triggers
+
+                if not active_triggers:
                     continue
 
                 trigger_reason = (
                     ", ".join(sorted(matched_tags))
                     if matched_tags
-                    else ", ".join(sorted(matched_districts))
+                    else ", ".join(sorted(matched_districts)) if matched_districts
+                    else "mayor actions"
                 )
 
-                for trigger in triggers:
+                for trigger in active_triggers:
                     if _already_sent(session, subscriber.id, matter.id, trigger):
                         continue
 

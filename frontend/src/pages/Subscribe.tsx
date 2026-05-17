@@ -40,6 +40,7 @@ export default function Subscribe() {
   const [digestMode, setDigestMode] = useState('daily')
   const [priorityTags, setPriorityTags] = useState<Set<string>>(new Set())
   const [priorityDistrict, setPriorityDistrict] = useState(false)
+  const [mayorActions, setMayorActions] = useState(false)
 
   // UI state
   const [step, setStep] = useState<'form' | 'done' | 'manage'>('form')
@@ -134,6 +135,7 @@ export default function Subscribe() {
         digest_mode: digestMode,
         priority_tags: Array.from(priorityTags),
         priority_district: priorityDistrict,
+        mayor_actions: mayorActions,
       }
 
       const url = token
@@ -376,6 +378,27 @@ export default function Subscribe() {
                   )}
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Mayor actions toggle */}
+          <div className="subscribe-step">
+            <div className="step-num">5</div>
+            <div className="step-content">
+              <label className="mayor-toggle">
+                <input
+                  type="checkbox"
+                  checked={mayorActions}
+                  onChange={e => setMayorActions(e.target.checked)}
+                />
+                <div>
+                  <div className="step-label" style={{ marginBottom: '0.2rem' }}>
+                    Alert me when the mayor signs or vetoes a bill
+                    <span className="step-optional">optional</span>
+                  </div>
+                  <div className="field-hint">Sends a mayoral action alert for any bill matching your issue areas or district.</div>
+                </div>
+              </label>
             </div>
           </div>
 

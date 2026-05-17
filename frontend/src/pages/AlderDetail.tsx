@@ -99,29 +99,34 @@ function BillCard({ bill, showSummaries, isSelected, onClick, detail, detailLoad
   )
 }
 
+const YEA_VALUES = new Set(['yea', 'aye', 'yes'])
+const NAY_VALUES = new Set(['nay', 'no'])
+
 function voteChipClass(value: string | null) {
   const v = (value ?? '').toLowerCase()
-  if (v === 'yea') return 'vote-chip vote-chip--yea'
-  if (v === 'nay') return 'vote-chip vote-chip--nay'
+  if (YEA_VALUES.has(v)) return 'vote-chip vote-chip--yea'
+  if (NAY_VALUES.has(v)) return 'vote-chip vote-chip--nay'
   return 'vote-chip vote-chip--abstain'
 }
 
 function voteCardClass(value: string | null) {
   const v = (value ?? '').toLowerCase()
-  if (v === 'yea') return 'alder-vote-card alder-vote-card--yea'
-  if (v === 'nay') return 'alder-vote-card alder-vote-card--nay'
+  if (YEA_VALUES.has(v)) return 'alder-vote-card alder-vote-card--yea'
+  if (NAY_VALUES.has(v)) return 'alder-vote-card alder-vote-card--nay'
   return 'alder-vote-card alder-vote-card--abstain'
 }
 
 function VoteIssueBreakdown({ votes }: { votes: VoteRecord[] }) {
   const byTag: Record<string, { yea: number; nay: number; other: number }> = {}
 
+  const isYea = (v: string | null) => ['yea', 'aye', 'yes'].includes((v ?? '').toLowerCase())
+  const isNay = (v: string | null) => ['nay', 'no'].includes((v ?? '').toLowerCase())
+
   for (const v of votes) {
-    const val = (v.vote_value ?? '').toLowerCase()
     for (const tag of v.matter.tags ?? []) {
       if (!byTag[tag]) byTag[tag] = { yea: 0, nay: 0, other: 0 }
-      if (val === 'yea') byTag[tag].yea++
-      else if (val === 'nay') byTag[tag].nay++
+      if (isYea(v.vote_value)) byTag[tag].yea++
+      else if (isNay(v.vote_value)) byTag[tag].nay++
       else byTag[tag].other++
     }
   }
@@ -290,7 +295,17 @@ function VoteDetailPanel({ detail, voteValue, loading, onClose }: {
   )
 }
 
-function IssueAreas({ bills, alderId }: { bills: Bill[]; alderId: number }) {
+function rankLabel(rank: number, total: number): string {
+  if (rank === 1) return total > 1 ? 'Most of any alder' : ''
+  const suffix = rank === 2 ? 'nd' : rank === 3 ? 'rd' : 'th'
+  return `${rank}${suffix} of ${total}`
+}
+
+function IssueAreas({ bills, alderId, tagRanks }: {
+  bills: Bill[]
+  alderId: number
+  tagRanks: Record<string, { rank: number; total: number }>
+}) {
   const navigate = useNavigate()
 
   const tagCounts: Record<string, number> = {}
@@ -313,23 +328,30 @@ function IssueAreas({ bills, alderId }: { bills: Bill[]; alderId: number }) {
 
   return (
     <div className="issue-areas">
-      {sorted.map(([tag, count]) => (
-        <button
-          key={tag}
-          className="issue-area-row"
-          onClick={() => navigate(`/?tag=${encodeURIComponent(tag)}&sponsored_by=${alderId}`)}
-          aria-label={`View ${tag} bills sponsored by this alder`}
-        >
-          <span className="issue-area-tag">{tag}</span>
-          <div className="issue-area-bar-wrap">
-            <div
-              className="issue-area-bar"
-              style={{ width: `${(count / max) * 100}%` }}
-            />
-          </div>
-          <span className="issue-area-count">{count} bill{count !== 1 ? 's' : ''}</span>
-        </button>
-      ))}
+      {sorted.map(([tag, count]) => {
+        const rankInfo = tagRanks[tag]
+        const label = rankInfo ? rankLabel(rankInfo.rank, rankInfo.total) : ''
+        return (
+          <button
+            key={tag}
+            className="issue-area-row"
+            onClick={() => navigate(`/?tag=${encodeURIComponent(tag)}&sponsored_by=${alderId}`)}
+            aria-label={`View ${tag} bills sponsored by this alder`}
+          >
+            <div className="issue-area-tag-col">
+              <span className="issue-area-tag">{tag}</span>
+              {label && <span className="issue-area-rank">{label}</span>}
+            </div>
+            <div className="issue-area-bar-wrap">
+              <div
+                className="issue-area-bar"
+                style={{ width: `${(count / max) * 100}%` }}
+              />
+            </div>
+            <span className="issue-area-count">{count} bill{count !== 1 ? 's' : ''}</span>
+          </button>
+        )
+      })}
       <div className="issue-area-note">
         Click any issue area to see this alder's bills in that category on The Docket.
       </div>
@@ -473,7 +495,7 @@ export default function AlderDetail() {
             />
           )}
           {tab === 'issues' && (
-            <IssueAreas bills={alder.sponsored_bills} alderId={alder.id} />
+            <IssueAreas bills={alder.sponsored_bills} alderId={alder.id} tagRanks={alder.tag_ranks ?? {}} />
           )}
         </div>
 

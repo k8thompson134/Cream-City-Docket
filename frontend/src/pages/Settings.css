@@ -8,6 +8,17 @@
 
 .settings-main { flex: 1; min-width: 0; }
 
+.settings-select {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #b0bbcc;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background: #fff;
+  color: #1a1a1a;
+  font-family: inherit;
+  margin-top: 0.5rem;
+}
+
 .settings-section {
   margin-bottom: 2rem;
   padding-bottom: 2rem;

@@ -7,6 +7,7 @@ export interface Settings {
   showTooltips: boolean
   showFileNumbers: boolean
   compactFeed: boolean
+  defaultTypeFilter: string
   highContrast: boolean
   largeText: boolean
   reduceMotion: boolean
@@ -19,6 +20,7 @@ const DEFAULTS: Settings = {
   showTooltips: true,
   showFileNumbers: true,
   compactFeed: false,
+  defaultTypeFilter: '',
   highContrast: false,
   largeText: false,
   reduceMotion: false,

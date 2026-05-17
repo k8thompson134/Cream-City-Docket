@@ -70,6 +70,20 @@ function friendlyAction(raw: string): string {
   return TIMELINE_LABELS[key] ?? raw
 }
 
+function urgencyCopy(agendaDate: string, bodyName: string | null): string {
+  const diff = Math.round((new Date(agendaDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000)
+  const isCouncil = (bodyName ?? '').toUpperCase().includes('COMMON COUNCIL')
+  if (isCouncil) {
+    if (diff === 0) return 'Full council vote today — contact your alder now'
+    if (diff === 1) return 'Full council vote tomorrow — contact your alder today'
+    return `Full council vote in ${diff} days — contact your alder before then`
+  }
+  if (diff === 0) return 'Committee hearing today — public testimony accepted'
+  if (diff === 1) return 'Committee hearing tomorrow — last chance to testify'
+  if (diff <= 3) return `Committee hearing in ${diff} days — public testimony accepted`
+  return 'Upcoming committee hearing'
+}
+
 function formatSyncTime(iso: string): string {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
   if (diff < 1) return 'just now'
@@ -115,9 +129,15 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   const nextHearing = bill.agenda_date && new Date(bill.agenda_date) > new Date()
     ? bill.agenda_date : null
 
-  const yeas = votes.filter(v => v.vote_value?.toLowerCase() === 'yea')
-  const nays = votes.filter(v => v.vote_value?.toLowerCase() === 'nay')
-  const others = votes.filter(v => v.vote_value && !['yea', 'nay'].includes(v.vote_value.toLowerCase()))
+  const substituteEntry = bill.history.find(h =>
+    h.action_name.toUpperCase().includes('SUBSTITUTE')
+  )
+
+  const isYea = (v: string | null) => ['yea', 'aye', 'yes'].includes((v ?? '').toLowerCase())
+  const isNay = (v: string | null) => ['nay', 'no'].includes((v ?? '').toLowerCase())
+  const yeas = votes.filter(v => isYea(v.vote_value))
+  const nays = votes.filter(v => isNay(v.vote_value))
+  const others = votes.filter(v => v.vote_value && !isYea(v.vote_value) && !isNay(v.vote_value))
 
   return (
     <div className="detail-panel">
@@ -139,9 +159,16 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
       </div>
       <h2>{bill.title}</h2>
 
+      {substituteEntry && (
+        <div className="substitute-notice">
+          <strong>Amended:</strong> a substitute version was filed on {formatDate(substituteEntry.action_date)}.{' '}
+          <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">View current text on Legistar ↗</a>
+        </div>
+      )}
+
       {nextHearing && (
         <div className="next-hearing-callout">
-          <span className="next-hearing-label">Next hearing</span>
+          <span className="next-hearing-label">{urgencyCopy(nextHearing, bill.body_name)}</span>
           <span className="next-hearing-date">{formatDate(nextHearing)}</span>
           {bill.body_name && <span className="next-hearing-body">{bill.body_name}</span>}
         </div>
@@ -264,23 +291,21 @@ function UpcomingSection({ bills, onSelect }: { bills: Bill[]; onSelect: (id: nu
               onClick={() => onSelect(bill.id)}
               style={{ cursor: 'pointer' }}
             >
-              <div className="upcoming-date">{formatDate(bill.agenda_date)}</div>
+              <div className="upcoming-card-meta">
+                <span className="upcoming-date">{formatDate(bill.agenda_date)}</span>
+                {bill.agenda_date && <span className="upcoming-urgency">{urgencyLabel(bill.agenda_date)}</span>}
+              </div>
               <div className="upcoming-title">{bill.title}</div>
               {bill.body_name && <div className="upcoming-body">{bill.body_name}</div>}
-              {bill.agenda_date && (
-                <div className="upcoming-urgency">{urgencyLabel(bill.agenda_date)}</div>
-              )}
-              <div className="upcoming-legistar-row">
-                <a
-                  className="upcoming-legistar-link"
-                  href={legistarUrl(bill)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={e => e.stopPropagation()}
-                >
-                  View on Legistar ↗
-                </a>
-              </div>
+              <a
+                className="upcoming-legistar-link"
+                href={legistarUrl(bill)}
+                target="_blank"
+                rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+              >
+                Legistar ↗
+              </a>
             </div>
           )
         })}
@@ -298,7 +323,9 @@ function Docket() {
   const [total, setTotal] = useState(0)
   const [skip, setSkip] = useState(0)
   const [meta, setMeta] = useState<Meta | null>(null)
-  const [typeFilter, setTypeFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState(() =>
+    settings.defaultTypeFilter === '__all__' ? '' : (settings.defaultTypeFilter || '')
+  )
   const [statusFilter, setStatusFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
   const [search, setSearch] = useState('')
@@ -308,7 +335,7 @@ function Docket() {
   const LIMIT = 25
 
   const selectedId = searchParams.get('bill') ? parseInt(searchParams.get('bill')!) : null
-  const showAll = searchParams.get('all') === '1'
+  const showAll = searchParams.get('all') === '1' || settings.defaultTypeFilter === '__all__'
   const legislativeOnly = !showAll && !typeFilter
 
   function selectBill(id: number) {

@@ -21,10 +21,10 @@ export default function Alders() {
         <p>Alders representing all 15 districts</p>
       </div>
 
-      <div className="page-container">
-        <main className="page-body">
-          {error && <div className="error">{error}</div>}
-          {!alders && !error && <div className="loading">Loading alders…</div>}
+      <div className="page-body">
+        <div className="page-main">
+          {error && <div className="alder-empty">{error}</div>}
+          {!alders && !error && <div className="alder-empty">Loading alders…</div>}
           {alders && (
             <div className="alders-grid">
               {alders.map(alder => (
@@ -33,16 +33,16 @@ export default function Alders() {
                   <div className="alder-card-name">{alder.name}</div>
                   {(alder.email || alder.phone) && (
                     <div className="alder-card-contact">
-                      {alder.email && <div className="contact-item">{alder.email}</div>}
-                      {alder.phone && <div className="contact-item">{alder.phone}</div>}
+                      {alder.email && <div>{alder.email}</div>}
+                      {alder.phone && <div>{alder.phone}</div>}
                     </div>
                   )}
-                  <div className="alder-card-link">View profile →</div>
+                  <div className="alder-card-cta">View profile →</div>
                 </Link>
               ))}
             </div>
           )}
-        </main>
+        </div>
 
         <aside className="page-sidebar">
           <div className="sidebar-card">
@@ -50,9 +50,8 @@ export default function Alders() {
             <p>The Milwaukee Common Council is the legislative body of the City of Milwaukee. It consists of 15 aldermembers, one representing each district.</p>
             <p>The Council passes ordinances, approves the city budget, and oversees city operations.</p>
           </div>
-
           <div className="sidebar-card">
-            <a href="#" className="sidebar-cta">Find your district →</a>
+            <a href="https://city.milwaukee.gov/der/residents/Aldermanic-District-Map.htm" target="_blank" rel="noreferrer" className="sidebar-link">Find your district ↗</a>
           </div>
         </aside>
       </div>

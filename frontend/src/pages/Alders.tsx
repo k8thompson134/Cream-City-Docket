@@ -31,7 +31,9 @@ export default function Alders() {
             <div className="alders-grid">
               {alders.map(alder => (
                 <Link key={alder.id} to={`/alders/${alder.id}`} className="alder-card">
-                  <div className="alder-card-district">District {alder.district}</div>
+                  <div className="alder-card-district">
+                    {alder.district && /^\d+$/.test(alder.district) ? `District ${alder.district}` : 'District unknown'}
+                  </div>
                   <div className="alder-card-name">{alder.name}</div>
                   {(alder.email || alder.phone) && (
                     <div className="alder-card-contact">

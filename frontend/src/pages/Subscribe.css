@@ -74,6 +74,37 @@
 .subscribe-input:focus { outline: 2px solid #FFC52F; outline-offset: 1px; border-color: #12284B; }
 .subscribe-input--error { border-color: #8b0000; }
 
+.tag-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+.deselect-all-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #12284B;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 0;
+  font-family: inherit;
+}
+.deselect-all-btn:hover { color: #FFC52F; }
+
+.subscribe-summary {
+  background: #f5f7fb;
+  border: 1px solid #d0d6e0;
+  border-left: 3px solid #FFC52F;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  line-height: 1.5;
+  margin: 0 0 1rem 44px;
+}
+
 .tag-grid { display: flex; flex-wrap: wrap; gap: 0.45rem; }
 
 .tag-toggle {

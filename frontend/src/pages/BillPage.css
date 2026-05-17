@@ -1,0 +1,226 @@
+.bill-page-loading {
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.9rem;
+}
+.bill-page-loading a { color: #12284B; font-weight: 600; }
+
+.bill-page-hero {
+  background: #12284B;
+  color: #fff;
+  padding: 2rem 2.5rem;
+  border-bottom: 3px solid #FFC52F;
+}
+
+.bill-page-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #8ba3c4;
+  margin-bottom: 1rem;
+}
+.bill-page-breadcrumb a { color: #8ba3c4; text-decoration: none; }
+.bill-page-breadcrumb a:hover { color: #FFC52F; }
+
+.bill-page-badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.bill-page-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  max-width: 860px;
+}
+
+.bill-page-meta-row {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.8rem;
+  color: #8ba3c4;
+  flex-wrap: wrap;
+}
+
+/* hearing callout */
+.bill-page-hearing {
+  background: #fff8e7;
+  border-bottom: 1px solid #e8d080;
+  padding: 0.85rem 2.5rem;
+}
+.bill-page-hearing-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.bill-page-hearing-label {
+  font-size: 0.67rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b07d00;
+}
+.bill-page-hearing-date {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #12284B;
+}
+.bill-page-hearing-body {
+  font-size: 0.82rem;
+  color: #555;
+}
+
+/* body layout */
+.bill-page-body {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 2.5rem;
+  gap: 2.5rem;
+}
+
+.bill-page-main { flex: 1; min-width: 0; }
+
+.bill-page-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+.bill-page-section:last-child { border-bottom: none; }
+
+.bill-page-section h2 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #12284B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.85rem;
+}
+
+.bill-page-summary {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.bill-page-ai-note {
+  font-size: 0.75rem;
+  color: #999;
+}
+.bill-page-ai-note a { color: #12284B; }
+
+/* vote breakdown */
+.bill-page-vote-breakdown { display: flex; flex-direction: column; gap: 0.6rem; }
+.bp-vote-row { border-radius: 4px; padding: 0.75rem 1rem; }
+.bp-vote-row--yea { background: #e6f4ea; }
+.bp-vote-row--nay { background: #fce8e8; }
+.bp-vote-row--other { background: #f0f2f5; }
+.bp-vote-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+.bp-vote-row--yea .bp-vote-label { color: #1a5c2a; }
+.bp-vote-row--nay .bp-vote-label { color: #7a1a1a; }
+.bp-vote-row--other .bp-vote-label { color: #555; }
+.bp-vote-names { font-size: 0.85rem; color: #333; line-height: 1.6; }
+
+/* timeline */
+.bill-page-timeline { display: flex; flex-direction: column; }
+.bp-timeline-item {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0f2f5;
+  align-items: baseline;
+}
+.bp-timeline-item:last-child { border-bottom: none; }
+.bp-timeline-date {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+  flex-shrink: 0;
+  width: 100px;
+}
+.bp-timeline-content { flex: 1; }
+.bp-timeline-action { font-size: 0.88rem; color: #1a1a1a; }
+.bp-timeline-result {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  background: #e4e9f2;
+  color: #1a1a1a;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
+/* sidebar */
+.bill-page-sidebar { width: 260px; flex-shrink: 0; }
+
+.bp-sidebar-card {
+  background: #fff;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+  position: sticky;
+  top: 76px;
+}
+
+.bp-sidebar-card h3 {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #12284B;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+
+.bp-info-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.6rem;
+}
+.bp-info-label { font-size: 0.68rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.1rem; }
+.bp-info-value { font-size: 0.82rem; color: #1a1a1a; font-weight: 600; }
+
+.bp-sponsor-row { display: flex; flex-direction: column; margin-bottom: 0.6rem; }
+.bp-sponsor-link { font-size: 0.85rem; font-weight: 600; color: #12284B; text-decoration: none; }
+.bp-sponsor-link:hover { color: #FFC52F; }
+.bp-sponsor-district { font-size: 0.72rem; color: #888; margin-top: 0.1rem; }
+
+.bp-legistar-btn {
+  display: block;
+  text-align: center;
+  background: #12284B;
+  color: #FFC52F;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.65rem 1rem;
+  border-radius: 4px;
+}
+.bp-legistar-btn:hover { background: #1a3a6b; }
+
+@media (max-width: 768px) {
+  .bill-page-hero { padding: 1.25rem 1rem; }
+  .bill-page-hearing { padding: 0.75rem 1rem; }
+  .bill-page-title { font-size: 1.15rem; }
+  .bill-page-body { flex-direction: column; padding: 1rem; gap: 1.5rem; }
+  .bill-page-sidebar { width: 100%; }
+  .bp-sidebar-card { position: static; }
+  .bp-timeline-date { width: 80px; }
+}

@@ -10,6 +10,7 @@ import About from './pages/About'
 import Settings from './pages/Settings'
 import Alders from './pages/Alders'
 import AlderDetail from './pages/AlderDetail'
+import BillPage from './pages/BillPage'
 import Mayor from './pages/Mayor'
 import Subscribe from './pages/Subscribe'
 import './App.css'
@@ -42,6 +43,40 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
       </div>
     </div>
   )
+}
+
+const TIMELINE_LABELS: Record<string, string> = {
+  'ASSIGNED TO': 'Assigned to committee',
+  'RECOMMENDED FOR ADOPTION': 'Committee recommended adoption',
+  'RECOMMENDED FOR PASSAGE': 'Committee recommended passage',
+  'HELD TO CALL OF THE CHAIR': 'Held in committee',
+  'IN COUNCIL-ADOPTION': 'Before full council — adoption vote',
+  'IN COUNCIL-PASSAGE': 'Before full council — passage vote',
+  'IN COUNCIL-CONFIRMATION': 'Before full council — confirmation vote',
+  'PASSED': 'Passed by council',
+  'ADOPTED': 'Adopted by council',
+  'FAILED': 'Failed',
+  'PLACED ON FILE': 'Placed on file (shelved)',
+  'SIGNED': 'Signed by mayor',
+  'VETOED': 'Vetoed by mayor',
+  'PUBLISHED': 'Published — law takes effect',
+  'SUBSTITUTE': 'Substitute version filed',
+  'RECEIVED': 'Received',
+  'READ': 'Read into record',
+}
+
+function friendlyAction(raw: string): string {
+  const key = raw.toUpperCase().trim()
+  return TIMELINE_LABELS[key] ?? raw
+}
+
+function formatSyncTime(iso: string): string {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (diff < 1) return 'just now'
+  if (diff < 60) return `${diff}m ago`
+  const h = Math.floor(diff / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
 }
 
 function formatAlderName(raw: string) {
@@ -86,7 +121,10 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
   return (
     <div className="detail-panel">
       <div className="detail-panel-header">
+        <div className="detail-panel-header">
         <button className="close-btn" onClick={onClose}>✕ Close</button>
+        <a href={`/bills/${id}`} className="detail-fullpage-link">View full page →</a>
+      </div>
         <button className="copy-link-btn" onClick={copyLink}>
           {copied ? '✓ Copied!' : '⎘ Copy link'}
         </button>
@@ -156,7 +194,7 @@ function BillDetailPanel({ id, onClose, showSummaries }: {
             {bill.history.map((h, i) => (
               <div key={i} className="timeline-item">
                 <span className="timeline-date">{formatDate(h.action_date)}</span>
-                <span className="timeline-action">{h.action_name}</span>
+                <span className="timeline-action">{friendlyAction(h.action_name)}</span>
                 {h.result && <span className="timeline-result">{h.result}</span>}
               </div>
             ))}
@@ -261,6 +299,8 @@ function Docket() {
   const LIMIT = 25
 
   const selectedId = searchParams.get('bill') ? parseInt(searchParams.get('bill')!) : null
+  const showAll = searchParams.get('all') === '1'
+  const legislativeOnly = !showAll && !typeFilter
 
   function selectBill(id: number) {
     setSearchParams(prev => { prev.set('bill', String(id)); return prev })
@@ -268,16 +308,32 @@ function Docket() {
   function closeBill() {
     setSearchParams(prev => { prev.delete('bill'); return prev })
   }
+  function showAllTypes() {
+    setSearchParams(prev => { prev.set('all', '1'); prev.delete('bill'); return prev })
+    setSkip(0)
+  }
+  function resetToLegislative() {
+    setSearchParams(prev => { prev.delete('all'); prev.delete('bill'); return prev })
+    setTypeFilter('')
+    setSkip(0)
+  }
 
   useEffect(() => { fetchMeta().then(setMeta) }, [])
   useEffect(() => { fetchUpcoming().then(setUpcoming).catch(() => {}) }, [])
 
   useEffect(() => {
     setLoading(true)
-    fetchBills({ skip, limit: LIMIT, matter_type: typeFilter || undefined, status: statusFilter || undefined, tag: tagFilter || undefined })
+    fetchBills({
+      skip,
+      limit: LIMIT,
+      matter_type: typeFilter || undefined,
+      status: statusFilter || undefined,
+      tag: tagFilter || undefined,
+      legislative_only: legislativeOnly || undefined,
+    })
       .then(res => { setBills(res.items); setTotal(res.total) })
       .finally(() => setLoading(false))
-  }, [skip, typeFilter, statusFilter, tagFilter])
+  }, [skip, typeFilter, statusFilter, tagFilter, showAll])
 
   function handleFilterChange() {
     setSkip(0)
@@ -311,6 +367,23 @@ function Docket() {
           </label>
         </div>
         <div className="count">{total} bills</div>
+        {meta?.last_synced && (
+          <div className="sync-timestamp">
+            Updated {formatSyncTime(meta.last_synced)}
+          </div>
+        )}
+        {legislativeOnly && (
+          <div className="filter-notice">
+            Showing ordinances and resolutions only.{' '}
+            <button className="filter-notice-btn" onClick={showAllTypes}>Show all types</button>
+          </div>
+        )}
+        {showAll && (
+          <div className="filter-notice">
+            Showing all bill types.{' '}
+            <button className="filter-notice-btn" onClick={resetToLegislative}>Show legislative only</button>
+          </div>
+        )}
       </aside>
 
       <main className="feed">
@@ -355,6 +428,7 @@ export default function App() {
       <Nav />
       <Routes>
         <Route path="/" element={<Docket />} />
+        <Route path="/bills/:id" element={<BillPage />} />
         <Route path="/alders" element={<Alders />} />
         <Route path="/alders/:id" element={<AlderDetail />} />
         <Route path="/mayor" element={<Mayor />} />

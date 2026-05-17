@@ -44,6 +44,11 @@ EXCLUDED_TYPES = {
     "Communication to Finance", "APPEAL", "Motion", "Claim", "Settlement",
 }
 
+LEGISLATIVE_TYPES = {
+    "Ordinance", "Charter Ordinance", "Charter Ordinance-Zoning",
+    "Resolution", "Resolution-Immediate Adoption",
+}
+
 
 def _serialize_matter(m: Matter) -> dict:
     sponsors = [
@@ -84,6 +89,7 @@ def list_bills(
     status: str | None = Query(None),
     tag: str | None = Query(None),
     sponsored_by: int | None = Query(None),
+    legislative_only: bool = Query(False),
 ):
     session = SessionLocal()
     try:
@@ -94,6 +100,8 @@ def list_bills(
 
         if matter_type:
             q = q.filter(Matter.matter_type == matter_type)
+        elif legislative_only:
+            q = q.filter(Matter.matter_type.in_(LEGISLATIVE_TYPES))
         else:
             q = q.filter(Matter.matter_type.notin_(EXCLUDED_TYPES))
 
@@ -283,7 +291,10 @@ def get_meta():
             session.query(Matter.matter_status).distinct().order_by(Matter.matter_status).all()
         ]
         tags = [row[0] for row in session.query(IssueTag.name).order_by(IssueTag.name).all()]
-        return {"matter_types": types, "statuses": statuses, "tags": tags}
+        from .models import PollLog
+        last_poll = session.query(PollLog).filter_by(success=True).order_by(PollLog.polled_at.desc()).first()
+        last_synced = last_poll.polled_at.isoformat() if last_poll else None
+        return {"matter_types": types, "statuses": statuses, "tags": tags, "last_synced": last_synced}
     finally:
         session.close()
 
@@ -292,10 +303,14 @@ def get_meta():
 def list_alders():
     session = SessionLocal()
     try:
+        from sqlalchemy import cast, Integer, case
         alders = (
             session.query(Alder)
             .filter(Alder.active == True)
-            .order_by(Alder.district, Alder.name)
+            .order_by(
+                case((Alder.district.regexp_match(r'^\d+$'), cast(Alder.district, Integer)), else_=999),
+                Alder.name,
+            )
             .all()
         )
         return [

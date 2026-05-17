@@ -30,7 +30,8 @@ export default function Subscribe() {
 
   // Form state
   const [email, setEmail] = useState('')
-  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
+  const DEFAULT_TAGS = new Set(['Housing', 'Labor', 'Food Access'])
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set(DEFAULT_TAGS))
   const [district, setDistrict] = useState(() => {
     const d = searchParams.get('district')
     if (d && /^\d+$/.test(d)) return d
@@ -277,7 +278,11 @@ export default function Subscribe() {
             <div className="step-num">3</div>
             <div className="step-content">
               <div className="step-label">Alert me about these issue areas</div>
-              <div className="field-hint" style={{ marginBottom: '0.85rem' }}>Select all that apply. Bills are auto-tagged using AI.</div>
+              <div className="field-hint" style={{ marginBottom: '0.5rem' }}>Select all that apply. Bills are auto-tagged using AI.</div>
+              <div className="tag-grid-header">
+                <span className="field-hint">Housing, Labor, and Food Access selected by default.</span>
+                <button type="button" className="deselect-all-btn" onClick={() => { setSelectedTags(new Set()); setPriorityTags(new Set()) }}>Deselect all</button>
+              </div>
               {tagsError && <div className="field-error" role="alert">{tagsError}</div>}
               <div className="tag-grid">
                 {issueTags.map(tag => (
@@ -373,6 +378,17 @@ export default function Subscribe() {
               )}
             </div>
           </div>
+
+          {(selectedTags.size > 0 || district) && (
+            <div className="subscribe-summary">
+              <strong>You'll receive alerts for: </strong>
+              {[...Array.from(selectedTags).sort(), district ? `District ${district}` : ''].filter(Boolean).join(', ')}
+              {priorityTags.size > 0 && (
+                <span> — immediate alerts for {Array.from(priorityTags).sort().join(', ')}</span>
+              )}
+              {' '}via {DIGEST_OPTIONS.find(o => o.value === digestMode)?.label.toLowerCase()}.
+            </div>
+          )}
 
           <div className="subscribe-submit-row">
             <button type="submit" className="subscribe-btn" disabled={submitting}>

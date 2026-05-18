@@ -186,12 +186,13 @@ export default function BillPage() {
     if (!id) return
     setLoading(true)
     setError(false)
-    Promise.all([
-      fetchBill(parseInt(id)).then(setBill),
-      fetchBillVotes(parseInt(id)).then(setVotes),
-    ])
+    fetchBill(parseInt(id))
+      .then(setBill)
       .catch(() => setError(true))
       .finally(() => setLoading(false))
+    fetchBillVotes(parseInt(id))
+      .then(setVotes)
+      .catch(() => setVotes([]))
   }, [id])
 
   if (loading) return <div className="bill-page-loading">Loading…</div>
@@ -226,6 +227,10 @@ export default function BillPage() {
   async function handleTrack(e: React.FormEvent) {
     e.preventDefault()
     if (!bill || !trackEmail) return
+    if (bill.tags.length === 0) {
+      setTrackStatus('error')
+      return
+    }
     setTrackStatus('loading')
     try {
       await subscribeToAlerts({ email: trackEmail, tags: bill.tags, district: null })

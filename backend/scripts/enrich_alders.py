@@ -108,7 +108,7 @@ def run(force: bool = False) -> None:
                     .joinedload(MatterTag.tag),
                 joinedload(Alder.office_records),
             )
-            .filter(Alder.active == True)  # noqa: E712
+            .filter(Alder.active == True, Alder.district.isnot(None))  # noqa: E712
             .order_by(Alder.district)
             .all()
         )

@@ -1,3 +1,18 @@
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.5rem;
+  background: #FFC52F;
+  color: #12284B;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  z-index: 200;
+}
+.skip-link:focus { left: 0.5rem; }
+
 .site-header {
   background: #12284B;
   border-bottom: 4px solid #FFC52F;

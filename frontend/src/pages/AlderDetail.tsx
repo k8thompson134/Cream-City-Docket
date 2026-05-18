@@ -508,14 +508,18 @@ export default function AlderDetail() {
 
   useEffect(() => {
     if (!selected) { setBillDetail(null); return }
+    const controller = new AbortController()
     setDetailLoading(true)
     fetchBill(selected.matterId)
-      .then(setBillDetail)
+      .then(d => { if (!controller.signal.aborted) setBillDetail(d) })
       .catch(err => {
-        console.error('fetchBill failed:', selected.matterId, err)
-        setBillDetail(null)
+        if (!controller.signal.aborted) {
+          console.error('fetchBill failed:', selected.matterId, err)
+          setBillDetail(null)
+        }
       })
-      .finally(() => setDetailLoading(false))
+      .finally(() => { if (!controller.signal.aborted) setDetailLoading(false) })
+    return () => controller.abort()
   }, [selected])
 
   if (loading) return <AlderHeroSkeleton />

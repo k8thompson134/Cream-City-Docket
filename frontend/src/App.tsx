@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchBillVotes, fetchMeta, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, BillVote, Meta } from './api'
@@ -35,7 +35,7 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
   metaParts.push(formatDate(bill.intro_date))
 
   return (
-    <div className={`bill-row${selected ? ' bill-row--selected' : ''}`} onClick={onClick}>
+    <button type="button" className={`bill-row${selected ? ' bill-row--selected' : ''}`} onClick={onClick} aria-expanded={selected}>
       <div className="bill-row-header">
         <span className="bill-type">{bill.matter_type}</span>
         <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
@@ -50,7 +50,7 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
         <span className="bill-meta-text">{metaParts.join(' · ')}</span>
         <span className="bill-view-arrow">View →</span>
       </div>
-    </div>
+    </button>
   )
 }
 
@@ -126,22 +126,37 @@ function StageBar({ bill }: { bill: BillDetail }) {
     : s === 'in committee' || s === 'in commission' ? 2
     : 1
 
-  const items: React.ReactNode[] = []
-  STAGE_LABELS.forEach((label, i) => {
-    const n = i + 1
-    const done = n < activeStage
-    const active = n === activeStage
-    items.push(
-      <div key={label} className="stage-step">
-        <div className={`stage-dot${done ? ' stage-dot--done' : active ? ' stage-dot--active' : ''}`} />
-        <span className={`stage-label${done ? ' stage-label--done' : active ? ' stage-label--active' : ''}`}>{label}</span>
+  return (
+    <div className="stage-bar">
+      <div className="stage-track">
+        {STAGE_LABELS.map((_, i) => {
+          const n = i + 1
+          const done = n < activeStage
+          const active = n === activeStage
+          return (
+            <React.Fragment key={i}>
+              <div className={`stage-dot${done ? ' stage-dot--done' : active ? ' stage-dot--active' : ''}`} />
+              {i < STAGE_LABELS.length - 1 && (
+                <div className={`stage-conn${done ? ' stage-conn--done' : ''}`} />
+              )}
+            </React.Fragment>
+          )
+        })}
       </div>
-    )
-    if (i < STAGE_LABELS.length - 1) {
-      items.push(<div key={`c${i}`} className={`stage-conn${done ? ' stage-conn--done' : ''}`} />)
-    }
-  })
-  return <div className="stage-bar">{items}</div>
+      <div className="stage-label-row">
+        {STAGE_LABELS.map((label, i) => {
+          const n = i + 1
+          const done = n < activeStage
+          const active = n === activeStage
+          return (
+            <span key={i} className={`stage-label${done ? ' stage-label--done' : active ? ' stage-label--active' : ''}`}>
+              {label}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
@@ -153,12 +168,14 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   const [bill, setBill] = useState<BillDetail | null>(null)
   const [votes, setVotes] = useState<BillVote[]>([])
   const [copied, setCopied] = useState(false)
+  const closeRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     setBill(null)
     setVotes([])
     fetchBill(id).then(setBill)
-    fetchBillVotes(id).then(setVotes)
+    fetchBillVotes(id).then(setVotes).catch(() => setVotes([]))
+    closeRef.current?.focus()
   }, [id])
 
   function copyLink() {
@@ -167,7 +184,11 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (!bill) return <div className="detail-panel"><div className="loading">Loading…</div></div>
+  if (!bill) return (
+    <div className="detail-panel" role="region" aria-label="Bill detail" aria-live="polite" aria-busy="true">
+      <div className="loading">Loading…</div>
+    </div>
+  )
 
   const nextHearing = bill.agenda_date && new Date(bill.agenda_date) > new Date()
     ? bill.agenda_date : null
@@ -184,13 +205,13 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   const summary = cleanSummary(bill.summary)
 
   return (
-    <div className="detail-panel">
+    <div className="detail-panel" role="region" aria-label="Bill detail">
       <div className="detail-panel-header">
         <div className="detail-panel-header-left">
-          <button className="close-btn" onClick={onClose}>✕ Close</button>
+          <button ref={closeRef} className="close-btn" onClick={onClose} aria-label="Close bill detail">✕ Close</button>
           <a href={`/bills/${id}`} className="detail-fullpage-link">Full page →</a>
         </div>
-        <button className="copy-link-btn" onClick={copyLink}>
+        <button className="copy-link-btn" onClick={copyLink} aria-label="Copy link to this bill">
           {copied ? '✓ Copied' : '⎘ Copy link'}
         </button>
       </div>
@@ -460,9 +481,9 @@ function Docket() {
             aria-label="Search bills by title or summary"
           />
         </div>
-        <div className="sort-toggle">
-          <button className={`sort-btn${sort === 'urgency' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('urgency'); setSkip(0) }}>Urgent first</button>
-          <button className={`sort-btn${sort === 'recent' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('recent'); setSkip(0) }}>Most recent</button>
+        <div className="sort-toggle" role="group" aria-label="Sort order">
+          <button className={`sort-btn${sort === 'urgency' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('urgency'); setSkip(0) }} aria-pressed={sort === 'urgency'}>Urgent first</button>
+          <button className={`sort-btn${sort === 'recent' ? ' sort-btn--active' : ''}`} onClick={() => { setSort('recent'); setSkip(0) }} aria-pressed={sort === 'recent'}>Most recent</button>
         </div>
         <div className="filters">
           <label>
@@ -481,12 +502,13 @@ function Docket() {
           </label>
           <div className="filter-chips-section">
             <div className="filter-chips-label">Issue Area</div>
-            <div className="filter-chips">
+            <div className="filter-chips" role="group" aria-label="Filter by issue area">
               {meta?.tags.map(t => (
                 <button
                   key={t}
                   className={`filter-chip${tagFilter === t ? ' filter-chip--active' : ''}`}
                   onClick={() => { setTagFilter(tagFilter === t ? '' : t); handleFilterChange() }}
+                  aria-pressed={tagFilter === t}
                 >
                   {t}
                 </button>
@@ -514,9 +536,9 @@ function Docket() {
         )}
       </aside>
 
-      <main className="feed">
+      <main className="feed" id="main-content">
         <UpcomingSection bills={upcoming} onSelect={selectBill} />
-        {loading && <div className="loading">Loading…</div>}
+        {loading && <div className="loading" aria-live="polite" aria-busy="true">Loading…</div>}
         {!loading && bills.map(b => (
           <BillRow
             key={b.id}
@@ -541,19 +563,21 @@ function Docket() {
                 ? [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
                 : [1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages]
           return (
-            <div className="pagination">
-              <button disabled={skip === 0} onClick={() => { setSkip(s => Math.max(0, s - LIMIT)); closeBill() }}>← Prev</button>
+            <nav className="pagination" aria-label="Bill list pagination">
+              <button disabled={skip === 0} onClick={() => { setSkip(s => Math.max(0, s - LIMIT)); closeBill() }} aria-label="Previous page">← Prev</button>
               {pages.map((p, i) =>
                 p === '…'
-                  ? <span key={`ellipsis-${i}`} className="pagination-ellipsis">…</span>
+                  ? <span key={`ellipsis-${i}`} className="pagination-ellipsis" aria-hidden="true">…</span>
                   : <button
                       key={p}
                       className={p === currentPage ? 'pagination-page pagination-page--active' : 'pagination-page'}
-                      onClick={() => { setSkip((p - 1) * LIMIT); closeBill() }}
+                      onClick={() => { setSkip((p as number - 1) * LIMIT); closeBill() }}
+                      aria-current={p === currentPage ? 'page' : undefined}
+                      aria-label={`Page ${p}`}
                     >{p}</button>
               )}
-              <button disabled={skip + LIMIT >= total} onClick={() => { setSkip(s => s + LIMIT); closeBill() }}>Next →</button>
-            </div>
+              <button disabled={skip + LIMIT >= total} onClick={() => { setSkip(s => s + LIMIT); closeBill() }} aria-label="Next page">Next →</button>
+            </nav>
           )
         })()}
       </main>

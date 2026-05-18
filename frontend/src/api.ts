@@ -131,8 +131,8 @@ export interface Subscription {
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
-export function legistarUrl(bill: Pick<Bill, 'legistar_matter_id'>): string {
-  return `https://milwaukee.legistar.com/LegislationDetail.aspx?ID=${bill.legistar_matter_id}`
+export function legistarUrl(bill: Pick<Bill, 'legistar_matter_id' | 'legistar_guid'>): string {
+  return `https://milwaukee.legistar.com/LegislationDetail.aspx?ID=${bill.legistar_matter_id}&GUID=${bill.legistar_guid}`
 }
 
 export async function fetchBills(params: {
@@ -163,7 +163,7 @@ export async function fetchBill(id: number): Promise<BillDetail> {
 
 export async function fetchBillVotes(id: number): Promise<BillVote[]> {
   const res = await fetch(`${API_BASE}/api/bills/${id}/votes`)
-  if (!res.ok) return []
+  if (!res.ok) throw new Error(`API error ${res.status}`)
   return res.json()
 }
 

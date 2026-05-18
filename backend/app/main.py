@@ -189,7 +189,7 @@ def get_bill(bill_id: int):
                 }
                 for h in m.history
             ],
-            key=lambda x: x["action_date"] or "",
+            key=lambda x: x["action_date"] or "9999",
         )
         result["mayor_actions"] = [
             {
@@ -284,7 +284,7 @@ def get_mayor():
             .all()
         )
 
-        stats: dict[str, int] = {"signed": 0, "vetoed": 0, "lapsed": 0, "published": 0}
+        stats: dict[str, int] = {"signed": 0, "vetoed": 0, "veto_overridden": 0, "lapsed": 0, "published": 0}
         serialized = []
         for a in actions:
             t = a.action_type.lower()
@@ -644,11 +644,12 @@ def get_subscription(token: str):
 class UpdateSubscriptionRequest(BaseModel):
     tags: list[str] = []
     district: str | None = None
+    mayor_actions: bool = False
 
 
 @app.patch("/api/subscriptions/{token}")
 def update_subscription(token: str, body: UpdateSubscriptionRequest):
-    if not body.tags and not body.district:
+    if not body.tags and not body.district and not body.mayor_actions:
         raise HTTPException(status_code=422, detail="Select at least one issue area or district")
     session = SessionLocal()
     try:
@@ -660,6 +661,8 @@ def update_subscription(token: str, body: UpdateSubscriptionRequest):
             session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="tag", preference_value=tag))
         if body.district:
             session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="district", preference_value=body.district))
+        if body.mayor_actions:
+            session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="mayor_actions", preference_value="true"))
         session.commit()
         return {"ok": True}
     except Exception:

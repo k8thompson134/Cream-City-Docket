@@ -3,6 +3,8 @@ import './Nav.css'
 
 export default function Nav() {
   return (
+    <>
+    <a href="#main-content" className="skip-link">Skip to main content</a>
     <header className="site-header">
       <div className="site-header-inner">
         <NavLink to="/" className="site-logo">Cream City Docket</NavLink>
@@ -16,5 +18,6 @@ export default function Nav() {
         </nav>
       </div>
     </header>
+    </>
   )
 }

@@ -118,7 +118,8 @@ def _fetch_matter_text(matter_id: int) -> tuple[str | None, str | None, str | No
 
 def run_enrichment(batch_size: int = 50) -> dict:
     """
-    Enrich up to batch_size unenriched Matters.
+    Enrich up to batch_size matters that have never been enriched (summary IS NULL).
+    Re-enrichment after a text version change is handled by run_substitute_enrichment.
     Returns counts: {processed, enriched, skipped, errors}
     """
     session = SessionLocal()
@@ -152,15 +153,6 @@ def run_enrichment(batch_size: int = 50) -> dict:
 
                 if not plain_text:
                     log.info("No text for matter %d — skipping", legistar_id)
-                    counts["skipped"] += 1
-                    continue
-
-                # Check if already enriched at this version
-                if (
-                    matter.enriched_at is not None
-                    and matter.current_text_id == text_id
-                ):
-                    log.debug("Matter %d already enriched at current version", legistar_id)
                     counts["skipped"] += 1
                     continue
 

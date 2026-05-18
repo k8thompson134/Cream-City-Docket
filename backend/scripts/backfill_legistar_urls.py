@@ -25,6 +25,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s — %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S",
+    stream=sys.stdout,
+    force=True,
 )
 log = logging.getLogger("backfill_legistar_urls")
 
@@ -33,7 +35,7 @@ def run(limit: int | None = None) -> None:
     session = SessionLocal()
     try:
         q = (
-            session.query(Matter)
+            session.query(Matter.id, Matter.file_number)
             .filter(Matter.file_number.isnot(None))
             .filter(Matter.legistar_web_url.is_(None))
             .order_by(Matter.intro_date.desc().nullslast())
@@ -41,22 +43,25 @@ def run(limit: int | None = None) -> None:
         if limit:
             q = q.limit(limit)
 
-        matters = q.all()
-        log.info("Found %d matters to backfill", len(matters))
+        rows = q.all()
+        total = len(rows)
+        log.info("Found %d matters to backfill", total)
+        sys.stdout.flush()
 
         updated = 0
-        for matter in matters:
-            url = fetch_legistar_web_url(matter.file_number)
+        for i, (matter_id, file_number) in enumerate(rows, 1):
+            print(f"[{i}/{total}] file {file_number} … ", end="", flush=True)
+            url = fetch_legistar_web_url(file_number)
             if url:
-                matter.legistar_web_url = url
+                session.query(Matter).filter_by(id=matter_id).update({"legistar_web_url": url})
                 session.commit()
                 updated += 1
-                log.info("  ✓ File %s → %s", matter.file_number, url)
+                print(f"✓")
             else:
-                log.info("  ✗ File %s — not found", matter.file_number)
-            time.sleep(0.5)  # be polite to Legistar's servers
+                print(f"✗ not found")
+            time.sleep(0.5)
 
-        log.info("Done — %d/%d matters updated", updated, len(matters))
+        log.info("Done — %d/%d matters updated", updated, total)
     finally:
         session.close()
 

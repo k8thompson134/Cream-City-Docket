@@ -21,7 +21,10 @@ _VSGENERATOR_PATTERN = re.compile(r'id="__VIEWSTATEGENERATOR"[^>]*value="([^"]+)
 _HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; CreamCityDocket/1.0)",
     "Accept": "text/html,application/xhtml+xml",
+    "Accept-Encoding": "gzip, deflate",
 }
+
+_TIMEOUT = httpx.Timeout(connect=10, read=20, write=10, pool=5)
 
 
 def fetch_legistar_web_url(file_number: str) -> str | None:
@@ -33,8 +36,9 @@ def fetch_legistar_web_url(file_number: str) -> str | None:
         return None
 
     try:
-        with httpx.Client(headers=_HEADERS, follow_redirects=True, timeout=15) as client:
+        with httpx.Client(headers=_HEADERS, follow_redirects=True, timeout=_TIMEOUT) as client:
             # Step 1: GET the search page to collect ASP.NET form tokens
+            log.debug("Legistar web: GET search page for file %s", file_number)
             resp = client.get(_SEARCH_URL)
             resp.raise_for_status()
             html = resp.text
@@ -49,6 +53,7 @@ def fetch_legistar_web_url(file_number: str) -> str | None:
             vsgenerator = vsg_match.group(1) if vsg_match else ""
 
             # Step 2: POST the search form with the file number
+            log.debug("Legistar web: POST search for file %s", file_number)
             payload = {
                 "__EVENTTARGET": "ctl00$ContentPlaceHolder1$btnSearch",
                 "__EVENTARGUMENT": "",

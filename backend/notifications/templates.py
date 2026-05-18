@@ -119,6 +119,11 @@ def alert_email(
     summary_block = f'<div class="summary">{matter_summary}</div>' if matter_summary else ""
     sponsor_text = ", ".join(sponsors) if sponsors else "—"
     file_text = f"File #{file_number}" if file_number else ""
+    legistar_link = (
+        f"https://milwaukee.legistar.com/LegislationDetail.aspx?ID={legistar_matter_id}&GUID={legistar_guid}"
+        if legistar_matter_id and legistar_guid
+        else "https://milwaukee.legistar.com/Legislation.aspx"
+    )
 
     # Trigger-specific callout block
     event_block = ""
@@ -145,7 +150,7 @@ def alert_email(
           {f'<strong>Introduced:</strong> {intro_date}<br>' if intro_date else ''}
           {f'<strong>File:</strong> {file_text}' if file_text else ''}
         </div>
-        <a href="{'https://milwaukee.legistar.com/LegislationDetail.aspx?ID=' + str(legistar_matter_id) + '&GUID=' + str(legistar_guid) if legistar_matter_id and legistar_guid else 'https://milwaukee.legistar.com/Legislation.aspx'}" class="btn">View on Legistar ↗</a>
+        <a href="{legistar_link}" class="btn">View on Legistar ↗</a>
         <hr class="divider">
         <p style="font-size:13px;color:#555;">You received this because you subscribed to <strong>{trigger_reason}</strong> alerts on Cream City Docket.</p>
       </div>
@@ -176,7 +181,7 @@ Sponsor: {sponsor_text}
 {f'Introduced: {intro_date}' if intro_date else ''}
 {f'File: {file_text}' if file_text else ''}
 
-View on Legistar: {'https://milwaukee.legistar.com/LegislationDetail.aspx?ID=' + str(legistar_matter_id) + '&GUID=' + str(legistar_guid) if legistar_matter_id and legistar_guid else 'https://milwaukee.legistar.com/Legislation.aspx'}
+View on Legistar: {legistar_link}
 
 You received this because you subscribed to {trigger_reason} alerts.
 

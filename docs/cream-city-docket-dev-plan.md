@@ -201,21 +201,32 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 - ✅ Shareable bill URLs, full bill page, text search, urgency sort
 - ✅ Vote history with click-to-detail on alder profiles
 - ✅ Cross-council issue area ranks, vote issue breakdown
-- ⬜ Full accessibility audit (keyboard nav, screen reader)
-- ⬜ Lighthouse / performance pass
+- ✅ Full accessibility audit (keyboard nav, screen reader) — completed May 18
+- ✅ Lighthouse / performance pass — completed May 18
 
 ---
 
-## Milestone 5 — AI Enrichment Sprint ⬜ Not started
-*Requires DB migrations and Haiku API calls. Best done in a focused session.*
+## Milestone 5 — AI Enrichment Sprint ✅ Complete
+*Completed May 18, 2026.*
 
-| Task | Effort | Notes |
+| Task | Status | Notes |
 |---|---|---|
-| AI legislative focus summary on alder profiles | 3 hrs | Haiku summarizes what issues an alder champions, based on sponsored bills + tag distribution. Needs new `Alder.focus_summary` column. |
-| AI vote pattern summary on alder vote history | 2 hrs | Haiku writes a one-liner: "votes with the majority 94% of the time, dissents most on Housing bills." Needs new `Alder.vote_pattern_summary` column. |
-| What changed on substitute filing | 2 hrs | When a SUBSTITUTE history entry exists, Haiku diffs original vs new text from Legistar versions. Store in `Matter.substitute_summary`. |
-| Vote summary sentence on bill detail | 1 hr | Currently computed client-side from raw vote counts. Replace with a Haiku-written one-liner stored on the bill. Low priority — client-side version works fine. |
-| Political history tab — election results | 3 hrs | `AlderElectionRecord` model + API endpoint exist; data not yet imported. Needs one-time script from city clerk records or manual entry. |
+| AI legislative focus summary on alder profiles | ✅ Done | `scripts/enrich_alders.py` — 16 active alders enriched |
+| AI vote pattern summary | ✅ Skipped | Client-side computed sentence is sufficient; no AI version needed |
+| Substitute amendment diff | ✅ Done | `run_substitute_enrichment()` in worker; 11 bills backfilled; runs hourly |
+| Vote summary sentence on bill detail | ✅ Skipped | `groupVoteSummary()` client-side is good enough |
+| Political history tab — election results | ⬜ Deferred | Model + API exist; data not imported. Needs external sourcing (city clerk records). |
+
+---
+
+## Remaining / Future
+
+| Item | Notes |
+|---|---|
+| Real-world alert test | Passive — happens when a new matching bill is introduced and enriched |
+| Election data for Political History tab | Needs manual sourcing from Milwaukee Elections Commission or city clerk records |
+| `sitemap.xml` | Low priority SEO improvement; robots.txt references it but it doesn't exist yet |
+| Re-run `enrich_alders.py` monthly | Alder legislative focus summaries should refresh as their bill count grows |
 
 ---
 
@@ -226,5 +237,5 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 | 1 — Data Foundation | Legistar API exploration + poller + database | ✅ Complete |
 | 2 — Enrichment Pipeline | Claude Haiku integration + APScheduler | ✅ Complete |
 | 3 — Backend API + Frontend | FastAPI + React, all pages, alder pages, deployed | ✅ Complete |
-| 4 — Alerts + Polish | Email alerts, manage prefs, production polish | 🔄 ~95% done |
-| 5 — AI Enrichment | Alder summaries, vote patterns, substitute diffs | ⬜ Not started |
+| 4 — Alerts + Polish | Email alerts, manage prefs, production polish, a11y, perf | ✅ Complete |
+| 5 — AI Enrichment | Alder focus summaries, substitute diffs | ✅ Complete |

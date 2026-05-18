@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Routes, Route, Link, useSearchParams } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchBillVotes, fetchMeta, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, BillVote, Meta } from './api'
@@ -6,14 +6,15 @@ import { useSettings } from './useSettings'
 import { statusColor, formatDate, cleanSummary } from './utils'
 import { usePageTitle } from './usePageTitle'
 import Nav from './Nav'
-import About from './pages/About'
-import Settings from './pages/Settings'
-import Alders from './pages/Alders'
-import AlderDetail from './pages/AlderDetail'
-import BillPage from './pages/BillPage'
-import Mayor from './pages/Mayor'
-import Subscribe from './pages/Subscribe'
 import './App.css'
+
+const About = lazy(() => import('./pages/About'))
+const Settings = lazy(() => import('./pages/Settings'))
+const Alders = lazy(() => import('./pages/Alders'))
+const AlderDetail = lazy(() => import('./pages/AlderDetail'))
+const BillPage = lazy(() => import('./pages/BillPage'))
+const Mayor = lazy(() => import('./pages/Mayor'))
+const Subscribe = lazy(() => import('./pages/Subscribe'))
 
 function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, compact }: {
   bill: Bill
@@ -598,16 +599,18 @@ export default function App() {
   return (
     <div className="app">
       <Nav />
-      <Routes>
-        <Route path="/" element={<Docket />} />
-        <Route path="/bills/:id" element={<BillPage />} />
-        <Route path="/alders" element={<Alders />} />
-        <Route path="/alders/:id" element={<AlderDetail />} />
-        <Route path="/mayor" element={<Mayor />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/subscribe" element={<Subscribe />} />
-      </Routes>
+      <Suspense fallback={<div className="loading" style={{ padding: '4rem', textAlign: 'center', color: '#888' }}>Loading…</div>}>
+        <Routes>
+          <Route path="/" element={<Docket />} />
+          <Route path="/bills/:id" element={<BillPage />} />
+          <Route path="/alders" element={<Alders />} />
+          <Route path="/alders/:id" element={<AlderDetail />} />
+          <Route path="/mayor" element={<Mayor />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/subscribe" element={<Subscribe />} />
+        </Routes>
+      </Suspense>
     </div>
   )
 }

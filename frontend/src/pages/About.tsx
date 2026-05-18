@@ -38,10 +38,31 @@ export default function About() {
             <ol className="about-steps">
               <li>The system checks Milwaukee's public Legistar API every hour for new and updated legislation.</li>
               <li>Each bill is summarized in plain English using Claude Haiku, an AI model from Anthropic.</li>
-              <li>Bills are tagged by issue area from a fixed set of categories.</li>
-              <li>Subscribers get email alerts when matching bills are introduced, scheduled for a hearing, or voted on.</li>
+              <li>Bills are tagged by issue area — Housing, Public Safety, Budget, and others.</li>
+              <li>When you subscribe, you choose which issue areas matter to you, and optionally your aldermanic district. You get an email when activity happens on matching bills.</li>
               <li>Every summary links directly back to the original filing on Legistar.</li>
             </ol>
+          </section>
+
+          <section className="about-section">
+            <h2>What triggers an alert</h2>
+            <p>Alerts are sent within an hour of the event appearing in Legistar. You'll get one email per event — no duplicates if the same bill gets updated multiple times.</p>
+            <dl className="about-triggers">
+              <dt>New bill introduced</dt>
+              <dd>A bill matching your issue areas is filed with the Common Council for the first time.</dd>
+
+              <dt>Hearing scheduled</dt>
+              <dd>A committee hearing date is set. This is your window to submit public testimony — most committees accept written comments before the hearing.</dd>
+
+              <dt>Full council vote scheduled</dt>
+              <dd>The bill has cleared committee and is on the agenda for a full 15-member council vote. This is the last chance to contact your alder before the final vote.</dd>
+
+              <dt>Mayor signs or vetoes</dt>
+              <dd>After the council passes a bill, the mayor has 30 days to sign it, veto it, or let it lapse into law. You get an alert when that happens.</dd>
+            </dl>
+            <p className="about-trigger-note">
+              You only receive alerts for bills that match your chosen issue areas. You can update your preferences at any time using the link in any alert email.
+            </p>
           </section>
 
           <section className="about-section">

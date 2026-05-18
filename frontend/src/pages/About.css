@@ -72,6 +72,38 @@
 
 .about-contact { font-size: 0.875rem; color: #555; }
 
+.about-triggers {
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #d0d6e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.about-triggers dt {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #12284B;
+  background: #f0f4fa;
+  padding: 0.5rem 1rem 0.25rem;
+  border-top: 1px solid #d0d6e0;
+}
+.about-triggers dt:first-of-type { border-top: none; }
+.about-triggers dd {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #444;
+  margin: 0;
+  padding: 0.25rem 1rem 0.6rem;
+  background: #fff;
+}
+.about-trigger-note {
+  font-size: 0.8rem !important;
+  color: #777 !important;
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .page-body {
     flex-direction: column;

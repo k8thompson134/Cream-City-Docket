@@ -407,6 +407,37 @@
 /* empty state */
 .bp-empty-state { font-size: 0.85rem; color: #888; font-style: italic; margin: 0; }
 
+/* no bill text state */
+.bp-no-text {
+  background: #f5f7fb;
+  border: 1px solid #d0d6e0;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.bp-no-text-head {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #12284B;
+  margin: 0;
+}
+.bp-no-text-body {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.55;
+  margin: 0;
+}
+.bp-no-text-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #12284B;
+  text-decoration: underline;
+  margin-top: 0.15rem;
+}
+.bp-no-text-link:hover { color: #FFC52F; }
+
 /* summary context blockquote */
 .bp-summary-context {
   border-left: 3px solid #FFC52F;

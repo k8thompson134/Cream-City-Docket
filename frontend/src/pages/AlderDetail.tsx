@@ -675,19 +675,50 @@ export default function AlderDetail() {
               const oldest = terms.at(-1)
               const firstYear = oldest?.start_date ? new Date(oldest.start_date).getFullYear() : null
               const years = firstYear ? new Date().getFullYear() - firstYear : null
+              const currentTerm = terms.find(t => t.is_current)
+              const termStart = currentTerm?.start_date ? new Date(currentTerm.start_date).getFullYear() : null
+              const termExpiry = currentTerm?.end_date ? new Date(currentTerm.end_date).getFullYear() : null
               return (
                 <>
                   {firstYear && (
                     <div className="alder-fact-row">
                       <span className="alder-fact-label">In office since</span>
-                      <span className="alder-fact-value">{firstYear}</span>
+                      <span className="alder-fact-value">{firstYear}{years ? ` · ${years} yrs` : ''}</span>
+                    </div>
+                  )}
+                  {termStart && (
+                    <div className="alder-fact-row">
+                      <span className="alder-fact-label">Current term</span>
+                      <span className="alder-fact-value">
+                        Since {termStart}{termExpiry ? ` · expires ${termExpiry}` : ''}
+                      </span>
                     </div>
                   )}
                   <div className="alder-fact-row">
                     <span className="alder-fact-label">Terms served</span>
-                    <span className="alder-fact-value">{terms.length}{years ? ` · ${years} yrs` : ''}</span>
+                    <span className="alder-fact-value">{terms.length}</span>
                   </div>
                 </>
+              )
+            })()}
+            {(() => {
+              const current = (alder.committee_roles ?? []).filter(r => r.is_current)
+              if (current.length === 0) return null
+              return (
+                <div className="alder-fact-row">
+                  <span className="alder-fact-label">Committees</span>
+                  <span className="alder-fact-value">
+                    {current.map((r, i) => {
+                      const isChair = r.title && !['member', 'alderman', 'alderwoman', 'alderperson'].includes(r.title.toLowerCase())
+                      return (
+                        <span key={i} className="alder-committee-row">
+                          {r.body_name}
+                          {isChair && <span className="alder-committee-role">{r.title}</span>}
+                        </span>
+                      )
+                    })}
+                  </span>
+                </div>
               )
             })()}
             <div className="alder-fact-row">

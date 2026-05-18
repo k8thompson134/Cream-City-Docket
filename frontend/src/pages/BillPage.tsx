@@ -4,7 +4,7 @@ import { fetchBill, fetchBillVotes, legistarUrl, subscribeToAlerts } from '../ap
 import type { BillDetail, BillVote } from '../api'
 import { useSettings } from '../useSettings'
 import { usePageTitle } from '../usePageTitle'
-import { statusColor, formatDate, cleanSummary } from '../utils'
+import { statusColor, formatDate, cleanSummary, isLowConfidenceSummary } from '../utils'
 import './BillPage.css'
 
 // -- helpers --
@@ -173,7 +173,9 @@ export default function BillPage() {
   const [trackEmail, setTrackEmail] = useState('')
   const [trackStatus, setTrackStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
-  const summary = bill ? cleanSummary(bill.summary) : null
+  const rawSummary = bill ? cleanSummary(bill.summary) : null
+  const lowConfidence = isLowConfidenceSummary(rawSummary)
+  const summary = lowConfidence ? null : rawSummary
 
   usePageTitle(
     bill ? bill.title : 'Bill',
@@ -290,18 +292,30 @@ export default function BillPage() {
             <section className="bill-page-section">
               <h2>Plain-English Summary</h2>
               <div className="bp-section-body">
-                {summary && summary.length < 100 && (
-                  <blockquote className="bp-summary-context">{bill.title}</blockquote>
-                )}
-                {summary
-                  ? <p className="bill-page-summary">{summary}</p>
-                  : <p className="bp-empty-state">No summary available yet.</p>
-                }
-                {summary && (
-                  <p className="bill-page-ai-note">
-                    AI-generated summary · always verify with the{' '}
-                    <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">official text on Legistar ↗</a>
-                  </p>
+                {lowConfidence ? (
+                  <div className="bp-no-text">
+                    <p className="bp-no-text-head">Full bill text not yet available</p>
+                    <p className="bp-no-text-body">
+                      This bill was recently introduced. The full legislative text is often filed
+                      separately and may not appear in Legistar until after the first committee hearing.
+                    </p>
+                    <a href={legistarUrl(bill)} target="_blank" rel="noreferrer" className="bp-no-text-link">
+                      Check for updates on Legistar ↗
+                    </a>
+                  </div>
+                ) : summary ? (
+                  <>
+                    {summary.length < 100 && (
+                      <blockquote className="bp-summary-context">{bill.title}</blockquote>
+                    )}
+                    <p className="bill-page-summary">{summary}</p>
+                    <p className="bill-page-ai-note">
+                      AI-generated summary · always verify with the{' '}
+                      <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">official text on Legistar ↗</a>
+                    </p>
+                  </>
+                ) : (
+                  <p className="bp-empty-state">No summary available yet.</p>
                 )}
               </div>
             </section>

@@ -30,3 +30,21 @@ export function cleanSummary(text: string | null): string | null {
     .trim()
   return cleaned || null
 }
+
+const LOW_CONFIDENCE_PHRASES = [
+  'not included in the text provided',
+  'cannot be described',
+  'the text provided',
+  'full impact cannot',
+  'specific details of what',
+  'limited bill text',
+  'no text was provided',
+  'text is not available',
+  'bill text is not',
+]
+
+export function isLowConfidenceSummary(text: string | null): boolean {
+  if (!text) return false
+  const lower = text.toLowerCase()
+  return LOW_CONFIDENCE_PHRASES.some(phrase => lower.includes(phrase))
+}

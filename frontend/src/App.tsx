@@ -275,38 +275,37 @@ function UpcomingSection({ bills, onSelect }: { bills: Bill[]; onSelect: (id: nu
     const diff = daysUntil(dateStr)
     if (diff === 0) return 'Today'
     if (diff === 1) return 'Tomorrow'
-    return `${diff} days away`
+    return `${diff}d`
   }
 
   return (
     <div className="upcoming-section">
-      <div className="upcoming-label">Upcoming Hearings</div>
+      <div className="upcoming-header">
+        <span className="upcoming-label">Upcoming Hearings</span>
+        <span className="upcoming-count">{bills.length} this week</span>
+      </div>
       <div className="upcoming-cards">
-        {bills.slice(0, 5).map(bill => {
-          const isToday = bill.agenda_date ? daysUntil(bill.agenda_date) === 0 : false
+        {bills.map(bill => {
+          const diff = bill.agenda_date ? daysUntil(bill.agenda_date) : null
+          const isToday = diff === 0
+          const isTomorrow = diff === 1
           return (
-            <div
+            <button
               key={bill.id}
-              className={`upcoming-card${isToday ? ' upcoming-card--today' : ''}`}
+              className={`upcoming-card${isToday ? ' upcoming-card--today' : isTomorrow ? ' upcoming-card--soon' : ''}`}
               onClick={() => onSelect(bill.id)}
-              style={{ cursor: 'pointer' }}
             >
               <div className="upcoming-card-meta">
                 <span className="upcoming-date">{formatDate(bill.agenda_date)}</span>
-                {bill.agenda_date && <span className="upcoming-urgency">{urgencyLabel(bill.agenda_date)}</span>}
+                {bill.agenda_date && (
+                  <span className={`upcoming-urgency${isToday ? ' upcoming-urgency--today' : ''}`}>
+                    {urgencyLabel(bill.agenda_date)}
+                  </span>
+                )}
               </div>
               <div className="upcoming-title">{bill.title}</div>
               {bill.body_name && <div className="upcoming-body">{bill.body_name}</div>}
-              <a
-                className="upcoming-legistar-link"
-                href={legistarUrl(bill)}
-                target="_blank"
-                rel="noreferrer"
-                onClick={e => e.stopPropagation()}
-              >
-                Legistar ↗
-              </a>
-            </div>
+            </button>
           )
         })}
       </div>

@@ -435,14 +435,20 @@ def get_alder(alder_id: int):
             .all()
         )
 
-        vote_history = [
-            {
+        seen_vote_keys: set[tuple] = set()
+        vote_history = []
+        for v in votes:
+            if not v.matter:
+                continue
+            key = (v.matter_id, v.voted_at)
+            if key in seen_vote_keys:
+                continue
+            seen_vote_keys.add(key)
+            vote_history.append({
                 "vote_value": v.vote_value,
                 "voted_at": v.voted_at.isoformat() if v.voted_at else None,
                 "matter": _serialize_matter(v.matter),
-            }
-            for v in votes if v.matter
-        ]
+            })
 
         # Tag ranks: how does this alder compare to others per issue area?
         from sqlalchemy import func as sqlfunc, distinct as sqldistinct

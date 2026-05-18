@@ -1,8 +1,8 @@
-"""Tests for Legistar bill URL construction in email templates.
+"""Tests for Legistar bill URL construction.
 
-The Legistar web UI uses a LegislationID that has no mapping in the public API
-(confirmed in explore/FINDINGS.md). All links therefore point to the search
-page so users can look up the bill by its file number.
+The Legistar web UI uses a LegislationID that has no mapping in the public API.
+The poller scrapes the web UI by file number and caches the URL in legistar_web_url.
+When present, legistarUrl() uses it directly; otherwise it falls back to the search page.
 """
 import sys
 import os

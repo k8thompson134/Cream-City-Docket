@@ -84,6 +84,7 @@ def _serialize_matter(m: Matter) -> dict:
         "sponsors": unique_sponsors,
         "summary": m.summary,
         "tags": [mt.tag.name for mt in m.tags if mt.tag],
+        "legistar_web_url": m.legistar_web_url,
     }
 
 

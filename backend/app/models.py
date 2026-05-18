@@ -104,6 +104,7 @@ class Matter(Base):
     passed_date: Mapped[datetime | None] = mapped_column(DateTime)
     enactment_date: Mapped[datetime | None] = mapped_column(DateTime)
     enactment_number: Mapped[str | None] = mapped_column(String(50))
+    legistar_web_url: Mapped[str | None] = mapped_column(String(500))
     # Text versioning — from /Versions endpoint
     current_text_id: Mapped[str | None] = mapped_column(String(20))    # Key from /Versions
     current_text_version: Mapped[str | None] = mapped_column(String(10))  # "0", "1", etc.

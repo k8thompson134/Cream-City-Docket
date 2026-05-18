@@ -139,6 +139,11 @@ def _upsert_matter(session, raw: dict) -> Matter:
     else:
         matter = Matter(legistar_matter_id=legistar_id, **fields)
         session.add(matter)
+        session.flush()
+        # Fetch the Legistar web URL for new matters only (not on every update)
+        if matter.file_number and not matter.legistar_web_url:
+            from poller.legistar_web import fetch_legistar_web_url
+            matter.legistar_web_url = fetch_legistar_web_url(matter.file_number)
 
     session.flush()
     return matter

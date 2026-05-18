@@ -11,6 +11,7 @@ export interface Bill {
   legistar_matter_id: number
   legistar_guid: string
   file_number: string | null
+  legistar_web_url: string | null
   title: string
   matter_type: string
   matter_status: string
@@ -131,7 +132,8 @@ export interface Subscription {
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
-export function legistarUrl(_bill?: unknown): string {
+export function legistarUrl(bill: Pick<Bill, 'legistar_web_url' | 'file_number'>): string {
+  if (bill.legistar_web_url) return bill.legistar_web_url
   return 'https://milwaukee.legistar.com/Legislation.aspx'
 }
 

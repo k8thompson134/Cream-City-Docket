@@ -131,8 +131,8 @@ export interface Subscription {
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
 
-export function legistarUrl(bill: Pick<Bill, 'legistar_matter_id' | 'legistar_guid'>): string {
-  return `https://milwaukee.legistar.com/LegislationDetail.aspx?ID=${bill.legistar_matter_id}&GUID=${bill.legistar_guid}`
+export function legistarUrl(_bill?: unknown): string {
+  return 'https://milwaukee.legistar.com/Legislation.aspx'
 }
 
 export async function fetchBills(params: {

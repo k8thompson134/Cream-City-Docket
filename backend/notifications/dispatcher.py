@@ -215,8 +215,6 @@ def run_dispatcher() -> None:
                         tags=sorted(matter_tags),
                         sponsors=sponsor_names,
                         file_number=matter.file_number,
-                        legistar_matter_id=matter.legistar_matter_id,
-                        legistar_guid=matter.legistar_guid,
                         trigger_reason=trigger_reason,
                         manage_url=_manage_url(subscriber.unsubscribe_token),
                         unsubscribe_url=_unsubscribe_url(subscriber.unsubscribe_token),

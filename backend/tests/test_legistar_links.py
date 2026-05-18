@@ -1,4 +1,9 @@
-"""Tests for Legistar bill URL construction."""
+"""Tests for Legistar bill URL construction in email templates.
+
+The Legistar web UI uses a LegislationID that has no mapping in the public API
+(confirmed in explore/FINDINGS.md). All links therefore point to the search
+page so users can look up the bill by its file number.
+"""
 import sys
 import os
 import types
@@ -15,8 +20,8 @@ sys.modules.setdefault("notifications.email", types.ModuleType("notifications.em
 
 import notifications.templates as tmpl
 
-DETAIL_BASE = "https://milwaukee.legistar.com/LegislationDetail.aspx"
 SEARCH_URL = "https://milwaukee.legistar.com/Legislation.aspx"
+DETAIL_BASE = "https://milwaukee.legistar.com/LegislationDetail.aspx"
 
 
 def _call_alert_email(**overrides):
@@ -31,9 +36,7 @@ def _call_alert_email(**overrides):
         mayor_action_date=None,
         tags=[],
         sponsors=[],
-        file_number="123456",
-        legistar_matter_id=8029585,
-        legistar_guid="2DA9DB39-DB06-4B1E-BBE1-AF7CC4FB7BD1",
+        file_number="251790",
         trigger_reason="housing",
         manage_url="https://creamcitydocket.com/manage/abc",
         unsubscribe_url="https://creamcitydocket.com/unsubscribe/abc",
@@ -43,59 +46,56 @@ def _call_alert_email(**overrides):
 
 
 class TestAlertEmailLegistarUrl:
-    def test_direct_link_when_id_and_guid_present(self):
-        _, html, text = _call_alert_email(
-            legistar_matter_id=8029585,
-            legistar_guid="2DA9DB39-DB06-4B1E-BBE1-AF7CC4FB7BD1",
-        )
-        expected = f"{DETAIL_BASE}?ID=8029585&GUID=2DA9DB39-DB06-4B1E-BBE1-AF7CC4FB7BD1"
-        assert expected in html
-        assert expected in text
-
-    def test_fallback_when_id_missing(self):
-        _, html, text = _call_alert_email(legistar_matter_id=None, legistar_guid="some-guid")
+    def test_links_to_search_page(self):
+        _, html, text = _call_alert_email()
         assert SEARCH_URL in html
         assert SEARCH_URL in text
-        assert DETAIL_BASE not in html
 
-    def test_fallback_when_guid_missing(self):
-        _, html, text = _call_alert_email(legistar_matter_id=123, legistar_guid=None)
+    def test_never_links_to_detail_page(self):
+        """LegislationDetail.aspx requires a web-only ID not in the API."""
+        _, html, text = _call_alert_email()
+        assert DETAIL_BASE not in html
+        assert DETAIL_BASE not in text
+
+    def test_file_number_shown_in_link_label(self):
+        _, html, _ = _call_alert_email(file_number="251790")
+        assert "251790" in html
+
+    def test_no_file_number_still_renders(self):
+        _, html, text = _call_alert_email(file_number=None)
         assert SEARCH_URL in html
         assert SEARCH_URL in text
-        assert DETAIL_BASE not in html
-
-    def test_search_page_not_used_when_both_present(self):
-        _, html, text = _call_alert_email(
-            legistar_matter_id=999,
-            legistar_guid="AAAABBBB-CCCC-DDDD-EEEE-FFFFGGGGHHHH",
-        )
-        assert SEARCH_URL not in html
-        assert SEARCH_URL not in text
 
 
 class TestPriorityEmailLegistarUrl:
-    def _make_matter(self, matter_id=8029585, guid="2DA9DB39-DB06-4B1E-BBE1-AF7CC4FB7BD1"):
-        m = types.SimpleNamespace(
-            legistar_matter_id=matter_id,
-            legistar_guid=guid,
+    def _make_matter(self, file_number="654321"):
+        return types.SimpleNamespace(
+            legistar_matter_id=73889,
+            legistar_guid="9BA38B99-A4D3-4AEC-890D-6BE8550F116B",
             title="Test Priority Bill",
             matter_type="Resolution",
             matter_status="Passed",
             summary=None,
-            file_number="654321",
+            file_number=file_number,
             intro_date=None,
             agenda_date=None,
             sponsors=[],
             tags=[],
             mayor_actions=[],
         )
-        return m
 
-    def test_direct_link_in_priority_email(self):
+    def test_links_to_search_page(self):
         matter = self._make_matter()
         _, html, text = tmpl.render_priority_email(
             matter, "passed", "https://creamcitydocket.com/unsubscribe/x"
         )
-        expected = f"{DETAIL_BASE}?ID=8029585&GUID=2DA9DB39-DB06-4B1E-BBE1-AF7CC4FB7BD1"
-        assert expected in html
-        assert expected in text
+        assert SEARCH_URL in html
+        assert SEARCH_URL in text
+
+    def test_never_links_to_detail_page(self):
+        matter = self._make_matter()
+        _, html, text = tmpl.render_priority_email(
+            matter, "passed", "https://creamcitydocket.com/unsubscribe/x"
+        )
+        assert DETAIL_BASE not in html
+        assert DETAIL_BASE not in text

@@ -1,6 +1,7 @@
 from datetime import datetime
+import sqlalchemy as sa
 from sqlalchemy import (
-    Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint,
+    Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint,
     JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -27,6 +28,23 @@ class Alder(Base):
     sponsored_matters: Mapped[list["MatterSponsor"]] = relationship(back_populates="alder")
     votes: Mapped[list["Vote"]] = relationship(back_populates="alder")
     office_records: Mapped[list["AlderOfficeRecord"]] = relationship(back_populates="alder", cascade="all, delete-orphan")
+    election_records: Mapped[list["AlderElectionRecord"]] = relationship(back_populates="alder", cascade="all, delete-orphan")
+
+
+class AlderElectionRecord(Base):
+    __tablename__ = "alder_election_records"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    alder_id: Mapped[int] = mapped_column(ForeignKey("alders.id"), nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    election_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    result: Mapped[str] = mapped_column(String(20), nullable=False)
+    vote_pct: Mapped[float | None] = mapped_column(Numeric(5, 2))
+    opponent_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    was_uncontested: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+
+    alder: Mapped["Alder"] = relationship(back_populates="election_records")
 
 
 class AlderOfficeRecord(Base):

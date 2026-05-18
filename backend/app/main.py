@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import joinedload
 
 from .database import SessionLocal
-from .models import Alder, AlderOfficeRecord, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, MayorAction, Subscriber, SubscriberPreference, Vote
+from .models import Alder, AlderElectionRecord, AlderOfficeRecord, Event, EventItem, IssueTag, Matter, MatterSponsor, MatterTag, MayorAction, Subscriber, SubscriberPreference, Vote
 
 
 @asynccontextmanager
@@ -502,6 +502,13 @@ def get_alder(alder_id: int):
         council_terms = [_serialize_office_record(r) for r in office_records if _is_council_seat(r)]
         committee_roles = [_serialize_office_record(r) for r in office_records if not _is_council_seat(r)]
 
+        election_records = (
+            session.query(AlderElectionRecord)
+            .filter_by(alder_id=a.id)
+            .order_by(AlderElectionRecord.year.desc(), AlderElectionRecord.election_type.asc())
+            .all()
+        )
+
         return {
             "id": a.id,
             "legistar_person_id": a.legistar_person_id,
@@ -518,6 +525,18 @@ def get_alder(alder_id: int):
             "tag_ranks": tag_ranks,
             "council_terms": council_terms,
             "committee_roles": committee_roles,
+            "election_records": [
+                {
+                    "year": r.year,
+                    "election_type": r.election_type,
+                    "result": r.result,
+                    "vote_pct": float(r.vote_pct) if r.vote_pct is not None else None,
+                    "opponent_count": r.opponent_count,
+                    "was_uncontested": r.was_uncontested,
+                    "notes": r.notes,
+                }
+                for r in election_records
+            ],
         }
     finally:
         session.close()

@@ -693,6 +693,73 @@
 
 .ph-election-link:hover { color: #FFC52F; }
 
+.ph-election-table {
+  overflow: hidden;
+}
+
+.ph-election-header {
+  display: grid;
+  grid-template-columns: 80px 90px 1fr 80px 80px;
+  padding: 0.5rem 1.25rem;
+  background: #f0f2f5;
+  border-bottom: 1px solid #d0d6e0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+
+.ph-election-row {
+  display: grid;
+  grid-template-columns: 80px 90px 1fr 80px 80px;
+  padding: 0.6rem 1.25rem;
+  border-bottom: 1px solid #f0f2f5;
+  font-size: 0.83rem;
+  align-items: center;
+}
+
+.ph-election-row:last-of-type { border-bottom: none; }
+.ph-election-row:nth-child(even) { background: #fafbfc; }
+.ph-election-row--lost { background: #fff8f8; }
+
+.ph-election-year {
+  font-weight: 700;
+  color: #12284B;
+}
+
+.ph-election-note {
+  color: #FFC52F;
+  font-weight: 900;
+  margin-left: 2px;
+  cursor: help;
+}
+
+.ph-election-type {
+  color: #666;
+  font-size: 0.78rem;
+}
+
+.ph-election-result--won  { color: #1a5c2a; font-weight: 600; }
+.ph-election-result--lost { color: #7a1a1a; font-weight: 600; }
+
+.ph-election-pct { color: #444; }
+.ph-election-opponents { color: #888; text-align: center; }
+
+.ph-election-source {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.72rem;
+  color: #aaa;
+  border-top: 1px solid #e4e9f2;
+  background: #fafbfc;
+}
+
+.ph-election-source a {
+  color: #12284B;
+  text-decoration: underline;
+}
+.ph-election-source a:hover { color: #FFC52F; }
+
 /* ── Alder hero links ──────────────────────────── */
 
 .alder-hero-links {

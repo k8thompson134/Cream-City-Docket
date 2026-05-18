@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { fetchAlder, fetchBill, legistarUrl } from '../api'
-import type { AlderDetail as AlderDetailType, Bill, BillDetail, OfficeRecord, VoteRecord } from '../api'
+import type { AlderDetail as AlderDetailType, Bill, BillDetail, ElectionRecord, OfficeRecord, VoteRecord } from '../api'
 import { usePageTitle } from '../usePageTitle'
 import { AlderHeroSkeleton } from '../Skeletons'
 import './Alders.css'
@@ -366,9 +366,10 @@ function formatRoleDate(start: string | null, end: string | null, isCurrent: boo
   return `${s} – ${e}`
 }
 
-function PoliticalHistory({ councilTerms, committeeRoles }: {
+function PoliticalHistory({ councilTerms, committeeRoles, electionRecords }: {
   councilTerms: OfficeRecord[]
   committeeRoles: OfficeRecord[]
+  electionRecords: ElectionRecord[]
 }) {
   const oldest = councilTerms.at(-1)
   const firstYear = oldest?.start_date ? new Date(oldest.start_date).getFullYear() : null
@@ -439,17 +440,40 @@ function PoliticalHistory({ councilTerms, committeeRoles }: {
 
       <div className="ph-section">
         <div className="ph-section-label">Election History</div>
-        <div className="ph-election-placeholder">
-          <p>Election results are not available through the Legistar API.</p>
-          <a
-            href="https://city.milwaukee.gov/election/ElectionResults"
-            target="_blank"
-            rel="noreferrer"
-            className="ph-election-link"
-          >
-            View results on Milwaukee Elections Commission ↗
-          </a>
-        </div>
+        {electionRecords.length === 0 ? (
+          <div className="ph-election-placeholder">
+            <p>No election records on file yet.</p>
+            <a href="https://city.milwaukee.gov/election/ElectionResults" target="_blank" rel="noreferrer" className="ph-election-link">
+              Milwaukee Elections Commission ↗
+            </a>
+          </div>
+        ) : (
+          <div className="ph-election-table">
+            <div className="ph-election-header">
+              <span>Year</span>
+              <span>Election</span>
+              <span>Result</span>
+              <span>Vote %</span>
+              <span>Opponents</span>
+            </div>
+            {electionRecords.map((r, i) => (
+              <div key={i} className={`ph-election-row${r.result === 'lost' ? ' ph-election-row--lost' : ''}`}>
+                <span className="ph-election-year">{r.year}{r.notes ? <span className="ph-election-note" title={r.notes}>*</span> : null}</span>
+                <span className="ph-election-type">{r.election_type === 'primary' ? 'Primary' : 'General'}</span>
+                <span className={`ph-election-result ph-election-result--${r.result}`}>
+                  {r.result === 'won' ? (r.was_uncontested ? 'Won (uncontested)' : 'Won') : 'Lost'}
+                </span>
+                <span className="ph-election-pct">{r.vote_pct !== null ? `${r.vote_pct}%` : '—'}</span>
+                <span className="ph-election-opponents">{r.opponent_count}</span>
+              </div>
+            ))}
+            <div className="ph-election-source">
+              Source: Milwaukee City Elections Commission ·
+              {electionRecords.some(r => r.notes) && ' * See notes ·'}
+              {' '}<a href="https://city.milwaukee.gov/election/ElectionResults" target="_blank" rel="noreferrer">Full results ↗</a>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -603,6 +627,7 @@ export default function AlderDetail() {
             <PoliticalHistory
               councilTerms={alder.council_terms ?? []}
               committeeRoles={alder.committee_roles ?? []}
+              electionRecords={alder.election_records ?? []}
             />
           )}
         </div>

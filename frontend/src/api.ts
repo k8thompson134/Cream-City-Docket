@@ -69,12 +69,23 @@ export interface OfficeRecord {
   is_current: boolean
 }
 
+export interface ElectionRecord {
+  year: number
+  election_type: 'primary' | 'general'
+  result: 'won' | 'lost'
+  vote_pct: number | null
+  opponent_count: number
+  was_uncontested: boolean
+  notes: string | null
+}
+
 export interface AlderDetail extends Alder {
   sponsored_bills: Bill[]
   vote_history: VoteRecord[]
   tag_ranks: Record<string, { rank: number; total: number }>
   council_terms: OfficeRecord[]
   committee_roles: OfficeRecord[]
+  election_records: ElectionRecord[]
   website: string | null
   twitter: string | null
   facebook: string | null

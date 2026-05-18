@@ -358,10 +358,6 @@ function IssueAreas({ bills, alderId, tagRanks }: {
   )
 }
 
-function formatYear(iso: string | null) {
-  if (!iso) return '—'
-  return new Date(iso).getFullYear().toString()
-}
 
 function formatRoleDate(start: string | null, end: string | null, isCurrent: boolean) {
   const s = start ? new Date(start).getFullYear() : '?'

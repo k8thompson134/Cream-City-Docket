@@ -156,6 +156,18 @@ export default function Mayor() {
               <span>📞 <a href={`tel:${mayor.phone}`}>{mayor.phone}</a></span>
               <span>🕐 {mayor.hours}</span>
             </div>
+            {(mayor.twitter || mayor.facebook) && (
+              <div className="mayor-hero-links">
+                {mayor.twitter && (
+                  <a href={`https://twitter.com/${mayor.twitter.replace('@','')}`} target="_blank" rel="noreferrer">
+                    𝕏 {mayor.twitter}
+                  </a>
+                )}
+                {mayor.facebook && (
+                  <a href={mayor.facebook} target="_blank" rel="noreferrer">📘 Facebook ↗</a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

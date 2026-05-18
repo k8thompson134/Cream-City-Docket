@@ -64,6 +64,21 @@
   color: #FFC52F;
 }
 
+.mayor-hero-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mayor-hero-links a {
+  font-size: 0.8rem;
+  color: #8ba3c4;
+  text-decoration: underline;
+}
+
+.mayor-hero-links a:hover { color: #FFC52F; }
+
 /* Stats bar */
 .mayor-stats-bar {
   display: flex;

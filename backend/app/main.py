@@ -312,6 +312,8 @@ def get_mayor():
             "address": "City Hall, 200 E. Wells Street, Room 201, Milwaukee, WI 53202",
             "phone": "414-286-2200",
             "hours": "Monday–Friday, 8:00 AM–4:45 PM",
+            "twitter": "@MayorMKE",
+            "facebook": "https://www.facebook.com/MayorofMilwaukee",
             "stats": stats,
             "actions": serialized,
         }

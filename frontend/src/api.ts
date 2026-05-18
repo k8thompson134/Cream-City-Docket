@@ -104,6 +104,8 @@ export interface MayorProfile {
   address: string
   phone: string
   hours: string
+  twitter: string | null
+  facebook: string | null
   stats: { signed: number; vetoed: number; lapsed: number; published: number }
   actions: MayorActionRecord[]
 }

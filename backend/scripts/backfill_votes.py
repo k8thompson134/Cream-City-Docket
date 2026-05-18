@@ -64,15 +64,10 @@ def backfill(since_str: str) -> None:
                     event_item_id=event_item.id
                 ).count()
                 _upsert_votes(session, event_item, event.date)
-                after_flush_count = session.query(Vote).filter_by(
+                after = session.query(Vote).filter_by(
                     event_item_id=event_item.id
                 ).count()
-                # count new (unflushed) Vote objects added to session
-                new_votes = len([
-                    obj for obj in session.new
-                    if isinstance(obj, Vote) and obj.event_item_id == event_item.id
-                ])
-                votes_added += new_votes
+                votes_added += after - before
 
             events_processed += 1
             if events_processed % 50 == 0:

@@ -26,6 +26,7 @@ export interface Bill {
 export interface BillDetail extends Bill {
   history: { action_name: string; action_date: string | null; result: string | null }[]
   mayor_actions: { action_type: string; action_date: string | null }[]
+  substitute_summary: string | null
 }
 
 export interface BillsResponse {
@@ -86,6 +87,7 @@ export interface AlderDetail extends Alder {
   council_terms: OfficeRecord[]
   committee_roles: OfficeRecord[]
   election_records: ElectionRecord[]
+  focus_summary: string | null
   website: string | null
   twitter: string | null
   facebook: string | null

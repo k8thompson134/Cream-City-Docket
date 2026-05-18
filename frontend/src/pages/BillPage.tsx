@@ -443,6 +443,19 @@ export default function BillPage() {
             </div>
           </section>
 
+          {bill.substitute_summary && (
+            <section className="bill-page-section">
+              <h2>What Changed in the Substitute</h2>
+              <div className="bp-section-body">
+                <p className="bp-substitute-summary">{bill.substitute_summary}</p>
+                <p className="bill-page-ai-note">
+                  AI-generated comparison · verify with the{' '}
+                  <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">official text on Legistar ↗</a>
+                </p>
+              </div>
+            </section>
+          )}
+
           {bill.mayor_actions.length > 0 && (
             <section className="bill-page-section">
               <h2>Mayoral Actions</h2>

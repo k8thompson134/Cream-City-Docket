@@ -198,6 +198,7 @@ def get_bill(bill_id: int):
             }
             for a in m.mayor_actions
         ]
+        result["substitute_summary"] = m.substitute_summary
         return result
     finally:
         session.close()
@@ -526,6 +527,7 @@ def get_alder(alder_id: int):
             "website": a.website,
             "twitter": a.twitter,
             "facebook": a.facebook,
+            "focus_summary": a.focus_summary,
             "sponsored_bills": [_serialize_matter(m) for m in sponsored_bills],
             "vote_history": vote_history,
             "tag_ranks": tag_ranks,

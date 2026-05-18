@@ -544,6 +544,9 @@ export default function AlderDetail() {
           <div className="alder-hero-info">
             <div className="alder-hero-name">{displayName}</div>
             <div className="alder-hero-district">{district ?? 'Milwaukee Common Council'}</div>
+            {alder.focus_summary && (
+              <p className="alder-hero-focus">{alder.focus_summary}</p>
+            )}
             <div className="alder-hero-contact">
               {alder.email && (
                 <span>✉ <a href={`mailto:${alder.email}`}>{alder.email}</a></span>

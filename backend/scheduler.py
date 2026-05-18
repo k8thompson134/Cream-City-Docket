@@ -23,6 +23,11 @@ def _poll_then_enrich():
     except Exception as e:
         log.error("Enrichment failed: %s", e)
     try:
+        from enrichment.worker import run_substitute_enrichment
+        run_substitute_enrichment(batch_size=20)
+    except Exception as e:
+        log.error("Substitute enrichment failed: %s", e)
+    try:
         run_dispatcher()
     except Exception as e:
         log.error("Dispatcher failed: %s", e)

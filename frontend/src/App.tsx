@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Routes, Route, useSearchParams } from 'react-router-dom'
 import { fetchBills, fetchBill, fetchBillVotes, fetchMeta, fetchUpcoming, legistarUrl } from './api'
 import type { Bill, BillDetail, BillVote, Meta } from './api'
@@ -23,8 +23,17 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
   showFileNumbers: boolean
   compact: boolean
 }) {
-  const sponsors = bill.sponsors.map(s => s.name.replace('ALD. ', 'Ald. ')).join(', ') || '—'
+  const sponsors = bill.sponsors.map(s => s.name.replace('ALD. ', 'Ald. ')).join(', ')
   const summary = cleanSummary(bill.summary)
+  const isNew = bill.intro_date
+    ? Date.now() - new Date(bill.intro_date).getTime() < 7 * 24 * 60 * 60 * 1000
+    : false
+
+  const metaParts: string[] = []
+  if (showFileNumbers) metaParts.push(bill.file_number ?? `#${bill.legistar_matter_id}`)
+  if (sponsors) metaParts.push(sponsors)
+  metaParts.push(formatDate(bill.intro_date))
+
   return (
     <div className={`bill-row${selected ? ' bill-row--selected' : ''}`} onClick={onClick}>
       <div className="bill-row-header">
@@ -32,14 +41,14 @@ function BillRow({ bill, onClick, selected, showSummaries, showFileNumbers, comp
         <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
           {bill.matter_status}
         </span>
+        {isNew && <span className="badge-new">New</span>}
         {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
       <div className="bill-title">{bill.title}</div>
       {showSummaries && !compact && summary && <div className="bill-summary">{summary}</div>}
       <div className="bill-meta">
-        {showFileNumbers && <span>{bill.file_number ?? `#${bill.legistar_matter_id}`}</span>}
-        <span>{sponsors}</span>
-        <span>{formatDate(bill.intro_date)}</span>
+        <span className="bill-meta-text">{metaParts.join(' · ')}</span>
+        <span className="bill-view-arrow">View →</span>
       </div>
     </div>
   )
@@ -97,6 +106,44 @@ function formatAlderName(raw: string) {
   return raw.replace('ALD. ', 'Ald. ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
 }
 
+const STAGE_LABELS = ['Introduced', 'Committee', 'Council', 'Mayor']
+
+function StageBar({ bill }: { bill: BillDetail }) {
+  const s = bill.matter_status.toLowerCase()
+  const isTerminal = s === 'placed on file' || s === 'dead'
+
+  if (isTerminal) {
+    return (
+      <div className="stage-bar-terminal">
+        {bill.matter_status}
+      </div>
+    )
+  }
+
+  const activeStage =
+    bill.mayor_actions.length > 0 ? 4
+    : s.startsWith('in council') || s === 'passed' ? 3
+    : s === 'in committee' || s === 'in commission' ? 2
+    : 1
+
+  const items: React.ReactNode[] = []
+  STAGE_LABELS.forEach((label, i) => {
+    const n = i + 1
+    const done = n < activeStage
+    const active = n === activeStage
+    items.push(
+      <div key={label} className="stage-step">
+        <div className={`stage-dot${done ? ' stage-dot--done' : active ? ' stage-dot--active' : ''}`} />
+        <span className={`stage-label${done ? ' stage-label--done' : active ? ' stage-label--active' : ''}`}>{label}</span>
+      </div>
+    )
+    if (i < STAGE_LABELS.length - 1) {
+      items.push(<div key={`c${i}`} className={`stage-conn${done ? ' stage-conn--done' : ''}`} />)
+    }
+  })
+  return <div className="stage-bar">{items}</div>
+}
+
 function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   id: number
   onClose: () => void
@@ -122,10 +169,6 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
 
   if (!bill) return <div className="detail-panel"><div className="loading">Loading…</div></div>
 
-  const sponsors = bill.sponsors.map(s =>
-    `${s.name.replace('ALD. ', 'Ald. ')}${s.district ? ` (Dist. ${s.district})` : ''}`
-  ).join(', ') || '—'
-
   const nextHearing = bill.agenda_date && new Date(bill.agenda_date) > new Date()
     ? bill.agenda_date : null
 
@@ -138,31 +181,37 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   const yeas = votes.filter(v => isYea(v.vote_value))
   const nays = votes.filter(v => isNay(v.vote_value))
   const others = votes.filter(v => v.vote_value && !isYea(v.vote_value) && !isNay(v.vote_value))
+  const summary = cleanSummary(bill.summary)
 
   return (
     <div className="detail-panel">
       <div className="detail-panel-header">
         <div className="detail-panel-header-left">
           <button className="close-btn" onClick={onClose}>✕ Close</button>
-          <a href={`/bills/${id}`} className="detail-fullpage-link">View full page →</a>
+          <a href={`/bills/${id}`} className="detail-fullpage-link">Full page →</a>
         </div>
         <button className="copy-link-btn" onClick={copyLink}>
-          {copied ? '✓ Copied!' : '⎘ Copy link'}
+          {copied ? '✓ Copied' : '⎘ Copy link'}
         </button>
       </div>
+
+      <div className="detail-panel-body">
       <div className="detail-type-row">
         <span className="bill-type">{bill.matter_type}</span>
-        <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
-          {bill.matter_status}
-        </span>
         {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
       </div>
+
       <h2>{bill.title}</h2>
+
+      <StageBar bill={bill} />
 
       {substituteEntry && (
         <div className="substitute-notice">
-          <strong>Amended:</strong> a substitute version was filed on {formatDate(substituteEntry.action_date)}.{' '}
-          <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">View current text on Legistar ↗</a>
+          <strong>Amended:</strong> substitute filed {formatDate(substituteEntry.action_date)}.{' '}
+          <a href={legistarUrl(bill)} target="_blank" rel="noreferrer">View on Legistar ↗</a>
+          {bill.substitute_summary && (
+            <p className="substitute-diff">{bill.substitute_summary}</p>
+          )}
         </div>
       )}
 
@@ -175,22 +224,42 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
       )}
 
       <div className="detail-meta">
-        <div><strong>File</strong> {bill.file_number ?? `#${bill.legistar_matter_id}`}</div>
-        <div><strong>Sponsor{bill.sponsors.length !== 1 ? 's' : ''}</strong> {sponsors}</div>
-        <div><strong>Committee</strong> {bill.body_name ?? '—'}</div>
-        <div><strong>Introduced</strong> {formatDate(bill.intro_date)}</div>
-        {bill.passed_date && <div><strong>Passed</strong> {formatDate(bill.passed_date)}</div>}
+        <span className="dm-label">Status</span>
+        <span className="dm-value">
+          <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>{bill.matter_status}</span>
+        </span>
+        <span className="dm-label">File</span>
+        <span className="dm-value">{bill.file_number ?? `#${bill.legistar_matter_id}`}</span>
+        <span className="dm-label">Introduced</span>
+        <span className="dm-value">{formatDate(bill.intro_date)}</span>
+        {bill.passed_date && <>
+          <span className="dm-label">Passed</span>
+          <span className="dm-value">{formatDate(bill.passed_date)}</span>
+        </>}
+        <span className="dm-label">Committee</span>
+        <span className="dm-value">{bill.body_name ?? '—'}</span>
+        {bill.sponsors.length > 0 && <>
+          <span className="dm-label">Sponsor{bill.sponsors.length !== 1 ? 's' : ''}</span>
+          <span className="dm-value">
+            {bill.sponsors.map((s, i) => (
+              <span key={s.id}>
+                {i > 0 && ', '}
+                <Link to={`/alders/${s.id}`} className="dm-sponsor-link">
+                  {formatAlderName(s.name)}{s.district ? ` (D${s.district})` : ''}
+                </Link>
+              </span>
+            ))}
+          </span>
+        </>}
       </div>
 
-      {showSummaries && cleanSummary(bill.summary) && (
-        <div className="detail-section">
-          <h3>Summary</h3>
-          <p>{cleanSummary(bill.summary)}</p>
+      {showSummaries && summary && (
+        <div className="detail-summary">
+          <p>{summary}</p>
           {showConfidence && (bill.summary?.length ?? 0) < 150 && (
-            <div className="confidence-notice">
-              This summary is based on limited bill text and may be incomplete.
-            </div>
+            <div className="confidence-notice">Summary based on limited bill text — may be incomplete.</div>
           )}
+          <span className="detail-summary-note">AI-generated · verify on Legistar</span>
         </div>
       )}
 
@@ -247,14 +316,10 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
         </div>
       )}
 
-      <a
-        className="legistar-link"
-        href={legistarUrl(bill)}
-        target="_blank"
-        rel="noreferrer"
-      >
-        View on Legistar{bill.file_number ? ` — File #${bill.file_number}` : ''} ↗
+      <a className="legistar-btn" href={legistarUrl(bill)} target="_blank" rel="noreferrer">
+        View full text on Legistar ↗
       </a>
+      </div>
     </div>
   )
 }
@@ -414,30 +479,37 @@ function Docket() {
               {meta?.statuses.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </label>
-          <label>
-            Issue Area
-            <select value={tagFilter} onChange={e => { setTagFilter(e.target.value); handleFilterChange() }}>
-              <option value="">All issues</option>
-              {meta?.tags.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-        </div>
-        <div className="count">{total} bills</div>
-        {meta?.last_synced && (
-          <div className="sync-timestamp">
-            Updated {formatSyncTime(meta.last_synced)}
+          <div className="filter-chips-section">
+            <div className="filter-chips-label">Issue Area</div>
+            <div className="filter-chips">
+              {meta?.tags.map(t => (
+                <button
+                  key={t}
+                  className={`filter-chip${tagFilter === t ? ' filter-chip--active' : ''}`}
+                  onClick={() => { setTagFilter(tagFilter === t ? '' : t); handleFilterChange() }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
+        </div>
+        <div className="count">
+          {total} {typeFilter || statusFilter || tagFilter || search ? 'matching' : 'bills'}
+        </div>
+        {meta?.last_synced && (
+          <div className="sync-timestamp">Updated {formatSyncTime(meta.last_synced)}</div>
         )}
         {legislativeOnly && (
           <div className="filter-notice">
-            Showing ordinances and resolutions only.{' '}
-            <button className="filter-notice-btn" onClick={showAllTypes}>Show all types</button>
+            Ordinances &amp; resolutions only.{' '}
+            <button className="filter-notice-btn" onClick={showAllTypes}>Show all →</button>
           </div>
         )}
         {showAll && (
           <div className="filter-notice">
             Showing all bill types.{' '}
-            <button className="filter-notice-btn" onClick={resetToLegislative}>Show legislative only</button>
+            <button className="filter-notice-btn" onClick={resetToLegislative}>Legislative only →</button>
           </div>
         )}
       </aside>

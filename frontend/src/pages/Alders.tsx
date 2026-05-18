@@ -48,15 +48,7 @@ export default function Alders() {
                       {alder.phone && <div>{alder.phone}</div>}
                     </div>
                   )}
-                  <div className="alder-card-activity">
-                    {alder.recent_bills > 0 && (
-                      <span>{alder.recent_bills} bill{alder.recent_bills !== 1 ? 's' : ''} this month</span>
-                    )}
-                    {alder.recent_votes > 0 && (
-                      <span>{alder.recent_votes} vote{alder.recent_votes !== 1 ? 's' : ''} this week</span>
-                    )}
-                  </div>
-                  <div className="alder-card-cta">View profile →</div>
+<div className="alder-card-cta">View profile →</div>
                 </Link>
               ))}
             </div>

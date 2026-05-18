@@ -20,6 +20,7 @@ from app.database import SessionLocal
 from app.models import IssueTag, Matter, MatterTag
 from enrichment.prompts import (
     ISSUE_TAXONOMY, SUMMARY_SYSTEM, SUMMARY_USER, TAGS_SYSTEM, TAGS_USER,
+    SUBSTITUTE_SYSTEM, SUBSTITUTE_USER,
 )
 from poller import client as legistar
 
@@ -264,6 +265,106 @@ def run_retag_others(batch_size: int = 100) -> dict:
     return counts
 
 
+def run_substitute_enrichment(batch_size: int = 20) -> dict:
+    """
+    For bills with a SUBSTITUTE history entry introduced in the last 12 months,
+    fetch both text versions from Legistar and generate a plain-English diff summary.
+    """
+    from datetime import datetime, timedelta
+    from app.models import MatterHistory
+
+    session = SessionLocal()
+    haiku = _get_haiku_client()
+    counts = {"processed": 0, "enriched": 0, "skipped": 0, "errors": 0}
+
+    cutoff = datetime.utcnow() - timedelta(days=365)
+
+    try:
+        # Bills with a SUBSTITUTE history entry, no substitute_summary yet, introduced < 12 months ago
+        candidates = (
+            session.query(Matter)
+            .join(Matter.history)
+            .filter(
+                MatterHistory.action_name.ilike('%substitute%'),
+                Matter.substitute_summary.is_(None),
+                Matter.intro_date >= cutoff,
+                Matter.raw_text.isnot(None),
+            )
+            .distinct()
+            .order_by(Matter.intro_date.desc())
+            .limit(batch_size)
+            .all()
+        )
+
+        log.info("Substitute diff batch: %d candidates", len(candidates))
+
+        for matter in candidates:
+            counts["processed"] += 1
+            legistar_id = matter.legistar_matter_id
+            try:
+                versions = legistar.get_matter_versions(legistar_id)
+                if len(versions) < 2:
+                    log.info("Matter %d has only %d version(s) — skipping", legistar_id, len(versions))
+                    matter.substitute_summary = ""  # mark as checked so we don't retry
+                    session.commit()
+                    counts["skipped"] += 1
+                    continue
+
+                # versions are ordered oldest→newest; take second-to-last as original
+                original_version = versions[-2]
+                original_text_id = str(original_version["Key"])
+
+                # Skip if we already processed this version pair
+                if matter.pre_substitute_text_id == original_text_id:
+                    counts["skipped"] += 1
+                    continue
+
+                original_data = legistar.get_matter_text(legistar_id, original_text_id)
+                original_text = (original_data.get("MatterTextPlain") or "").strip()
+
+                if not original_text:
+                    log.info("Matter %d: no original text for version %s — skipping", legistar_id, original_text_id)
+                    counts["skipped"] += 1
+                    continue
+
+                # Current text is already stored in raw_text
+                substitute_text = matter.raw_text or ""
+
+                log.info("Diffing matter %d: %s", legistar_id, matter.title[:60])
+
+                resp = haiku.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=300,
+                    system=SUBSTITUTE_SYSTEM,
+                    messages=[{
+                        "role": "user",
+                        "content": SUBSTITUTE_USER.format(
+                            matter_type=matter.matter_type,
+                            title=matter.title,
+                            original_text=original_text[:6000],
+                            substitute_text=substitute_text[:6000],
+                        ),
+                    }],
+                )
+
+                matter.substitute_summary = resp.content[0].text.strip()
+                matter.pre_substitute_text_id = original_text_id
+                session.commit()
+                counts["enriched"] += 1
+                log.info("  → diff written")
+
+            except Exception as e:
+                log.error("Error on matter %d: %s", legistar_id, e)
+                session.rollback()
+                counts["errors"] += 1
+
+    finally:
+        session.close()
+
+    log.info("Substitute enrichment complete: %s", counts)
+    return counts
+
+
 if __name__ == "__main__":
     import sys
     logging.basicConfig(
@@ -273,5 +374,7 @@ if __name__ == "__main__":
     )
     if len(sys.argv) > 1 and sys.argv[1] == "retag":
         run_retag_others(batch_size=200)
+    elif len(sys.argv) > 1 and sys.argv[1] == "substitute":
+        run_substitute_enrichment(batch_size=20)
     else:
         run_enrichment(batch_size=50)

@@ -65,3 +65,23 @@ Title: {title}
 
 Text (excerpt):
 {text_excerpt}"""
+
+SUBSTITUTE_SYSTEM = """You explain what changed between two versions of a Milwaukee city ordinance or resolution.
+Write clearly at an 8th grade reading level. Be factual and specific — describe the actual policy changes.
+Write 2-3 sentences. Plain prose only — no markdown, no lists, no headers.
+Focus only on substantive changes: new requirements, removed provisions, changed definitions, altered scope.
+Ignore formatting changes, renumbering, and grammar fixes.
+If the differences are minor or unclear from the text, say so briefly.
+Start with "The substitute version" to make the context immediately clear."""
+
+SUBSTITUTE_USER = """What changed between these two versions of a Milwaukee {matter_type}?
+
+Title: {title}
+
+--- ORIGINAL VERSION ---
+{original_text}
+
+--- SUBSTITUTE VERSION ---
+{substitute_text}
+
+Describe what changed between the original and substitute version in 2-3 plain-English sentences."""

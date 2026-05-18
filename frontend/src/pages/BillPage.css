@@ -431,6 +431,16 @@
 }
 .bp-track-error { font-size: 0.75rem; color: #c00; margin: 0; }
 
+/* substitute diff */
+.bp-substitute-summary {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid #FFC52F;
+  padding-left: 0.85rem;
+}
+
 /* empty state */
 .bp-empty-state { font-size: 0.85rem; color: #888; font-style: italic; margin: 0; }
 

@@ -158,7 +158,15 @@
 .alder-hero-district {
   font-size: 0.9rem;
   color: #c8d4e8;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.alder-hero-focus {
+  font-size: 0.84rem;
+  color: #9ab0cc;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 0 0.75rem;
 }
 
 .alder-hero-contact {

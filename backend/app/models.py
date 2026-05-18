@@ -21,6 +21,8 @@ class Alder(Base):
     website: Mapped[str | None] = mapped_column(String(500))
     twitter: Mapped[str | None] = mapped_column(String(100))
     facebook: Mapped[str | None] = mapped_column(String(200))
+    focus_summary: Mapped[str | None] = mapped_column(Text)
+    ai_enriched_at: Mapped[datetime | None] = mapped_column(DateTime)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -109,6 +111,8 @@ class Matter(Base):
     # LLM enrichment
     summary: Mapped[str | None] = mapped_column(Text)
     enriched_at: Mapped[datetime | None] = mapped_column(DateTime)
+    substitute_summary: Mapped[str | None] = mapped_column(Text)
+    pre_substitute_text_id: Mapped[str | None] = mapped_column(String(20))
     last_modified_utc: Mapped[datetime | None] = mapped_column(DateTime)   # MatterLastModifiedUtc
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

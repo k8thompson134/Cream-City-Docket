@@ -201,10 +201,50 @@ body {
   color: #aaa;
 }
 
+.filter-chips-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-chips-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #12284B;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.filter-chip {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  border: 1px solid #c8cdd6;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  line-height: 1.4;
+}
+.filter-chip:hover { border-color: #12284B; color: #12284B; }
+.filter-chip--active { background: #12284B; color: #FFC52F; border-color: #12284B; }
+
 .filter-notice {
   margin-top: 0.75rem;
   font-size: 0.75rem;
-  color: #666;
+  background: #fff8e7;
+  border: 1px solid #e8a800;
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  color: #7a5500;
   line-height: 1.5;
 }
 .filter-notice-btn {
@@ -212,13 +252,13 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  color: #12284B;
+  color: #7a5500;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
   font-family: inherit;
 }
-.filter-notice-btn:hover { color: #FFC52F; }
+.filter-notice-btn:hover { color: #12284B; }
 
 .feed {
   flex: 1;
@@ -245,6 +285,7 @@ body {
 .bill-row--selected {
   border-left-color: #FFC52F;
   box-shadow: 0 2px 10px rgba(255, 197, 47, 0.25);
+  background: #fffbee;
 }
 
 .bill-row-header {
@@ -688,34 +729,55 @@ body {
 
 .bill-meta {
   display: flex;
-  gap: 1.25rem;
-  font-size: 0.8rem;
-  color: #1a1a1a;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: #888;
+  margin-top: 0.25rem;
 }
+
+.bill-meta-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.bill-view-arrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #12284B;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.bill-row:hover .bill-view-arrow { opacity: 1; }
+.bill-row--selected .bill-view-arrow { opacity: 1; color: #b07d00; }
 
 .detail-panel {
   width: 420px;
   flex-shrink: 0;
   background: #fff;
   border-left: 1px solid #d0d6e0;
-  padding: 1.5rem;
-  overflow-y: auto;
-  max-height: calc(100vh - 84px);
+  max-height: calc(100vh - 60px);
   position: sticky;
-  top: 0;
+  top: 60px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detail-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.5rem 1.5rem;
+  min-height: 0;
 }
 
 .detail-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex-shrink: 0;
   background: #fff;
-  padding: 1rem 1.5rem;
-  margin: -1.5rem -1.5rem 1rem;
+  padding: 0.85rem 1.5rem;
   border-bottom: 1px solid #e4e9f2;
 }
 
@@ -780,21 +842,132 @@ body {
   color: #12284B;
 }
 
-.detail-meta {
+/* Stage progress bar */
+.stage-bar {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: #1a1a1a;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 2px solid #FFC52F;
+  align-items: center;
+  margin: 0.75rem 0 1.1rem;
 }
 
-.detail-meta strong {
-  color: #12284B;
-  margin-right: 0.4rem;
+.stage-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
 }
+
+.stage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #d0d6e0;
+  background: #fff;
+}
+.stage-dot--done { background: #12284B; border-color: #12284B; }
+.stage-dot--active { background: #FFC52F; border-color: #FFC52F; box-shadow: 0 0 0 3px rgba(255,197,47,0.25); }
+
+.stage-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #bbb;
+  white-space: nowrap;
+}
+.stage-label--done { color: #12284B; }
+.stage-label--active { color: #b07d00; font-weight: 700; }
+
+.stage-conn {
+  flex: 1;
+  height: 2px;
+  background: #e4e9f2;
+  margin-bottom: 1rem;
+}
+.stage-conn--done { background: #12284B; }
+
+.stage-bar-terminal {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #555;
+  background: #f0f2f5;
+  border: 1px solid #d0d6e0;
+  border-radius: 3px;
+  padding: 0.2rem 0.6rem;
+  margin: 0.5rem 0 1rem;
+}
+
+/* 2-col metadata grid */
+.detail-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  margin-bottom: 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #FFC52F;
+  align-items: baseline;
+}
+
+.dm-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  white-space: nowrap;
+}
+
+.dm-value {
+  color: #1a1a1a;
+  font-weight: 500;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.dm-sponsor-link {
+  color: #12284B;
+  text-decoration: none;
+  font-weight: 600;
+}
+.dm-sponsor-link:hover { color: #FFC52F; text-decoration: underline; }
+
+/* Summary block */
+.detail-summary {
+  margin: 1rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e4e9f2;
+}
+
+.detail-summary p {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem;
+}
+
+.detail-summary-note {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+/* Legistar full-width button */
+.legistar-btn {
+  display: block;
+  text-align: center;
+  background: #12284B;
+  color: #FFC52F;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.7rem 1rem;
+  border-radius: 4px;
+  margin-top: 1.25rem;
+}
+.legistar-btn:hover { background: #1a3a6b; }
 
 .detail-section {
   margin-bottom: 1.25rem;
@@ -863,6 +1036,14 @@ body {
   line-height: 1.5;
 }
 .substitute-notice a { color: #5b21b6; font-weight: 600; }
+.substitute-diff {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: #3b1a7a;
+  line-height: 1.55;
+  padding-top: 0.5rem;
+  border-top: 1px solid #c4a8f0;
+}
 
 .next-hearing-callout {
   display: flex;
@@ -927,18 +1108,6 @@ body {
   padding-top: 0.5rem;
 }
 
-.legistar-link {
-  display: inline-block;
-  margin-top: 1rem;
-  font-size: 0.82rem;
-  color: #12284B;
-  text-decoration: underline;
-  font-weight: 600;
-}
-
-.legistar-link:hover {
-  color: #FFC52F;
-}
 
 .pagination {
   display: flex;
@@ -1038,13 +1207,19 @@ body {
 
   .detail-panel {
     position: fixed;
-    inset: 0;
+    top: 60px;
+    right: 0;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    max-height: 100vh;
+    max-height: calc(100vh - 60px);
     z-index: 200;
     border-left: none;
     border-top: 3px solid #FFC52F;
-    padding: 1rem;
+  }
+
+  .detail-panel-body {
+    padding: 0.75rem 1rem 1rem;
   }
 
   .upcoming-section {

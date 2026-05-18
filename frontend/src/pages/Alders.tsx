@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchAlders } from '../api'
 import type { Alder } from '../api'
+import { alderInitials, alderAvatarColor } from '../utils'
 import { usePageTitle } from '../usePageTitle'
 import './Alders.css'
 
@@ -31,10 +32,16 @@ export default function Alders() {
             <div className="alders-grid">
               {alders.filter(alder => alder.district && /^\d+$/.test(alder.district)).map(alder => (
                 <Link key={alder.id} to={`/alders/${alder.id}`} className="alder-card">
-                  <div className="alder-card-district">
-                    District {alder.district}
+                  <div className="alder-card-top">
+                    {alder.photo_url
+                      ? <img src={alder.photo_url} alt="" className="alder-card-avatar" />
+                      : <div className="alder-card-avatar alder-card-avatar--initials" style={{ background: alderAvatarColor(alder.name) }}>{alderInitials(alder.name)}</div>
+                    }
+                    <div>
+                      <div className="alder-card-district">District {alder.district}</div>
+                      <div className="alder-card-name">{alder.name}</div>
+                    </div>
                   </div>
-                  <div className="alder-card-name">{alder.name}</div>
                   {(alder.email || alder.phone) && (
                     <div className="alder-card-contact">
                       {alder.email && <div>{alder.email}</div>}

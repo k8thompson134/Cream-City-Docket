@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { fetchAlder, fetchBill, legistarUrl } from '../api'
 import type { AlderDetail as AlderDetailType, Bill, BillDetail, ElectionRecord, OfficeRecord, VoteRecord } from '../api'
+import { alderInitials, alderAvatarColor } from '../utils'
 import { usePageTitle } from '../usePageTitle'
 import { AlderHeroSkeleton } from '../Skeletons'
 import './Alders.css'
@@ -537,7 +538,7 @@ export default function AlderDetail() {
         <div className="alder-hero-inner">
           {alder.photo_url
           ? <img src={alder.photo_url} alt={`${displayName}, ${district ?? 'Milwaukee Common Council'}`} className="alder-photo" />
-          : <div className="alder-photo-placeholder" aria-hidden="true">Photo<br />N/A</div>
+          : <div className="alder-photo-placeholder" aria-hidden="true" style={{ background: alderAvatarColor(alder.name) }}>{alderInitials(alder.name)}</div>
         }
 
           <div className="alder-hero-info">

@@ -178,28 +178,16 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 
 **Remaining estimated effort: ~4–8 hours**
 
-### Pending AI / heavy-lift tasks
-
-These require DB migrations, Claude Haiku calls, or external data sourcing and are deferred to a focused AI sprint.
-
-| Task | Effort | Notes |
-|---|---|---|
-| AI legislative focus summary on alder profiles | 3 hrs | Haiku summarizes sponsored bills; store in `Alder` or separate table |
-| AI vote pattern summary on alder vote history | 2 hrs | Haiku summarizes yes/no patterns with issue tags |
-| What changed on substitute filing | 2 hrs | Haiku diffs original vs substitute text from Legistar |
-| Vote summary sentence in bill detail | 1 hr | Haiku one-liner: "Passed 12–2 with bipartisan support" |
-| Political history tab on alder profiles | 3 hrs | Needs external election data (city clerk records or manual) |
-
 ### Still pending / deferred
 
-| Task | Effort | Notes |
-|---|---|---|
-| Placeholder avatar for alders without photos | 30 min | SVG initials avatar fallback |
-| Update About page trigger story copy | 30 min | Explain what causes an email alert |
-| Terms / committees to alder quick-facts sidebar | 30 min | Term start date, committee assignments |
-| Full accessibility audit (WCAG AA — keyboard nav, screen reader) | 2 hrs | Partial done; tooltips, tabs, forms done |
-| Lighthouse / performance pass | 1 hr | API response times, bundle size |
-| Real-world alert test: subscriber receives matching alert | — | Needs a new bill to be introduced and enriched |
+| Task | Effort | Status | Notes |
+|---|---|---|---|
+| Full accessibility audit (WCAG AA — keyboard nav, screen reader) | 2 hrs | ⬜ Pending | Partial done; tooltips, tabs, forms done |
+| Lighthouse / performance pass | 1 hr | ⬜ Pending | API response times, bundle size |
+| Real-world alert test: subscriber receives matching alert | — | ⬜ Pending | Needs a new bill to be introduced and enriched |
+| Update About page trigger story copy | 30 min | ✅ Done May 18 | Added "What triggers an alert" section with 4 specific triggers |
+| Terms / committees to alder quick-facts sidebar | 30 min | ✅ Done May 18 | Current term start/expiry + committee list with Chair badge |
+| Placeholder avatar for alders without photos | 30 min | ✅ Done | SVG initials avatar fallback (see Alders.css `.alder-card-avatar--initials`) |
 
 ### Definition of done
 
@@ -218,6 +206,19 @@ These require DB migrations, Claude Haiku calls, or external data sourcing and a
 
 ---
 
+## Milestone 5 — AI Enrichment Sprint ⬜ Not started
+*Requires DB migrations and Haiku API calls. Best done in a focused session.*
+
+| Task | Effort | Notes |
+|---|---|---|
+| AI legislative focus summary on alder profiles | 3 hrs | Haiku summarizes what issues an alder champions, based on sponsored bills + tag distribution. Needs new `Alder.focus_summary` column. |
+| AI vote pattern summary on alder vote history | 2 hrs | Haiku writes a one-liner: "votes with the majority 94% of the time, dissents most on Housing bills." Needs new `Alder.vote_pattern_summary` column. |
+| What changed on substitute filing | 2 hrs | When a SUBSTITUTE history entry exists, Haiku diffs original vs new text from Legistar versions. Store in `Matter.substitute_summary`. |
+| Vote summary sentence on bill detail | 1 hr | Currently computed client-side from raw vote counts. Replace with a Haiku-written one-liner stored on the bill. Low priority — client-side version works fine. |
+| Political history tab — election results | 3 hrs | `AlderElectionRecord` model + API endpoint exist; data not yet imported. Needs one-time script from city clerk records or manual entry. |
+
+---
+
 ## Summary
 
 | Milestone | Focus | Status |
@@ -225,5 +226,5 @@ These require DB migrations, Claude Haiku calls, or external data sourcing and a
 | 1 — Data Foundation | Legistar API exploration + poller + database | ✅ Complete |
 | 2 — Enrichment Pipeline | Claude Haiku integration + APScheduler | ✅ Complete |
 | 3 — Backend API + Frontend | FastAPI + React, all pages, alder pages, deployed | ✅ Complete |
-| 4 — Alerts + Polish | Email alerts, manage prefs, production polish | 🔄 In progress |
-| 5 — AI Enrichment (planned) | Alder summaries, vote patterns, substitute diffs | ⬜ Not started |
+| 4 — Alerts + Polish | Email alerts, manage prefs, production polish | 🔄 ~95% done |
+| 5 — AI Enrichment | Alder summaries, vote patterns, substitute diffs | ⬜ Not started |

@@ -238,33 +238,40 @@ export default function BillPage() {
   return (
     <div className="bill-page">
       <div className="bill-page-hero">
-        <div className="bill-page-breadcrumb">
-          <Link to="/">The Docket</Link>
-          <span>›</span>
-          <span>{bill.matter_type}</span>
-        </div>
-        <div className="bill-page-badges">
-          <span className="bill-type">{bill.matter_type}</span>
-          <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
-            {bill.matter_status}
-          </span>
-          {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
-        </div>
-        <h1 className="bill-page-title">{bill.title}</h1>
-        <div className="bill-page-meta-row">
-          {bill.file_number && <span>File #{bill.file_number}</span>}
-          <span>Introduced {formatDate(bill.intro_date)}</span>
-          {bill.passed_date && <span>Passed {formatDate(bill.passed_date)}</span>}
-          <div className="bp-share-wrap">
-            <button className="bp-share-btn" onClick={handleShare}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
-                <polyline points="16 6 12 2 8 6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
-              </svg>
-              Share
-            </button>
-            {copied && <span className="bp-share-tooltip">Link copied!</span>}
+        <div className="bill-page-hero-inner">
+          <div className="bill-page-hero-content">
+            <div className="bill-page-breadcrumb">
+              <Link to="/">The Docket</Link>
+              <span>›</span>
+              <span>{bill.matter_type}</span>
+            </div>
+            <div className="bill-page-badges">
+              <span className="bill-type">{bill.matter_type}</span>
+              <span className="bill-status" style={{ background: statusColor(bill.matter_status) }}>
+                {bill.matter_status}
+              </span>
+              {bill.tags.map(t => <span key={t} className="tag-chip">{t}</span>)}
+            </div>
+            <h1 className="bill-page-title">{bill.title}</h1>
+            <div className="bill-page-meta-row">
+              {bill.file_number && <span>File #{bill.file_number}</span>}
+              <span>Introduced {formatDate(bill.intro_date)}</span>
+              {bill.passed_date && <span>Passed {formatDate(bill.passed_date)}</span>}
+              <div className="bp-share-wrap">
+                <button className="bp-share-btn" onClick={handleShare}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/>
+                    <polyline points="16 6 12 2 8 6"/>
+                    <line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  Share
+                </button>
+                {copied && <span className="bp-share-tooltip">Link copied!</span>}
+              </div>
+            </div>
+          </div>
+          <div className="bill-page-hero-actions">
+            <a href="#bp-alert" className="bp-alert-hero-btn">Get alerts →</a>
           </div>
         </div>
       </div>
@@ -460,6 +467,35 @@ export default function BillPage() {
         </main>
 
         <aside className="bill-page-sidebar">
+          <div className="bp-sidebar-card" id="bp-alert">
+            <h3>Get alerted about this bill</h3>
+            {trackStatus === 'success' ? (
+              <p className="bp-track-success">
+                You'll get alerts for this bill. Check your email to confirm.
+              </p>
+            ) : (
+              <form onSubmit={handleTrack} className="bp-track-form">
+                <p className="bp-track-desc">
+                  Email when this bill is scheduled for a vote or the mayor acts on it.
+                </p>
+                <input
+                  type="email"
+                  className="bp-track-input"
+                  placeholder="you@example.com"
+                  value={trackEmail}
+                  onChange={e => setTrackEmail(e.target.value)}
+                  required
+                />
+                <button type="submit" className="bp-track-btn" disabled={trackStatus === 'loading'}>
+                  {trackStatus === 'loading' ? 'Sending…' : 'Alert me →'}
+                </button>
+                {trackStatus === 'error' && (
+                  <p className="bp-track-error">Something went wrong. Try again.</p>
+                )}
+              </form>
+            )}
+          </div>
+
           <div className="bp-sidebar-card">
             <h3>Bill Info</h3>
             {bill.file_number && (
@@ -524,35 +560,6 @@ export default function BillPage() {
               ))}
             </div>
           )}
-
-          <div className="bp-sidebar-card">
-            <h3>Get alerted about this bill</h3>
-            {trackStatus === 'success' ? (
-              <p className="bp-track-success">
-                You'll get alerts for this bill. Check your email to confirm.
-              </p>
-            ) : (
-              <form onSubmit={handleTrack} className="bp-track-form">
-                <p className="bp-track-desc">
-                  Receive an email when this bill is scheduled for a vote or the mayor acts on it.
-                </p>
-                <input
-                  type="email"
-                  className="bp-track-input"
-                  placeholder="you@example.com"
-                  value={trackEmail}
-                  onChange={e => setTrackEmail(e.target.value)}
-                  required
-                />
-                <button type="submit" className="bp-track-btn" disabled={trackStatus === 'loading'}>
-                  {trackStatus === 'loading' ? 'Sending…' : 'Alert me →'}
-                </button>
-                {trackStatus === 'error' && (
-                  <p className="bp-track-error">Something went wrong. Try again.</p>
-                )}
-              </form>
-            )}
-          </div>
 
           <div className="bp-sidebar-card">
             <a href={legistarUrl(bill)} target="_blank" rel="noreferrer" className="bp-legistar-btn">

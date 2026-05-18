@@ -142,10 +142,10 @@ function BillDetailPanel({ id, onClose, showSummaries, showConfidence }: {
   return (
     <div className="detail-panel">
       <div className="detail-panel-header">
-        <div className="detail-panel-header">
-        <button className="close-btn" onClick={onClose}>✕ Close</button>
-        <a href={`/bills/${id}`} className="detail-fullpage-link">View full page →</a>
-      </div>
+        <div className="detail-panel-header-left">
+          <button className="close-btn" onClick={onClose}>✕ Close</button>
+          <a href={`/bills/${id}`} className="detail-fullpage-link">View full page →</a>
+        </div>
         <button className="copy-link-btn" onClick={copyLink}>
           {copied ? '✓ Copied!' : '⎘ Copy link'}
         </button>
@@ -458,13 +458,32 @@ function Docket() {
         ))}
         {!loading && bills.length === 0 && <div className="empty">No bills match these filters.</div>}
 
-        {!loading && (
-          <div className="pagination">
-            <button disabled={skip === 0} onClick={() => setSkip(s => Math.max(0, s - LIMIT))}>← Prev</button>
-            <span>{Math.floor(skip / LIMIT) + 1} / {Math.ceil(total / LIMIT) || 1}</span>
-            <button disabled={skip + LIMIT >= total} onClick={() => setSkip(s => s + LIMIT)}>Next →</button>
-          </div>
-        )}
+        {!loading && (() => {
+          const currentPage = Math.floor(skip / LIMIT) + 1
+          const totalPages = Math.ceil(total / LIMIT) || 1
+          const pages: (number | '…')[] = totalPages <= 7
+            ? Array.from({ length: totalPages }, (_, i) => i + 1)
+            : currentPage <= 4
+              ? [1, 2, 3, 4, 5, '…', totalPages]
+              : currentPage >= totalPages - 3
+                ? [1, '…', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+                : [1, '…', currentPage - 1, currentPage, currentPage + 1, '…', totalPages]
+          return (
+            <div className="pagination">
+              <button disabled={skip === 0} onClick={() => { setSkip(s => Math.max(0, s - LIMIT)); closeBill() }}>← Prev</button>
+              {pages.map((p, i) =>
+                p === '…'
+                  ? <span key={`ellipsis-${i}`} className="pagination-ellipsis">…</span>
+                  : <button
+                      key={p}
+                      className={p === currentPage ? 'pagination-page pagination-page--active' : 'pagination-page'}
+                      onClick={() => { setSkip((p - 1) * LIMIT); closeBill() }}
+                    >{p}</button>
+              )}
+              <button disabled={skip + LIMIT >= total} onClick={() => { setSkip(s => s + LIMIT); closeBill() }}>Next →</button>
+            </div>
+          )
+        })()}
       </main>
 
       {selectedId !== null && (

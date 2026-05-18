@@ -20,6 +20,31 @@
 }
 .alder-card:hover { box-shadow: 0 3px 10px rgba(18,40,75,0.12); border-left-color: #FFC52F; }
 
+.alder-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.alder-card-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.alder-card-avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.02em;
+}
+
 .alder-card-district {
   font-size: 0.72rem;
   font-weight: 700;
@@ -33,7 +58,6 @@
   font-size: 1rem;
   font-weight: 700;
   color: #12284B;
-  margin-bottom: 0.75rem;
   line-height: 1.3;
 }
 
@@ -108,17 +132,17 @@
 .alder-photo-placeholder {
   width: 96px;
   height: 96px;
-  background: #2a3f60;
-  border: 2px solid #3d5a87;
+  border: 2px solid rgba(255,255,255,0.15);
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  color: #8ba3c4;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
   text-align: center;
   flex-shrink: 0;
-  line-height: 1.3;
+  letter-spacing: 0.02em;
 }
 
 .alder-hero-info { flex: 1; min-width: 0; }
@@ -357,7 +381,7 @@
 
 .issue-area-tag-col { display: flex; flex-direction: column; width: 160px; flex-shrink: 0; gap: 0.1rem; }
 .issue-area-tag { font-size: 0.82rem; font-weight: 700; color: #12284B; }
-.issue-area-rank { font-size: 0.67rem; color: #FFC52F; font-weight: 700; background: #12284B; padding: 0.05rem 0.35rem; border-radius: 2px; display: inline-block; width: fit-content; }
+.issue-area-rank { font-size: 0.72rem; color: #FFC52F; font-weight: 700; background: #12284B; padding: 0.1rem 0.45rem; border-radius: 2px; display: inline-block; width: fit-content; letter-spacing: 0.01em; }
 
 .issue-area-bar-wrap { flex: 1; height: 8px; background: #e4e9f2; border-radius: 4px; overflow: hidden; }
 

@@ -46,6 +46,26 @@
 .toggle-label { font-size: 0.9rem; font-weight: 600; color: #1a1a1a; margin-bottom: 0.2rem; }
 .toggle-sub { font-size: 0.78rem; color: #666; }
 
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.toggle-state-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #aaa;
+  width: 22px;
+  text-align: right;
+}
+
+.toggle-state-label--on {
+  color: #12284B;
+}
+
 .toggle-btn {
   width: 44px;
   height: 24px;

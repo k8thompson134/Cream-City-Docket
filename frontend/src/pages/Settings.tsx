@@ -15,15 +15,18 @@ function Toggle({ label, sub, checked, onChange }: {
         <div className="toggle-label">{label}</div>
         <div className="toggle-sub">{sub}</div>
       </div>
-      <button
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        className={`toggle-btn${checked ? ' toggle-btn--on' : ''}`}
-        onClick={() => onChange(!checked)}
-      >
-        <span className="toggle-knob" />
-      </button>
+      <div className="toggle-control">
+        <span className={`toggle-state-label${checked ? ' toggle-state-label--on' : ''}`}>{checked ? 'ON' : 'OFF'}</span>
+        <button
+          role="switch"
+          aria-checked={checked}
+          aria-label={label}
+          className={`toggle-btn${checked ? ' toggle-btn--on' : ''}`}
+          onClick={() => onChange(!checked)}
+        >
+          <span className="toggle-knob" />
+        </button>
+      </div>
     </div>
   )
 }

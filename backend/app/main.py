@@ -604,8 +604,8 @@ def create_subscription(body: SubscribeRequest):
             from notifications.email import send_email
             from notifications.templates import confirmation_email
             site_url = os.getenv("SITE_URL", "https://creamcitydocket.com")
-            manage_url = f"{site_url}/manage/{sub.unsubscribe_token}"
-            unsubscribe_url = f"{site_url}/manage/{sub.unsubscribe_token}?action=unsubscribe"
+            manage_url = f"{site_url}/subscribe?token={sub.unsubscribe_token}"
+            unsubscribe_url = f"{site_url}/subscribe?token={sub.unsubscribe_token}&action=unsubscribe"
             subj, html, text = confirmation_email(
                 tags=body.tags,
                 district=body.district,
@@ -617,7 +617,7 @@ def create_subscription(body: SubscribeRequest):
             import logging
             logging.getLogger(__name__).error("Confirmation email failed: %s", e)
 
-        return {"ok": True}
+        return {"ok": True, "token": sub.unsubscribe_token}
     except Exception:
         session.rollback()
         raise

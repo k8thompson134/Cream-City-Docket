@@ -284,7 +284,12 @@ def _upsert_votes(session, event_item: EventItem, event_date: datetime | None) -
         if not alder:
             continue
 
-        existing = session.query(Vote).filter_by(legistar_vote_id=legistar_vote_id).first()
+        # Dedup on (alder_id, event_item_id) — the DB's actual unique constraint.
+        # Legistar can reissue a new VoteId for the same alder+item (e.g. a correction),
+        # so checking legistar_vote_id alone lets duplicates through and crashes the insert.
+        existing = session.query(Vote).filter_by(
+            alder_id=alder.id, event_item_id=event_item.id,
+        ).first()
         if not existing:
             session.add(Vote(
                 legistar_vote_id=legistar_vote_id,
@@ -294,6 +299,10 @@ def _upsert_votes(session, event_item: EventItem, event_date: datetime | None) -
                 vote_value=v.get("VoteValueName"),
                 voted_at=event_date,
             ))
+        elif existing.legistar_vote_id != legistar_vote_id:
+            existing.legistar_vote_id = legistar_vote_id
+            existing.vote_value = v.get("VoteValueName")
+            existing.voted_at = event_date
 
 
 def _upsert_office_records(session, alder: Alder) -> None:

@@ -57,7 +57,7 @@ export default function Subscribe() {
       setToken(t)
       loadExisting(t)
     }
-    if (searchParams.get('action') === 'unsub' && t) {
+    if (searchParams.get('action') === 'unsubscribe' && t) {
       handleUnsubscribe(t)
     }
   }, [])
@@ -67,15 +67,13 @@ export default function Subscribe() {
 
   async function loadExisting(t: string) {
     try {
-      const res = await fetch(`${API_BASE}/api/subscribe/${t}`)
+      const res = await fetch(`${API_BASE}/api/subscriptions/${t}`)
       if (!res.ok) throw new Error('Subscription not found')
       const data = await res.json()
       setEmail(data.email)
       setSelectedTags(new Set(data.tags))
-      setDistrict(data.districts?.[0] ?? '')
-      setDigestMode(data.digest_mode)
-      setPriorityTags(new Set(data.priority_tags))
-      setPriorityDistrict(data.priority_district)
+      setDistrict(data.district ?? '')
+      setMayorActions(data.mayor_actions ?? false)
       setStep('manage')
     } catch {
       setSubmitError('Could not load subscription. The link may be expired.')
@@ -131,17 +129,14 @@ export default function Subscribe() {
       const body = {
         email,
         tags: Array.from(selectedTags),
-        districts: district ? [district] : [],
-        digest_mode: digestMode,
-        priority_tags: Array.from(priorityTags),
-        priority_district: priorityDistrict,
+        district: district || null,
         mayor_actions: mayorActions,
       }
 
       const url = token
-        ? `${API_BASE}/api/subscribe/${token}`
-        : `${API_BASE}/api/subscribe`
-      const method = token ? 'PUT' : 'POST'
+        ? `${API_BASE}/api/subscriptions/${token}`
+        : `${API_BASE}/api/subscriptions`
+      const method = token ? 'PATCH' : 'POST'
 
       const res = await fetch(url, {
         method,
@@ -164,7 +159,7 @@ export default function Subscribe() {
 
   async function handleUnsubscribe(t: string) {
     try {
-      await fetch(`${API_BASE}/api/subscribe/${t}`, { method: 'DELETE' })
+      await fetch(`${API_BASE}/api/subscriptions/${t}`, { method: 'DELETE' })
       setStep('form')
       setEmail('')
       setSelectedTags(new Set())

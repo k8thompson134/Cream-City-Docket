@@ -41,11 +41,11 @@ COUNCIL_VOTE_STATUSES = {
 
 
 def _manage_url(token: str) -> str:
-    return f"{SITE_URL}/manage/{token}"
+    return f"{SITE_URL}/subscribe?token={token}"
 
 
 def _unsubscribe_url(token: str) -> str:
-    return f"{SITE_URL}/manage/{token}?action=unsubscribe"
+    return f"{SITE_URL}/subscribe?token={token}&action=unsubscribe"
 
 
 def _format_date(dt: datetime | None) -> str:

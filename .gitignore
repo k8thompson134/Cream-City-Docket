@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *.pyo
 .venv/
@@ -9,6 +10,9 @@ env/
 dist/
 build/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.log
 
 # Environment
 .env
@@ -19,16 +23,20 @@ build/
 node_modules/
 dist/
 .vite/
+.vercel/
+*.tsbuildinfo
 
-# IDE
+# IDE / editors
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
+.DS_Store?
 Thumbs.db
 
-# Claude Code — ignore local settings/session state, but keep shared project skills
-.claude/*
-!.claude/skills/
-!.claude/skills/**
+# Claude Code — local only, never committed
+.claude/
+CLAUDE.md

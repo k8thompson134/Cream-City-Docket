@@ -241,6 +241,8 @@ While root-causing this live against production (via the Railway CLI — `poll_l
 
 ## Remaining / Future
 
+See `cream-city-docket-roadmap.md` for the fuller forward-looking scope (reliability/ops gaps, architecture debt, feature direction grounded in the manifesto) — the larger items there are also filed on the Lair task board under category "Cream City Docket". This table stays as the short list.
+
 | Item | Notes |
 |---|---|
 | Real-world alert test | Now actually meaningful to check — pipeline was dark May 21–Aug 25 (see Milestone 6). Watch the next few poll cycles for a real bill triggering a real email end-to-end. |

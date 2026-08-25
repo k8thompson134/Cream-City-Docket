@@ -61,6 +61,20 @@ That split — some bills name a real address, most zone/code-based ones don't �
 
 Build order matters here: #432 (keyword watch) is cheap, self-contained, and immediately useful on its own — do it first. #433 (address extraction) is a natural next step. #434 (zone resolution) is the only piece that would have caught the Water Street bill *by name* rather than by lucky tag overlap, but it's also the most speculative and data-dependent — treat it as a real "someday," not a near-term commitment. #435 only makes sense once at least #432 exists.
 
+## 5. Political History — donor/PAC disclosure and pre-political career
+
+The Political History tab already has real, working sections: Service Summary and Council Roles & Committee Memberships both run off `AlderOfficeRecord`, which is genuinely populated (523 rows from Legistar, back to 2004 for at least one alder). Only Election History (#430) is empty. Two things asked for here are new concepts, not gaps in what's already built:
+
+| Item | What it adds | Data source | Effort | Lair task |
+|---|---|---|---|---|
+| **Campaign finance / donor & PAC disclosure** — who funds an alder's or the mayor's campaign, and how much | Constituent-facing accountability context: does this official's donor base line up with how they vote on related legislation? Directly on-mission per the manifesto's transparency/accountability principles (§12–13) | Wisconsin Ethics Commission's campaign finance system (CFIS/eCFIS) publishes itemized contributions for local candidates — real, public, sourceable, but recurring (filings update every cycle, not a one-time import like election results) | xl | #436 |
+| **Pre-political career / biography** — what an alder or the mayor did before holding office (e.g. attorney, small-business owner, police officer), as distinct from `AlderOfficeRecord`'s in-council committee history | Gives constituents context for potential conflicts of interest or relevant expertise behind a vote — e.g. a former landlord voting on tenant-protection ordinances | No structured public API for this the way election results or campaign finance have one — closer to `enrich_alders.py`'s manual/curated sourcing (official bio pages, campaign sites) than a clean data pull | l | #437 |
+| **Model the Mayor as a real entity** (prerequisite for either of the above applying to the mayor) | `/api/mayor` is currently a hardcoded dict in `main.py` — no DB row, no office records, no election records. Neither donor disclosure nor career history nor even the existing election-history feature can extend to the mayor until this exists | Straightforward modeling work — an actual `Mayor`/generalized `Official` row wired the way `Alder` already is, not a data-sourcing problem | m | #438 |
+
+**Neutrality note, since this is explicitly a manifesto commitment (§12):** donor/PAC data should be presented as plain factual disclosure — amounts, dates, contributor names/employers exactly as filed — with no editorializing about what a given donor relationship implies. The manifesto is explicit that "commentary never replaces or obscures the underlying facts" and any interpretation must be clearly labeled as such; this is the section of the product most likely to be misread as a "gotcha" if that discipline slips.
+
+Build order: #438 (model the Mayor) is small and unblocks the other two applying beyond alders — do it before or alongside #436/#437 rather than after. #436 (donor/PAC data) is the heavier, recurring-maintenance one; #437 (career bio) is more a research/curation effort than an engineering one.
+
 ## Immediate next steps (not backlog — do these first, this week)
 
 - **Confirm the poller fix held.** Re-run `docket-health` and check both poller lines are ✅ (as of this writing, the first real post-fix poll cycle hadn't completed yet).

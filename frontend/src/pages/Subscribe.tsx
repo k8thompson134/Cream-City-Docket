@@ -74,6 +74,9 @@ export default function Subscribe() {
       setSelectedTags(new Set(data.tags))
       setDistrict(data.district ?? '')
       setMayorActions(data.mayor_actions ?? false)
+      setDigestMode(data.digest_mode ?? 'daily')
+      setPriorityTags(new Set(data.priority_tags ?? []))
+      setPriorityDistrict(data.priority_district ?? false)
       setStep('manage')
     } catch {
       setSubmitError('Could not load subscription. The link may be expired.')
@@ -131,6 +134,9 @@ export default function Subscribe() {
         tags: Array.from(selectedTags),
         district: district || null,
         mayor_actions: mayorActions,
+        digest_mode: digestMode,
+        priority_tags: Array.from(priorityTags),
+        priority_district: priorityDistrict,
       }
 
       const url = token

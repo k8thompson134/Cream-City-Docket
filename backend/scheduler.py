@@ -33,14 +33,33 @@ def _poll_then_enrich():
         log.error("Dispatcher failed: %s", e)
 
 
+def _send_daily_digests():
+    from notifications.dispatcher import send_digests
+    try:
+        send_digests("daily")
+    except Exception as e:
+        log.error("Daily digest send failed: %s", e)
+
+
+def _send_weekly_digests():
+    from notifications.dispatcher import send_digests
+    try:
+        send_digests("weekly")
+    except Exception as e:
+        log.error("Weekly digest send failed: %s", e)
+
+
 def start_scheduler():
     global _scheduler
     if _scheduler and _scheduler.running:
         return
     _scheduler = BackgroundScheduler()
     _scheduler.add_job(_poll_then_enrich, "interval", hours=1, id="poll_and_enrich")
+    # 7am Central matches the delivery time promised on the subscribe page.
+    _scheduler.add_job(_send_daily_digests, "cron", hour=7, timezone="America/Chicago", id="send_daily_digests")
+    _scheduler.add_job(_send_weekly_digests, "cron", day_of_week="mon", hour=7, timezone="America/Chicago", id="send_weekly_digests")
     _scheduler.start()
-    log.info("Scheduler started — poll + enrich every hour")
+    log.info("Scheduler started — poll + enrich every hour, digests daily/weekly at 7am CT")
 
 
 def stop_scheduler():

@@ -20,10 +20,10 @@ from sqlalchemy.orm import joinedload
 from app.database import SessionLocal
 from app.models import (
     AlertLog, Matter, MatterSponsor, MatterTag,
-    MayorAction, Subscriber,
+    MayorAction, NotificationQueue, Subscriber,
 )
 from notifications.email import send_email
-from notifications.templates import alert_email
+from notifications.templates import alert_email, render_digest_email
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +57,14 @@ def _format_date(dt: datetime | None) -> str:
 def _already_sent(session, subscriber_id: int, matter_id: int, trigger: str) -> bool:
     return (
         session.query(AlertLog)
+        .filter_by(subscriber_id=subscriber_id, matter_id=matter_id, trigger_event=trigger)
+        .first()
+    ) is not None
+
+
+def _already_queued(session, subscriber_id: int, matter_id: int, trigger: str) -> bool:
+    return (
+        session.query(NotificationQueue)
         .filter_by(subscriber_id=subscriber_id, matter_id=matter_id, trigger_event=trigger)
         .first()
     ) is not None
@@ -134,8 +142,10 @@ def run_dispatcher() -> None:
                 continue
 
             matter_tags = {mt.tag.name for mt in matter.tags if mt.tag}
+            # Bare district number — matches the value SubscriberPreference stores
+            # (main.py persists body.district as-is, e.g. "5", not "District 5").
             sponsor_districts = {
-                f"District {s.alder.district}"
+                s.alder.district
                 for s in matter.sponsors
                 if s.alder and s.alder.district and s.alder.district.isdigit()
             }
@@ -185,12 +195,29 @@ def run_dispatcher() -> None:
                 trigger_reason = (
                     ", ".join(sorted(matched_tags))
                     if matched_tags
-                    else ", ".join(sorted(matched_districts)) if matched_districts
+                    else ", ".join(f"District {d}" for d in sorted(matched_districts)) if matched_districts
                     else "mayor actions"
                 )
 
+                priority_tags = set(subscriber.priority_tags or [])
+                is_priority_match = bool(matched_tags & priority_tags) or (
+                    subscriber.priority_district and bool(matched_districts)
+                )
+                send_now = subscriber.digest_mode == "immediate" or is_priority_match
+
                 for trigger in active_triggers:
                     if _already_sent(session, subscriber.id, matter.id, trigger):
+                        continue
+                    if _already_queued(session, subscriber.id, matter.id, trigger):
+                        continue
+
+                    if not send_now:
+                        session.add(NotificationQueue(
+                            subscriber_id=subscriber.id,
+                            matter_id=matter.id,
+                            trigger_event=trigger,
+                            is_priority=is_priority_match,
+                        ))
                         continue
 
                     mayor_action = None
@@ -226,6 +253,7 @@ def run_dispatcher() -> None:
                             subscriber_id=subscriber.id,
                             matter_id=matter.id,
                             trigger_event=trigger,
+                            delivery_type="immediate",
                         ))
                         alerts_sent += 1
 
@@ -235,5 +263,66 @@ def run_dispatcher() -> None:
     except Exception as e:
         session.rollback()
         log.exception("Dispatcher failed: %s", e)
+    finally:
+        session.close()
+
+
+def send_digests(period: str) -> None:
+    """Drain NotificationQueue for subscribers on this digest schedule ("daily"/"weekly")."""
+    session = SessionLocal()
+    try:
+        subscribers = (
+            session.query(Subscriber)
+            .filter(Subscriber.active == True, Subscriber.digest_mode == period)  # noqa: E712
+            .all()
+        )
+
+        digests_sent = 0
+
+        for subscriber in subscribers:
+            queued = (
+                session.query(NotificationQueue)
+                .options(
+                    joinedload(NotificationQueue.matter).joinedload(Matter.tags).joinedload(MatterTag.tag),
+                    joinedload(NotificationQueue.matter).joinedload(Matter.sponsors).joinedload(MatterSponsor.alder),
+                )
+                .filter_by(subscriber_id=subscriber.id)
+                .order_by(NotificationQueue.is_priority.desc(), NotificationQueue.created_at.asc())
+                .all()
+            )
+            if not queued:
+                continue
+
+            digest_items = [
+                {"matter": q.matter, "trigger_event": q.trigger_event, "is_priority": q.is_priority}
+                for q in queued
+            ]
+
+            try:
+                subject, html, text = render_digest_email(
+                    digest_items, period, _unsubscribe_url(subscriber.unsubscribe_token)
+                )
+                sent = send_email(to=subscriber.email, subject=subject, html=html, text=text)
+                if not sent:
+                    continue
+
+                for q in queued:
+                    session.add(AlertLog(
+                        subscriber_id=subscriber.id,
+                        matter_id=q.matter_id,
+                        trigger_event=q.trigger_event,
+                        delivery_type="digest",
+                    ))
+                    session.delete(q)
+                digests_sent += 1
+            except Exception as e:
+                log.error("Failed to send %s digest to %s: %s", period, subscriber.email, e)
+
+        session.commit()
+        log.info("Digest send (%s): %d subscribers emailed", period, digests_sent)
+
+    except Exception as e:
+        session.rollback()
+        log.exception("Digest send (%s) failed: %s", period, e)
     finally:
         session.close()

@@ -556,6 +556,9 @@ class SubscribeRequest(BaseModel):
     tags: list[str] = []
     district: str | None = None
     mayor_actions: bool = False
+    digest_mode: str = "daily"
+    priority_tags: list[str] = []
+    priority_district: bool = False
 
 
 @app.post("/api/subscriptions")
@@ -564,6 +567,8 @@ def create_subscription(body: SubscribeRequest):
         raise HTTPException(status_code=422, detail="Invalid email address")
     if not body.tags and not body.district:
         raise HTTPException(status_code=422, detail="Select at least one issue area or district")
+    if body.digest_mode not in ("daily", "weekly", "immediate"):
+        raise HTTPException(status_code=422, detail="Invalid digest_mode")
 
     session = SessionLocal()
     try:
@@ -576,6 +581,11 @@ def create_subscription(body: SubscribeRequest):
             sub = Subscriber(email=body.email, unsubscribe_token=secrets.token_hex(32))
             session.add(sub)
             session.flush()
+
+        sub.digest_mode = body.digest_mode
+        sub.priority_tags = body.priority_tags
+        sub.priority_district = body.priority_district
+        sub.active = True
 
         for tag in body.tags:
             session.add(SubscriberPreference(
@@ -637,6 +647,9 @@ def get_subscription(token: str):
             "tags": [p.preference_value for p in sub.preferences if p.preference_type == "tag"],
             "district": next((p.preference_value for p in sub.preferences if p.preference_type == "district"), None),
             "mayor_actions": any(p.preference_type == "mayor_actions" for p in sub.preferences),
+            "digest_mode": sub.digest_mode,
+            "priority_tags": sub.priority_tags or [],
+            "priority_district": sub.priority_district,
         }
     finally:
         session.close()
@@ -646,17 +659,25 @@ class UpdateSubscriptionRequest(BaseModel):
     tags: list[str] = []
     district: str | None = None
     mayor_actions: bool = False
+    digest_mode: str = "daily"
+    priority_tags: list[str] = []
+    priority_district: bool = False
 
 
 @app.patch("/api/subscriptions/{token}")
 def update_subscription(token: str, body: UpdateSubscriptionRequest):
     if not body.tags and not body.district and not body.mayor_actions:
         raise HTTPException(status_code=422, detail="Select at least one issue area or district")
+    if body.digest_mode not in ("daily", "weekly", "immediate"):
+        raise HTTPException(status_code=422, detail="Invalid digest_mode")
     session = SessionLocal()
     try:
         sub = session.query(Subscriber).filter_by(unsubscribe_token=token).first()
         if not sub:
             raise HTTPException(status_code=404, detail="Subscription not found")
+        sub.digest_mode = body.digest_mode
+        sub.priority_tags = body.priority_tags
+        sub.priority_district = body.priority_district
         session.query(SubscriberPreference).filter_by(subscriber_id=sub.id).delete()
         for tag in body.tags:
             session.add(SubscriberPreference(subscriber_id=sub.id, preference_type="tag", preference_value=tag))

@@ -1,5 +1,5 @@
 # Cream City Docket — Development Plan
-*Version 0.8 | Updated May 17, 2026*
+*Version 0.9 | Updated August 25, 2026*
 
 ---
 
@@ -219,14 +219,35 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 
 ---
 
+## Milestone 6 — Incident: Notification Pipeline Outage ✅ Resolved
+*Outage window: May 21 – August 25, 2026 (discovered and fixed August 25, 2026, after ~3 months of project inactivity.)*
+
+The poller silently failed on **every single run** starting May 21 — three days after Milestone 5 wrapped up. `_upsert_votes` deduped on `legistar_vote_id`, but the DB's actual unique constraint is `(alder_id, event_item_id)`; when Legistar reissued a vote id for the same alder/item, the insert threw `UniqueViolation` deep inside the poll transaction, rolling back every matter/history/mayor-action update from that cycle. Confirmed via `poll_log`: 503 clean runs, then continuous failures with zero successes for the entire outage window. The dispatcher itself was healthy the whole time — it just never had anything new to check, since nothing new ever landed in the database. Alert volume: 81 alerts sent total, all before May 21; zero since.
+
+While root-causing this live against production (via the Railway CLI — `poll_log`/`alert_log` history, not guesswork from the code), several other latent bugs surfaced, unrelated to the poller but with real user impact:
+
+| Issue | Impact | Status |
+|---|---|---|
+| Poller vote dedup on wrong key | Silently killed all new data since May 21 | ✅ Fixed |
+| `Subscribe.tsx` called a dead `/api/subscribe` endpoint (backend only ever exposed `/api/subscriptions`) | Every signup, preference update, and unsubscribe 404'd | ✅ Fixed |
+| Confirmation/alert emails linked to `/manage/{token}`, a route that has never existed | Every "manage preferences" / "unsubscribe" link in every email was dead | ✅ Fixed |
+| `dispatcher.py` matched districts as `"District 5"` against the bare `"5"` stored by `SubscriberPreference` | District-only subscriptions have never matched anything, independent of the poller bug | ✅ Fixed |
+| `digest_mode` / `priority_tags` / `priority_district` — fully built subscribe-page UI, never wired to the backend at all | Subscribers picking "daily digest" got individual immediate emails instead, contradicting the UI's own copy | ✅ Fixed — dispatcher now queues non-immediate matches into `NotificationQueue`, drained by a new `send_digests()` on a 7am CT daily/weekly cron |
+| `notifications/worker.py` — a second, disconnected implementation of the same digest pipeline, never imported anywhere | Dead code, diverging from `dispatcher.py`'s feature set (no `mayor_actions` support) | ✅ Deleted — consolidated into `dispatcher.py` |
+
+**Follow-up:** the alembic migration history has two heads (`a1b2c3d4e5f6` and `a4e8f2d19c30`, both off `97263e2118bf`, no merge migration), and production's `alembic_version` is currently stamped to a revision id that matches no file in the repo. The live schema matches the models regardless, so this isn't blocking anything today, but it means a fresh `alembic upgrade head` would fail outright. Worth a metadata-only cleanup (merge migration + `alembic stamp`) before the next real schema change.
+
+---
+
 ## Remaining / Future
 
 | Item | Notes |
 |---|---|
-| Real-world alert test | Passive — happens when a new matching bill is introduced and enriched |
+| Real-world alert test | Now actually meaningful to check — pipeline was dark May 21–Aug 25 (see Milestone 6). Watch the next few poll cycles for a real bill triggering a real email end-to-end. |
 | Election data for Political History tab | Needs manual sourcing from Milwaukee Elections Commission or city clerk records |
-| `sitemap.xml` | Low priority SEO improvement; robots.txt references it but it doesn't exist yet |
-| Re-run `enrich_alders.py` monthly | Alder legislative focus summaries should refresh as their bill count grows |
+| ~~`sitemap.xml`~~ | ✅ Done Aug 25, 2026 — `GET /sitemap.xml` on the backend (static pages + all public bills + active alders), proxied from `creamcitydocket.com/sitemap.xml` via a Vercel rewrite. Matches the same visibility rules as `GET /api/bills`. |
+| Re-run `enrich_alders.py` monthly | Alder legislative focus summaries should refresh as their bill count grows — hasn't run since ~May 18, given the project's dormancy |
+| Alembic merge migration | Two migration heads with no merge, prod stamped to an untracked revision id. Not urgent (schema matches models) but should be cleaned up before the next real schema change. See Milestone 6. |
 
 ---
 
@@ -239,3 +260,4 @@ Claude Haiku integration, APScheduler, 187 bills enriched. See original plan for
 | 3 — Backend API + Frontend | FastAPI + React, all pages, alder pages, deployed | ✅ Complete |
 | 4 — Alerts + Polish | Email alerts, manage prefs, production polish, a11y, perf | ✅ Complete |
 | 5 — AI Enrichment | Alder focus summaries, substitute diffs | ✅ Complete |
+| 6 — Notification Outage | 3-month silent poller failure, root-caused and fixed; digest mode wired end-to-end | ✅ Resolved |

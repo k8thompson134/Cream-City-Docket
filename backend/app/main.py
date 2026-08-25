@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import joinedload
 
@@ -343,6 +344,46 @@ def get_meta():
         last_poll = session.query(PollLog).filter_by(success=True).order_by(PollLog.polled_at.desc()).first()
         last_synced = last_poll.polled_at.isoformat() if last_poll else None
         return {"matter_types": types, "statuses": statuses, "tags": tags, "last_synced": last_synced}
+    finally:
+        session.close()
+
+
+@app.get("/sitemap.xml")
+def sitemap():
+    """XML sitemap for search engines. Mirrors the same visibility rules as the
+    public feed (GET /api/bills) — excluded matter types stay out of the sitemap."""
+    site_url = os.getenv("SITE_URL", "https://creamcitydocket.com")
+    session = SessionLocal()
+    try:
+        static_paths = ["/", "/alders", "/mayor", "/about", "/subscribe"]
+
+        matters = (
+            session.query(Matter.id, Matter.updated_at)
+            .filter(
+                Matter.summary.isnot(None),
+                Matter.matter_type.notin_(EXCLUDED_TYPES),
+            )
+            .all()
+        )
+        alders = session.query(Alder.id, Alder.updated_at).filter_by(active=True).all()
+
+        urls = [(path, None) for path in static_paths]
+        urls += [(f"/bills/{m.id}", m.updated_at) for m in matters]
+        urls += [(f"/alders/{a.id}", a.updated_at) for a in alders]
+
+        entries = "\n".join(
+            f"  <url>\n    <loc>{site_url}{path}</loc>\n"
+            + (f"    <lastmod>{lastmod.date().isoformat()}</lastmod>\n" if lastmod else "")
+            + "  </url>"
+            for path, lastmod in urls
+        )
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"{entries}\n"
+            "</urlset>"
+        )
+        return Response(content=xml, media_type="application/xml")
     finally:
         session.close()
 

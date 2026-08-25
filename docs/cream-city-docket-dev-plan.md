@@ -235,7 +235,7 @@ While root-causing this live against production (via the Railway CLI — `poll_l
 | `digest_mode` / `priority_tags` / `priority_district` — fully built subscribe-page UI, never wired to the backend at all | Subscribers picking "daily digest" got individual immediate emails instead, contradicting the UI's own copy | ✅ Fixed — dispatcher now queues non-immediate matches into `NotificationQueue`, drained by a new `send_digests()` on a 7am CT daily/weekly cron |
 | `notifications/worker.py` — a second, disconnected implementation of the same digest pipeline, never imported anywhere | Dead code, diverging from `dispatcher.py`'s feature set (no `mayor_actions` support) | ✅ Deleted — consolidated into `dispatcher.py` |
 
-**Follow-up:** the alembic migration history has two heads (`a1b2c3d4e5f6` and `a4e8f2d19c30`, both off `97263e2118bf`, no merge migration), and production's `alembic_version` is currently stamped to a revision id that matches no file in the repo. The live schema matches the models regardless, so this isn't blocking anything today, but it means a fresh `alembic upgrade head` would fail outright. Worth a metadata-only cleanup (merge migration + `alembic stamp`) before the next real schema change.
+**Correction (same day):** an earlier pass of this section flagged the migration history as an unresolved two-head fork with production stamped to an untracked "phantom" revision. That was checked against a stale local git checkout mid-session, not the actual repo — the real history already merges the fork (`d1e2f3g4h5i6`, `down_revision = ('a1b2c3d4e5f6', 'a4e8f2d19c30')`) and continues to a single current head (`g4h5i6j7k8l9`), which production is correctly stamped to. No migration cleanup is actually needed. Verified with the new `docket-health` skill (see below), which parses merge-migration tuples correctly.
 
 ---
 
@@ -247,7 +247,9 @@ While root-causing this live against production (via the Railway CLI — `poll_l
 | Election data for Political History tab | Needs manual sourcing from Milwaukee Elections Commission or city clerk records |
 | ~~`sitemap.xml`~~ | ✅ Done Aug 25, 2026 — `GET /sitemap.xml` on the backend (static pages + all public bills + active alders), proxied from `creamcitydocket.com/sitemap.xml` via a Vercel rewrite. Matches the same visibility rules as `GET /api/bills`. |
 | Re-run `enrich_alders.py` monthly | Alder legislative focus summaries should refresh as their bill count grows — hasn't run since ~May 18, given the project's dormancy |
-| Alembic merge migration | Two migration heads with no merge, prod stamped to an untracked revision id. Not urgent (schema matches models) but should be cleaned up before the next real schema change. See Milestone 6. |
+| ~~Alembic merge migration~~ | ✅ Not actually needed — see the Milestone 6 correction above. Migration history already merges cleanly; prod is stamped to the correct single head. |
+| Verify the poller fix with a real successful poll | `docket-health` still shows the last completed poll as the pre-fix failure (the scheduler's hourly timer restarts on each redeploy, so the first real post-fix run hadn't fired yet as of this writing). Re-run `docket-health` in ~an hour and confirm a ✅ on both poller checks. |
+| Add a `docket-health` skill (`.claude/skills/docket-health/`) | ✅ Done Aug 25, 2026 — one-shot report on poller freshness, alert activity, digest queue depth, and migration sanity. Run it any time this project is picked back up after a gap. |
 
 ---
 

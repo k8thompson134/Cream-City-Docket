@@ -33,6 +33,24 @@ class Alder(Base):
     election_records: Mapped[list["AlderElectionRecord"]] = relationship(back_populates="alder", cascade="all, delete-orphan")
 
 
+class Mayor(Base):
+    __tablename__ = "mayors"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    title: Mapped[str | None] = mapped_column(String(200))
+    photo_url: Mapped[str | None] = mapped_column(String(500))
+    bio: Mapped[str | None] = mapped_column(Text)
+    address: Mapped[str | None] = mapped_column(String(300))
+    phone: Mapped[str | None] = mapped_column(String(50))
+    hours: Mapped[str | None] = mapped_column(String(200))
+    twitter: Mapped[str | None] = mapped_column(String(100))
+    facebook: Mapped[str | None] = mapped_column(String(200))
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
 class AlderElectionRecord(Base):
     __tablename__ = "alder_election_records"
 

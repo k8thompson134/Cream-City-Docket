@@ -64,8 +64,14 @@ def list_bills(
                 (Matter.intro_date >= two_weeks_ago, 1),
                 else_=2,
             )
+            # agenda_date only means "upcoming soon" within bucket 0 (soonest hearing
+            # first). Using it as a global secondary sort let old bills with a stale
+            # past agenda_date (sometimes years old) jump ahead of everything else in
+            # bucket 2 -- outside bucket 0 it's not a useful ordering signal, so fall
+            # back to intro_date (most recently introduced first) there instead.
+            bucket_0_agenda_date = case((urgency_bucket == 0, Matter.agenda_date), else_=None)
             matters = (
-                q.order_by(urgency_bucket, Matter.agenda_date.asc().nullslast(), Matter.intro_date.desc().nullslast(), Matter.id.desc())
+                q.order_by(urgency_bucket, bucket_0_agenda_date.asc().nullslast(), Matter.intro_date.desc().nullslast(), Matter.id.desc())
                 .offset(skip)
                 .limit(limit)
                 .all()

@@ -69,7 +69,9 @@ def get_mayor():
                     "matter": serialize_matter(a.matter),
                 })
 
-        mayor = session.query(Mayor).filter_by(active=True).first()
+        # order_by makes this deterministic if a transition ever briefly leaves
+        # two rows active=True -- most-recently-added wins, not query-plan luck.
+        mayor = session.query(Mayor).filter_by(active=True).order_by(Mayor.id.desc()).first()
 
         return {
             "name": mayor.name if mayor else None,

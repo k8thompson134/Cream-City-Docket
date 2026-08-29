@@ -111,13 +111,15 @@ export interface MayorActionRecord {
 }
 
 export interface MayorProfile {
-  name: string
-  title: string
+  // All nullable except stats/actions -- GET /api/mayor returns null for all
+  // of these when no active Mayor row exists (e.g. mid-transition).
+  name: string | null
+  title: string | null
   photo_url: string | null
-  bio: string
-  address: string
-  phone: string
-  hours: string
+  bio: string | null
+  address: string | null
+  phone: string | null
+  hours: string | null
   twitter: string | null
   facebook: string | null
   stats: { signed: number; vetoed: number; lapsed: number; published: number }

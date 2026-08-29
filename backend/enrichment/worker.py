@@ -17,9 +17,9 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 import anthropic
 from app.database import SessionLocal
-from app.models import IssueTag, Matter, MatterTag
+from app.models import IssueTag, Matter, MatterTag, Mayor
 from enrichment.prompts import (
-    ISSUE_TAXONOMY, SUMMARY_SYSTEM, SUMMARY_USER, TAGS_SYSTEM, TAGS_USER,
+    ISSUE_TAXONOMY, build_summary_system, SUMMARY_USER, TAGS_SYSTEM, TAGS_USER,
     SUBSTITUTE_SYSTEM, SUBSTITUTE_USER,
 )
 from poller import client as legistar
@@ -40,11 +40,11 @@ def _get_haiku_client() -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 
-def _call_summary(haiku: anthropic.Anthropic, title: str, matter_type: str, text: str) -> str:
+def _call_summary(haiku: anthropic.Anthropic, title: str, matter_type: str, text: str, mayor_name: str | None) -> str:
     resp = haiku.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=300,
-        system=SUMMARY_SYSTEM,
+        system=build_summary_system(mayor_name),
         messages=[{
             "role": "user",
             "content": SUMMARY_USER.format(
@@ -130,6 +130,9 @@ def run_enrichment(batch_size: int = 50) -> dict:
         tag_map = _ensure_tags_seeded(session)
         session.commit()
 
+        mayor = session.query(Mayor).filter_by(active=True).order_by(Mayor.id.desc()).first()
+        mayor_name = mayor.name if mayor else None
+
         # Matters that need enrichment: never enriched, or text version changed
         candidates = (
             session.query(Matter)
@@ -158,7 +161,7 @@ def run_enrichment(batch_size: int = 50) -> dict:
 
                 log.info("Enriching matter %d: %s", legistar_id, matter.title[:60])
 
-                summary = _call_summary(haiku, matter.title, matter.matter_type, plain_text)
+                summary = _call_summary(haiku, matter.title, matter.matter_type, plain_text, mayor_name)
                 tag_names = _call_tags(haiku, matter.title, plain_text)
 
                 # Update matter

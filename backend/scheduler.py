@@ -57,6 +57,17 @@ def _check_pipeline_health():
         log.error("Pipeline health check itself failed: %s", e)
 
 
+def _enrich_alders():
+    from scripts.enrich_alders import run as run_alder_enrichment
+    try:
+        # force=True -- focus summaries go stale as an alder's bill count
+        # grows, so a monthly refresh needs to re-enrich, not just backfill
+        # alders that have never been enriched.
+        run_alder_enrichment(force=True)
+    except Exception as e:
+        log.error("Alder enrichment failed: %s", e)
+
+
 def start_scheduler():
     global _scheduler
     if _scheduler and _scheduler.running:
@@ -67,8 +78,11 @@ def start_scheduler():
     _scheduler.add_job(_send_daily_digests, "cron", hour=7, timezone="America/Chicago", id="send_daily_digests")
     _scheduler.add_job(_send_weekly_digests, "cron", day_of_week="mon", hour=7, timezone="America/Chicago", id="send_weekly_digests")
     _scheduler.add_job(_check_pipeline_health, "interval", minutes=30, id="check_pipeline_health")
+    # Monthly, off-peak (5am CT on the 1st) so it doesn't overlap the hourly poll+enrich job.
+    _scheduler.add_job(_enrich_alders, "cron", day=1, hour=5, timezone="America/Chicago", id="enrich_alders")
     _scheduler.start()
-    log.info("Scheduler started — poll + enrich every hour, digests daily/weekly at 7am CT, pipeline health check every 30min")
+    log.info("Scheduler started — poll + enrich every hour, digests daily/weekly at 7am CT, "
+             "pipeline health check every 30min, alder enrichment monthly")
 
 
 def stop_scheduler():

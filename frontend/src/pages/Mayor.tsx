@@ -89,8 +89,13 @@ function ActionRow({ action, isSelected, onClick }: {
 }
 
 export default function Mayor() {
-  usePageTitle('Mayor', 'Cavalier Johnson\'s legislative action history — bills signed, vetoed, and lapsed. Milwaukee mayor actions from the Common Council.')
   const [mayor, setMayor] = useState<MayorProfile | null>(null)
+  usePageTitle(
+    'Mayor',
+    mayor?.name
+      ? `${mayor.name}'s legislative action history — bills signed, vetoed, and lapsed. Milwaukee mayor actions from the Common Council.`
+      : 'Legislative action history — bills signed, vetoed, and lapsed. Milwaukee mayor actions from the Common Council.'
+  )
   const [error, setError] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [selectedId, setSelectedId] = useState<number | null>(null)
@@ -143,18 +148,18 @@ export default function Mayor() {
           {mayor.photo_url && (
             <img
               src={mayor.photo_url}
-              alt={mayor.name}
+              alt={mayor.name ?? 'Milwaukee Mayor'}
               className="mayor-photo"
             />
           )}
           <div className="mayor-hero-info">
-            <div className="mayor-hero-name">{mayor.name}</div>
-            <div className="mayor-hero-title">{mayor.title}</div>
-            <p className="mayor-hero-bio">{mayor.bio}</p>
+            <div className="mayor-hero-name">{mayor.name ?? 'Milwaukee Mayor'}</div>
+            {mayor.title && <div className="mayor-hero-title">{mayor.title}</div>}
+            {mayor.bio && <p className="mayor-hero-bio">{mayor.bio}</p>}
             <div className="mayor-hero-contact">
-              <span>📍 {mayor.address}</span>
-              <span>📞 <a href={`tel:${mayor.phone}`}>{mayor.phone}</a></span>
-              <span>🕐 {mayor.hours}</span>
+              {mayor.address && <span>📍 {mayor.address}</span>}
+              {mayor.phone && <span>📞 <a href={`tel:${mayor.phone}`}>{mayor.phone}</a></span>}
+              {mayor.hours && <span>🕐 {mayor.hours}</span>}
             </div>
             {(mayor.twitter || mayor.facebook) && (
               <div className="mayor-hero-links">

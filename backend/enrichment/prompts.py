@@ -14,14 +14,21 @@ ISSUE_TAXONOMY = [
     "Other",
 ]
 
-MILWAUKEE_CONTEXT = """Key facts about Milwaukee city government:
-- Mayor: Cavalier Johnson (elected 2022)
+def build_milwaukee_context(mayor_name: str | None) -> str:
+    # Mayor name is passed in (read from the Mayor table at call time) rather
+    # than hardcoded here -- the Mayor table exists specifically so this
+    # doesn't go stale on a mayoral transition (see Lair task 438).
+    mayor_line = f"- Mayor: {mayor_name}" if mayor_name else "- Mayor: (not currently on file)"
+    return f"""Key facts about Milwaukee city government:
+{mayor_line}
 - City legislative body: Milwaukee Common Council (15 alders, one per district)
 - Districts: 15 aldermanic districts, each represented by one alder
 - Key bodies: Fire and Police Commission (FPC), Plan Commission, Library Board, Housing Authority
 - Legistar: the city's public legislative tracking system"""
 
-SUMMARY_SYSTEM = f"""You summarize Milwaukee city legislation for everyday residents.
+
+def build_summary_system(mayor_name: str | None) -> str:
+    return f"""You summarize Milwaukee city legislation for everyday residents.
 Write clearly at an 8th grade reading level. Be factual and neutral — no opinion or advocacy.
 Focus on what the legislation actually does and who it affects.
 Do not start with "This ordinance" or "This resolution" — vary your openings.
@@ -29,7 +36,7 @@ Write 2–3 sentences maximum. Plain prose only — no markdown, no headers, no 
 Never invent or guess names of people, places, or organizations not stated in the bill text.
 If a name is not in the text, refer to the role only (e.g. "the mayor", "an alder", "a city board member").
 
-{MILWAUKEE_CONTEXT}"""
+{build_milwaukee_context(mayor_name)}"""
 
 SUMMARY_USER = """Summarize this Milwaukee {matter_type} in plain English:
 

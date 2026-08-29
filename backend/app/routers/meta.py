@@ -111,6 +111,15 @@ def get_meta():
         session.close()
 
 
+@router.get("/api/health/pipeline")
+def get_pipeline_health():
+    """Poller/notification pipeline health -- same check that runs every 30min
+    on the scheduler (notifications/health_alerts.py) and emails the owner on
+    failure. Exposed here too for manual/external monitoring visibility."""
+    from notifications.health_alerts import check_pipeline_health
+    return check_pipeline_health()
+
+
 @router.get("/sitemap.xml")
 def sitemap():
     """XML sitemap for search engines. Mirrors the same visibility rules as the

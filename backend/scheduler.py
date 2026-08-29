@@ -49,6 +49,14 @@ def _send_weekly_digests():
         log.error("Weekly digest send failed: %s", e)
 
 
+def _check_pipeline_health():
+    from notifications.health_alerts import check_pipeline_health
+    try:
+        check_pipeline_health()
+    except Exception as e:
+        log.error("Pipeline health check itself failed: %s", e)
+
+
 def start_scheduler():
     global _scheduler
     if _scheduler and _scheduler.running:
@@ -58,8 +66,9 @@ def start_scheduler():
     # 7am Central matches the delivery time promised on the subscribe page.
     _scheduler.add_job(_send_daily_digests, "cron", hour=7, timezone="America/Chicago", id="send_daily_digests")
     _scheduler.add_job(_send_weekly_digests, "cron", day_of_week="mon", hour=7, timezone="America/Chicago", id="send_weekly_digests")
+    _scheduler.add_job(_check_pipeline_health, "interval", minutes=30, id="check_pipeline_health")
     _scheduler.start()
-    log.info("Scheduler started — poll + enrich every hour, digests daily/weekly at 7am CT")
+    log.info("Scheduler started — poll + enrich every hour, digests daily/weekly at 7am CT, pipeline health check every 30min")
 
 
 def stop_scheduler():

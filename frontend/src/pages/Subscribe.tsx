@@ -151,7 +151,8 @@ export default function Subscribe() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.detail || 'Subscription failed')
+        // 429s come from slowapi as {"error": ...}, not FastAPI's usual {"detail": ...}
+        throw new Error(data.detail || data.error || 'Subscription failed')
       }
       const data = await res.json()
       if (data.token) setToken(data.token)

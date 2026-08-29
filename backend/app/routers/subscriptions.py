@@ -9,8 +9,21 @@ from slowapi.util import get_remote_address
 from ..database import SessionLocal
 from ..models import Subscriber, SubscriberPreference
 
+
+def get_client_ip(request: Request) -> str:
+    # request.client.host is Railway's edge proxy, not the real client, and can
+    # vary per request -- defeats per-client rate limiting entirely. slowapi
+    # ships get_ipaddr() for exactly this, but its X-Forwarded-For lookup uses
+    # the header name with an underscore ("X_FORWARDED_FOR"), which never
+    # matches the real hyphenated HTTP header, so it silently never fires.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_client_ip)
 
 
 class SubscribeRequest(BaseModel):
